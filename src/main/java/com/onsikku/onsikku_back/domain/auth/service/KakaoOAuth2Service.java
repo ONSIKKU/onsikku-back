@@ -27,6 +27,9 @@ public class KakaoOAuth2Service {
   @Value("${oauth2.kakao.redirect-uri}")
   private String redirectUri;
 
+  @Value("${oauth2.kakao.authorization-grant-type}")
+  private String grantType;
+
   public KakaoMemberInfo getKakaoMemberInfoFromCode(String code) {
     String accessToken = getAccessToken(code);
 
@@ -61,7 +64,7 @@ public class KakaoOAuth2Service {
       headers.setContentType(MediaType.APPLICATION_FORM_URLENCODED);
 
       MultiValueMap<String, String> params = new LinkedMultiValueMap<>();
-      params.add("grant_type", "authorization_code");
+      params.add("grant_type", grantType);
       params.add("client_id", clientId);
       params.add("redirect_uri", redirectUri);
       params.add("code", code);
