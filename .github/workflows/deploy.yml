@@ -41,9 +41,16 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" > ~/app/.env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > ~/app/.env
+            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/app/.env
+            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ~/app/.env
+            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ~/app/.env
+            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ~/app/.env
+            echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> ~/app/.env
+            echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> ~/app/.env
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/app/.env
             echo "JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}" >> ~/app/.env
+            echo "SPRING_PORT=${{ secrets.SPRING_PORT }}" >> ~/app/.env
             chmod 600 ~/app/.env
 
       - name: 원격 서버에서 기존 JAR 종료 후 실행
@@ -60,11 +67,11 @@ jobs:
               echo "PID $PID 종료 시도"
               kill -9 $PID
               sleep 2
-            if ps -p $PID > /dev/null; then
-              echo "PID $PID 여전히 살아있음"
-            else
-              echo "PID $PID 종료 완료"
-            fi
+              if ps -p $PID > /dev/null; then
+                echo "PID $PID 여전히 살아있음"
+              else
+                echo "PID $PID 종료 완료"
+              fi
             else
               echo "실행 중인 프로세스 없음"
             fi
