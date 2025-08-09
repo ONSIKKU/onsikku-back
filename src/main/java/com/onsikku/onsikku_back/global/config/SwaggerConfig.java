@@ -31,13 +31,10 @@ public class SwaggerConfig {
         .servers(List.of(
                 new io.swagger.v3.oas.models.servers.Server()
                     .url("http://localhost:8080")
-                    .description("로컬 서버")
-//                new io.swagger.v3.oas.models.servers.Server()
-//                    .url("http://suh-project.synology.me:8086")
-//                    .description("테스트 서버"),
-//                new io.swagger.v3.oas.models.servers.Server()
-//                    .url("http://suh-project.synology.me:8085")
-//                    .description("메인 서버")
+                    .description("로컬 서버"),
+                new io.swagger.v3.oas.models.servers.Server()
+                    .url("https://api.onsikku.xyz")
+                    .description("메인 서버")
             )
         );
   }
