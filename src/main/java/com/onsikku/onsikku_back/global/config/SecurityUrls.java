@@ -8,6 +8,7 @@ public class SecurityUrls {
       "/swagger-ui/**",           // Swagger UI
       "/swagger-ui.html",         // Swagger UI HTML 진입점
       "/webjars/**",              // Swagger static 자원
+      "/actuator/health",          // 헬스 체크 엔드포인트
       "/docs/**"                  // 문서 관련 접근 허용
   };
 
