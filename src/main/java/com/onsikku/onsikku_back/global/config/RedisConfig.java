@@ -10,6 +10,9 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 
 @Configuration
 public class RedisConfig {
+  // RedisConnectionFactory Bean 등록 시 redis 서버의 호스트와 포트를 설정해야함
+  // 그렇지 않으면 기본값인 localhost:6379 및 비밀번호 없음으로 설정됨
+  // 팩토리 빈 등록하지 않아도 자동으로 등록됨
 
   // RedisTemplate<String, Object> Bean 등록
   @Bean
