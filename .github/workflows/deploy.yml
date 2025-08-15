@@ -83,6 +83,7 @@ jobs:
       - name: 배포 확인
         run: |
           for i in {1..10}; do
+          
             if curl -fs https://api.onsikku.xyz/actuator/health; then
               exit 0
             fi
