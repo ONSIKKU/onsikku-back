@@ -13,19 +13,18 @@ spring:
     properties:
       hibernate:
         format_sql: true
-  data:
-    redis:
-      host: ${REDIS_HOST}
-      port: ${REDIS_PORT}
-      password: ${REDIS_PASSWORD}
-      timeout: 6000
+
+  redis:
+    host: ${REDIS_HOST}
+    port: ${REDIS_PORT}
+    password: ${REDIS_PASSWORD}
+    timeout: 6000
 
 logging:
   level:
     root: INFO
     io.lettuce.core: DEBUG
     org.springframework.data.redis: DEBUG
-
 
 
 oauth2:
