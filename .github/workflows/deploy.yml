@@ -82,5 +82,11 @@ jobs:
 
       - name: 배포 확인
         run: |
-          sleep 5
-          curl -f https://api.onsikku.xyz/actuator/health || exit 1
+          for i in {1..10}; do
+            if curl -fs https://api.onsikku.xyz/actuator/health; then
+              exit 0
+            fi
+              echo "Waiting for server..."
+              sleep 5
+          done
+          exit 1
