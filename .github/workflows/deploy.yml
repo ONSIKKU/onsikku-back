@@ -79,15 +79,3 @@ jobs:
             echo ".env 환경변수 로드 후 애플리케이션 실행"
             export $(grep -v '^#' ~/app/.env | xargs) 
             nohup java -jar ~/app/onsikku-back-0.0.1-SNAPSHOT.jar --server.port=${{ secrets.SPRING_PORT }} > ~/app/app.log 2>&1 &
-
-      - name: 배포 확인
-        run: |
-          for i in {1..10}; do
-          
-            if curl -fs https://api.onsikku.xyz/actuator/health; then
-              exit 0
-            fi
-              echo "Waiting for server..."
-              sleep 5
-          done
-          exit 1
