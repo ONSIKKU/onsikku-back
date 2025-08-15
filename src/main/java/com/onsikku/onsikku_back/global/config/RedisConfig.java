@@ -11,12 +11,6 @@ import org.springframework.data.redis.serializer.StringRedisSerializer;
 @Configuration
 public class RedisConfig {
 
-  // 기본 Redis 연결 팩토리
-  @Bean
-  public RedisConnectionFactory redisConnectionFactory() {
-    return new LettuceConnectionFactory(); // host, port는 application.yml에서 자동 설정됨
-  }
-
   // RedisTemplate<String, Object> Bean 등록
   @Bean
   public RedisTemplate<String, Object> redisTemplate(RedisConnectionFactory redisConnectionFactory) {
