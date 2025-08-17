@@ -1,12 +1,11 @@
 package com.onsikku.onsikku_back.domain.auth.service;
 
-import com.onsikku.onsikku_back.domain.auth.domain.FamilyJoinMode;
+import com.onsikku.onsikku_back.domain.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.domain.auth.dto.KakaoLoginResponse;
 import com.onsikku.onsikku_back.domain.auth.dto.KakaoMemberInfo;
 import com.onsikku.onsikku_back.domain.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.member.domain.Role;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
@@ -22,6 +21,7 @@ import java.util.Optional;
 @Service
 @RequiredArgsConstructor
 public class AuthService {
+  private final InvitationCodeGenerator invitationCodeGenerator;
   private final KakaoOAuth2Service kakaoOAuth2Service;
   private final RegistrationTokenService registrationTokenService;
   private final MemberRepository memberRepository;
@@ -65,15 +65,7 @@ public class AuthService {
     Family family = getOrCreateFamily(request);
 
     // 새로운 회원 정보를 생성합니다.
-    Member member = Member.builder()
-        .kakaoId(memberInfo.kakaoId())
-        .familyRole(request.familyRole())
-        .birthDate(request.birthDate())
-        .gender(request.gender())
-        .profileImageUrl(request.profileImageUrl())
-        .family(family)
-        .role(Role.MEMBER)
-        .build();
+    Member member = Member.from(memberInfo, request, family);
 
     // 회원 정보를 저장하고, 등록 토큰을 삭제합니다.
     memberRepository.save(member);
@@ -88,22 +80,18 @@ public class AuthService {
   // ------------------------- private 메소드 -------------------------
 
   private Family getOrCreateFamily(KakaoSignupRequest request) {
-    // 가족 생성 모드인 경우, 새로운 가족을 생성합니다.
-    if (request.familyMode().equals(FamilyJoinMode.CREATE.toString())) {
+    // 가족 생성 모드인 경우, 새로운 가족을 생성 후 반환합니다.
+    if (request.familyMode().equals(FamilyMode.CREATE)) {
       return familyRepository.save(
           Family.builder()
               .familyName(request.familyName())
-              .invitationCode(InvitationCodeGenerator.generate())
+              .invitationCode(invitationCodeGenerator.generate())
               .grandparentType(request.grandParentType())
               .build()
       );
     }
-    // 가족 초대 모드인 경우, 가족 이름으로 가족을 조회합니다.
-    else if (request.familyMode().equals(FamilyJoinMode.JOIN.toString())) {
-      return familyRepository.findByInvitationCode(request.familyInvitationCode())
-          .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
-    } else {
-      throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MODE);
-    }
+    // 가족 초대 모드인 경우, 가족 초대 코드로 가족 조회 후 반환합니다.
+    return familyRepository.findByInvitationCode(request.familyInvitationCode())
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
   }
 }

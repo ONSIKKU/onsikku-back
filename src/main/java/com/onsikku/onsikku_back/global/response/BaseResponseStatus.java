@@ -28,6 +28,8 @@ public enum BaseResponseStatus {
     INVALID_FAMILY_MODE(HttpStatus.NOT_FOUND, "가족 생성/참여 모드가 올바르지 않습니다."),
     ALREADY_REGISTERED(HttpStatus.CONFLICT, "이미 가입된 회원입니다."),
     MEMBER_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 회원입니다."),
+    INVITATION_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "초대 코드 생성에 실패했습니다. 잠시 후 다시 시도해주세요."),
+    INVALID_GENERATED_INVITATION_CODE(HttpStatus.INTERNAL_SERVER_ERROR, "생성된 초대코드가 8자리 대문자+숫자를 만족하지 않습니다."),
 
     // 질문/답변 관련
     INVALID_MEMBER(HttpStatus.UNAUTHORIZED, "자신에게 할당된 질문만 답변할 수 있습니다."),

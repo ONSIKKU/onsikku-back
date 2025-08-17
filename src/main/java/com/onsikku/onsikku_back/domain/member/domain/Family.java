@@ -2,6 +2,8 @@ package com.onsikku.onsikku_back.domain.member.domain;
 
 
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
+import com.onsikku.onsikku_back.global.exception.BaseException;
+import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -28,4 +30,11 @@ public class Family extends BaseEntity {
 
     @Enumerated(EnumType.STRING)
     private GrandParentType grandparentType;
+
+    public void changeInvitationCode(String newCode) {
+        if (!newCode.matches("^[A-Z0-9]{8}$")) {
+            throw new BaseException(BaseResponseStatus.INVALID_GENERATED_INVITATION_CODE);
+        }
+        this.invitationCode = newCode;
+    }
 }
