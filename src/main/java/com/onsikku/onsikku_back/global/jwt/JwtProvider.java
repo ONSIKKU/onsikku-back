@@ -44,18 +44,23 @@ public class JwtProvider {
     public String generateTokenFromMember(Member member) {
         UUID memberId = member.getId();
         String role = member.getRole().name();
-        String relation = member.getRelation();
+        String familyRole = member.getFamilyRole().toString();
 
         Date now = new Date();
         Date expiryDate = new Date(now.getTime() + jwtExpirationInMs);
 
         return Jwts.builder()
+            .setHeaderParam("typ", "JWT")
+            .setIssuer("onsikku-auth")                 // iss
+            .setAudience("onsikku-api")                // aud
+            .setId(UUID.randomUUID().toString())       // jti
             .setSubject(memberId.toString()) // UUID를 문자열로 변환하여 subject로 설정
             .setIssuedAt(now)
+            .setNotBefore(now)                         // nbf
             .setExpiration(expiryDate)
             .addClaims(Map.of(
                 "role", role,
-                "relation", relation
+                "familyRole", familyRole
             ))
             .signWith(key, SignatureAlgorithm.HS256)
             .compact();
