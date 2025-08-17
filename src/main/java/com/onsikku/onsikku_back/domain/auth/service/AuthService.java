@@ -67,7 +67,9 @@ public class AuthService {
     // 새로운 회원 정보를 생성합니다.
     Member member = Member.builder()
         .kakaoId(memberInfo.kakaoId())
-        .relation(request.relation())
+        .familyRole(request.familyRole())
+        .birthDate(request.birthDate())
+        .gender(request.gender())
         .profileImageUrl(request.profileImageUrl())
         .family(family)
         .role(Role.MEMBER)
@@ -92,6 +94,7 @@ public class AuthService {
           Family.builder()
               .familyName(request.familyName())
               .invitationCode(InvitationCodeGenerator.generate())
+              .grandparentType(request.grandParentType())
               .build()
       );
     }

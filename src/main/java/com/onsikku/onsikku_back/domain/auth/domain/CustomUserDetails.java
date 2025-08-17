@@ -23,7 +23,7 @@ public class CustomUserDetails implements UserDetails {
 
     @Override
     public String getUsername() {
-        return member.getRelation();
+        return member.getFamilyRole().toString();
     }
 
     @Override

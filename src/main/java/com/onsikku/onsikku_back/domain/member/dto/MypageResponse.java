@@ -1,6 +1,8 @@
 package com.onsikku.onsikku_back.domain.member.dto;
 
 
+import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;
+import com.onsikku.onsikku_back.domain.member.domain.Gender;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.domain.Role;
 import jakarta.persistence.EnumType;
@@ -10,6 +12,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Builder
@@ -25,7 +28,9 @@ public class MypageResponse {
   private Role role;
   private String kakaoId;
   private String profileImageUrl;
-  private String relation;
+  private FamilyRole familyRole;
+  private LocalDate birthDate;
+  private Gender gender;
 
   public static MypageResponse from(Member member) {
     return MypageResponse.builder()
@@ -36,7 +41,9 @@ public class MypageResponse {
         .role(member.getRole())
         .kakaoId(member.getKakaoId())
         .profileImageUrl(member.getProfileImageUrl())
-        .relation(member.getRelation())
+        .familyRole(member.getFamilyRole())
+        .birthDate(member.getBirthDate())
+        .gender(member.getGender())
         .build();
   }
 }

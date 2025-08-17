@@ -8,6 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDate;
 import java.util.UUID;
 
 @Entity
@@ -27,7 +28,13 @@ public class Member extends BaseEntity {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    private String kakaoId;
+    private Gender gender;
+
+    private LocalDate birthDate;
+
+    private FamilyRole familyRole;    // 가족 내 관계 (예: 엄마, 첫째 아들 등)
+
     private String profileImageUrl;
-    private String relation;    // 가족 내 관계 (예: 엄마, 첫째 아들 등)
+
+    private String kakaoId;
 }

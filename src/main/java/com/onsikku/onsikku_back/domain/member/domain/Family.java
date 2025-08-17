@@ -26,5 +26,6 @@ public class Family extends BaseEntity {
     @Column(nullable = false, unique = true, length = 8)
     private String invitationCode;
 
-    //private LocalDateTime weddingDate;
+    @Enumerated(EnumType.STRING)
+    private GrandParentType grandparentType;
 }

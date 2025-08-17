@@ -45,7 +45,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // SecurityContext 설정
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("Member authenticated: role: {}, relation: {}", claims.get("role"), claims.get("relation"));
+            log.info("Member authenticated: role: {}, familyRole: {}", claims.get("role"), claims.get("familyRole"));
         } catch (BaseException ex) {
             log.warn("BaseException occurred during JWT auth: {}", ex.getStatus().getMessage());
             SecurityContextHolder.clearContext(); // 인증 실패 시 SecurityContext 초기화

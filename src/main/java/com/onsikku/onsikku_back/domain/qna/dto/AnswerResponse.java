@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.qna.dto;
 
 
+import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;
 import com.onsikku.onsikku_back.domain.qna.domain.Answer;
 import lombok.Builder;
 import lombok.Getter;
@@ -12,11 +13,11 @@ import lombok.RequiredArgsConstructor;
 public class AnswerResponse {
     private final Long id;
     private final String content;
-    private final String relation;
+    private final FamilyRole familyRole;
 
     public static AnswerResponse from(Answer answer) {
         return AnswerResponse.builder()
-                .relation(answer.getMember().getRelation())
+                .familyRole(answer.getMember().getFamilyRole())
                 .content(answer.getContent())
                 .build();
     }
