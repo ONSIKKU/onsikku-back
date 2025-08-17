@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.domain.auth.dto;
 
+import com.onsikku.onsikku_back.domain.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;
 import com.onsikku.onsikku_back.domain.member.domain.Gender;
 import com.onsikku.onsikku_back.domain.member.domain.GrandParentType;
@@ -35,5 +36,5 @@ public record KakaoSignupRequest(
     String familyInvitationCode,
 
     @Schema(description = "가족 모드 (CREATE 또는 JOIN)", example = "CREATE")
-    String familyMode
+    FamilyMode familyMode
 ) {}
