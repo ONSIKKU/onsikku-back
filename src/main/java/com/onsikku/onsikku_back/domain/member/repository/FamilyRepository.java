@@ -9,4 +9,5 @@ import java.util.UUID;
 
 public interface FamilyRepository extends JpaRepository<Family, UUID>{
     Optional<Family> findByInvitationCode(String invitationCode);
+    boolean existsByInvitationCode(String invitationCode);
 }
