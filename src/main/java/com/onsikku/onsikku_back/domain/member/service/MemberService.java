@@ -9,6 +9,7 @@ import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
@@ -51,6 +52,25 @@ public class MemberService {
         }
 
         return MypageResponse.from(member);
+    }
+
+    @Transactional
+    public void deleteMember(Member member, HttpServletRequest httpServletRequest) {
+        // TODO : 액세스 토큰 블랙리스트 처리
+        String accessToken = httpServletRequest.getHeader("Authorization");
+        if (accessToken != null && accessToken.startsWith("Bearer ")) {
+            accessToken = accessToken.substring(7);
+        }
+        if (accessToken != null && !accessToken.isEmpty()) {
+            // 블랙리스트에 추가하는 로직 (예: Redis 사용)
+            // redisTemplate.opsForValue().set("BL:" + accessToken, "blacklisted", 30, TimeUnit.DAYS);
+            log.info("액세스 토큰 블랙리스트 처리 완료: {}", accessToken);
+        }
+        // TODO : 회원이 생성한 답변 softDelete 처리
+
+        // TODO : 회원 삭제 softDelete 처리
+        memberRepository.deleteById(member.getId());
+        log.info("회원 삭제 완료");
     }
 
     private void regenerateUniqueInvitationCode(Family family) {

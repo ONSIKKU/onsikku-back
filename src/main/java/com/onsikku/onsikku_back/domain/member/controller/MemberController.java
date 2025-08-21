@@ -6,7 +6,9 @@ import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.service.MemberService;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
+import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.swagger.v3.oas.annotations.Operation;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
@@ -48,5 +50,20 @@ public class MemberController {
   public BaseResponse<MypageResponse> updateMyPage(@RequestBody MypageRequest request,
                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
     return new BaseResponse<>(memberService.updateMemberById(request, customUserDetails.getMember().getId()));
+  }
+
+  @PostMapping(value = "/delete")
+  @Operation(
+      summary = "회원 탈퇴",
+      description = """
+    회원 탈퇴를 진행합니다. 회원 정보 및 회원의 답변들은 softDelete 처리되며, 그 외 데이터는 모두 hardDelete 처리됩니다.
+    ## 인증(JWT): **필요**
+    """
+  )
+  public BaseResponse<Void> deleteMember(
+      @AuthenticationPrincipal CustomUserDetails customUserDetails,
+      HttpServletRequest httpServletRequest) {
+    memberService.deleteMember(customUserDetails.getMember(), httpServletRequest);
+    return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 }
