@@ -32,6 +32,9 @@ dependencies {
 	// swagger
 	implementation 'org.springdoc:springdoc-openapi-starter-webmvc-ui:2.8.3'
 
+	// Hibernate Types (JSON, Array 등 Postgres 확장 타입 지원)
+	implementation "com.vladmihalcea:hibernate-types-60:2.21.1"
+
 	// OpenAPI Generator
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 

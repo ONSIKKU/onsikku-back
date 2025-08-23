@@ -9,20 +9,18 @@ import com.onsikku.onsikku_back.domain.qna.repository.AnswerJpaRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
 import java.util.ArrayList;
 import java.util.List;
 
 @Service
+@RequiredArgsConstructor
 public class AnswerService {
     private final AnswerJpaRepository answerRepository;
     private final QnaServiceHelper qnaServiceHelper;
 
-    public AnswerService(AnswerJpaRepository answerRepository, QnaServiceHelper qnaServiceHelper) {
-        this.answerRepository = answerRepository;
-        this.qnaServiceHelper = qnaServiceHelper;
-    }
 
     public Answer createAnswer(AnswerRequest request, Member member) {
         // Helper 메서드
