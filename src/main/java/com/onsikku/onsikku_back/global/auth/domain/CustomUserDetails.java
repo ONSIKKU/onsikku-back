@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.auth.domain;
+package com.onsikku.onsikku_back.global.auth.domain;
 
 
 import com.onsikku.onsikku_back.domain.member.domain.Member;

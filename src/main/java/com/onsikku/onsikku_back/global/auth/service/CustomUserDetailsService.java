@@ -1,6 +1,6 @@
-package com.onsikku.onsikku_back.domain.auth.service;
+package com.onsikku.onsikku_back.global.auth.service;
 
-import com.onsikku.onsikku_back.domain.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import lombok.RequiredArgsConstructor;

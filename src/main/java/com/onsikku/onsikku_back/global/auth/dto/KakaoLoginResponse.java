@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.auth.dto;
+package com.onsikku.onsikku_back.global.auth.dto;
 
 import lombok.AllArgsConstructor;
 import lombok.Builder;

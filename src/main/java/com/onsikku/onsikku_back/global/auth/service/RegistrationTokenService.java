@@ -1,6 +1,6 @@
-package com.onsikku.onsikku_back.domain.auth.service;
+package com.onsikku.onsikku_back.global.auth.service;
 
-import com.onsikku.onsikku_back.domain.auth.dto.KakaoMemberInfo;
+import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.redis.RedisService;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;

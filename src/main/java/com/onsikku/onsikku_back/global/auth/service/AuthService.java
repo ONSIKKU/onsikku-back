@@ -1,9 +1,9 @@
-package com.onsikku.onsikku_back.domain.auth.service;
+package com.onsikku.onsikku_back.global.auth.service;
 
-import com.onsikku.onsikku_back.domain.auth.domain.FamilyMode;
-import com.onsikku.onsikku_back.domain.auth.dto.KakaoLoginResponse;
-import com.onsikku.onsikku_back.domain.auth.dto.KakaoMemberInfo;
-import com.onsikku.onsikku_back.domain.auth.dto.KakaoSignupRequest;
+import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
+import com.onsikku.onsikku_back.global.auth.dto.KakaoLoginResponse;
+import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
+import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;

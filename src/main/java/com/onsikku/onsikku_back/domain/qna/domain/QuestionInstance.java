@@ -1,10 +1,9 @@
-package com.onsikku.onsikku_back.domain.ai.entity;
+package com.onsikku.onsikku_back.domain.qna.domain;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.qna.domain.QuestionTemplate;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -33,7 +32,6 @@ public class QuestionInstance {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "family_id", nullable = false)
   private Family family;
@@ -41,16 +39,16 @@ public class QuestionInstance {
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "template_id")
-  private QuestionTemplate template; // optional
+  private QuestionTemplate template;  // optional
 
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "subject_member_id")
-  private Member subject; // optional
+  private Member subject;             // 누군가한테 특화돼있는 질문일 수도 있다
 
 
   @Column(columnDefinition = "text", nullable = false)
-  private String content; // snapshot
+  private String content;
 
 
   @Column(name = "planned_date", nullable = false)

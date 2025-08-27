@@ -1,6 +1,6 @@
-package com.onsikku.onsikku_back.domain.auth.dto;
+package com.onsikku.onsikku_back.global.auth.dto;
 
-import com.onsikku.onsikku_back.domain.auth.domain.FamilyMode;
+import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;
 import com.onsikku.onsikku_back.domain.member.domain.Gender;
 import com.onsikku.onsikku_back.domain.member.domain.GrandParentType;
