@@ -1,6 +1,6 @@
 package com.onsikku.onsikku_back.domain.qna.controller;
 
-import com.onsikku.onsikku_back.domain.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.domain.qna.dto.AnswerRequest;
 import com.onsikku.onsikku_back.domain.qna.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.qna.domain.Answer;

@@ -1,7 +1,7 @@
 package com.onsikku.onsikku_back.global.jwt;
 
-import com.onsikku.onsikku_back.domain.auth.domain.CustomUserDetails;
-import com.onsikku.onsikku_back.domain.auth.service.CustomUserDetailsService;
+import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.service.CustomUserDetailsService;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;

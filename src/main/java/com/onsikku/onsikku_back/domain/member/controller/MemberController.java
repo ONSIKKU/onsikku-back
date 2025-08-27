@@ -1,7 +1,7 @@
 package com.onsikku.onsikku_back.domain.member.controller;
 
 
-import com.onsikku.onsikku_back.domain.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.service.MemberService;
