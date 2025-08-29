@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.ai.entity;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.onsikku.onsikku_back.domain.qna.domain.Answer;
+import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -9,7 +10,6 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
-import java.time.OffsetDateTime;
 import java.util.UUID;
 
 @Getter
@@ -22,7 +22,7 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_answer_analysis_answer", columnList = "answer_id")
     })
-public class AnswerAnalysis {
+public class AnswerAnalysis extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
@@ -67,12 +67,4 @@ public class AnswerAnalysis {
   @Type(JsonBinaryType.class)
   @Column(name = "scores", columnDefinition = "jsonb")
   private JsonNode scores;
-
-
-  @Column(name = "created_at", nullable = false)
-  private OffsetDateTime createdAt;
-
-
-  @PrePersist
-  void prePersist() { this.createdAt = OffsetDateTime.now(); }
 }

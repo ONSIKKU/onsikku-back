@@ -2,9 +2,10 @@ package com.onsikku.onsikku_back.domain.ai.controller;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onsikku.onsikku_back.domain.ai.entity.*;
 import com.onsikku.onsikku_back.domain.ai.service.AiQuestionService;
 import com.onsikku.onsikku_back.domain.member.domain.*;
+import com.onsikku.onsikku_back.domain.question.domain.GeneratedBy;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 

@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.ai.entity;
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import jakarta.persistence.*;
@@ -19,7 +20,7 @@ import java.util.*;
 @NoArgsConstructor
 @Entity
 @Table(name = "member_profile")
-public class MemberProfile {
+public class MemberProfile extends BaseEntity {
   @Id
   @Column(name = "member_id", nullable = false)
   private UUID memberId; // 0..1 with Member
@@ -43,12 +44,4 @@ public class MemberProfile {
 
   @Column(name = "last_ai_update_at")
   private OffsetDateTime lastAiUpdateAt;
-
-
-  @Column(name = "updated_at")
-  private OffsetDateTime updatedAt;
-
-
-  @PrePersist @PreUpdate
-  void touch() { this.updatedAt = OffsetDateTime.now(); }
 }

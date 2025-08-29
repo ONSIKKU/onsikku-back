@@ -3,11 +3,12 @@ package com.onsikku.onsikku_back.domain.ai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onsikku.onsikku_back.domain.ai.entity.*;
 import com.onsikku.onsikku_back.domain.ai.model.*;
 import com.onsikku.onsikku_back.domain.ai.repository.*;
+import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.domain.answer.domain.AnswerType;
 import com.onsikku.onsikku_back.domain.member.domain.*;
-import com.onsikku.onsikku_back.domain.ai.entity.GeneratedBy;
+import com.onsikku.onsikku_back.domain.question.domain.*;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
@@ -55,7 +56,7 @@ public class AiQuestionService {
           return questionInstanceRepository.save(qi);
         });
   }
-  /** Assign to recipients (idempotent via unique constraint) */
+
   @Transactional
   public List<QuestionAssignment> assignToRecipients(QuestionInstance instance, List<Member> recipients, OffsetDateTime due) {
     List<QuestionAssignment> result = new ArrayList<>();
@@ -71,7 +72,7 @@ public class AiQuestionService {
     }
     return result;
   }
-  /** Submit answer with validation mirrored from entity prePersist */
+
   @Transactional
   public Answer submitAnswer(QuestionAssignment assignment, Member author, AnswerType type, JsonNode content) {
     Answer answer = Answer.builder()
