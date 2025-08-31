@@ -19,28 +19,15 @@ import java.util.*;
 @RequiredArgsConstructor
 public class AiQuestionController {
   private final AiQuestionService aiQuestionService;
-  private final ObjectMapper om;
 
 
+  // 분석에 필요한 가족별 질문 및 답변 반환 API??
   @PostMapping("/instances")
   public UUID upsertInstance(@RequestParam UUID familyId,
                              @RequestParam String content,
                              @RequestParam String plannedDate) {
-  // Fetch Family/Member from your existing services/repos (omitted here)
-    Family family = new Family();
-    family.setId(familyId);
-    QuestionInstance questionInstance = aiQuestionService.upsertDailyInstance(
-        family,
-        LocalDate.parse(plannedDate),
-        content,
-        GeneratedBy.MANUAL,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null,
-        null);
-    return questionInstance.getId();
+
+    return null;
   }
+
 }

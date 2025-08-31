@@ -28,7 +28,7 @@ public class MemberService {
 
     public MypageResponse getMemberById(UUID memberId) {
         return MypageResponse.from(
-            memberRepository.findById(memberId)
+            memberRepository.findMemberWithFamily(memberId)
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND))
         );
     }

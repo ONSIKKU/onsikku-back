@@ -1,8 +1,37 @@
 package com.onsikku.onsikku_back.domain.member.service;
 
 
+import com.onsikku.onsikku_back.domain.member.domain.Family;
+import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
+import com.onsikku.onsikku_back.global.exception.BaseException;
+import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
+import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
+import java.time.LocalDate;
+import java.util.UUID;
+
 @Service
+@RequiredArgsConstructor
 public class FamilyService {
+
+  private final FamilyRepository familyRepository;
+
+  public void getFamilyHome(Member member, UUID familyId, LocalDate date) {
+    Family family = validateFamilyMember(familyId, member);
+    // 오늘의 주인공
+    // 오늘의 질문 + 주인공 답변 여부
+    // 답변 시 답변 정보
+
+  }
+
+
+  private Family validateFamilyMember(UUID familyId, Member member) {
+    if (!familyId.equals(member.getFamily().getId())) {
+      throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
+    }
+    return familyRepository.findById(familyId)
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.FAMILY_NOT_FOUND));
+  }
 }

@@ -31,6 +31,10 @@ public enum BaseResponseStatus {
     INVITATION_CODE_GENERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "초대 코드 생성에 실패했습니다. 잠시 후 다시 시도해주세요."),
     INVALID_GENERATED_INVITATION_CODE(HttpStatus.INTERNAL_SERVER_ERROR, "생성된 초대코드가 8자리 대문자+숫자를 만족하지 않습니다."),
 
+    // 가족 관련
+    FAMILY_NOT_FOUND(HttpStatus.NOT_FOUND, "존재하지 않는 가족입니다."),
+    INVALID_FAMILY_MEMBER(HttpStatus.UNAUTHORIZED, "해당 가족에 속한 회원이 아닙니다."),
+
     // 질문/답변 관련
     INVALID_MEMBER(HttpStatus.UNAUTHORIZED, "자신에게 할당된 질문만 답변할 수 있습니다."),
     INVALID_STORY(HttpStatus.BAD_REQUEST, "존재하지 않는 스토리입니다."),
