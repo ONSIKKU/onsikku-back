@@ -13,7 +13,7 @@ import lombok.NoArgsConstructor;
 import org.hibernate.annotations.Type;
 
 import java.time.LocalDate;
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 @Getter
 @Builder
@@ -88,17 +88,17 @@ public class QuestionInstance {
 
 
   @Column(name = "generated_at")
-  private OffsetDateTime generatedAt;
+  private LocalDateTime generatedAt;
 
 
   @Column(name = "scheduled_at")
-  private OffsetDateTime scheduledAt;
+  private LocalDateTime scheduledAt;
 
 
   @Column(name = "sent_at")
-  private OffsetDateTime sentAt;
+  private LocalDateTime sentAt;
 
 
   @Column(name = "canceled_at")
-  private OffsetDateTime canceledAt;
+  private LocalDateTime canceledAt;
 }

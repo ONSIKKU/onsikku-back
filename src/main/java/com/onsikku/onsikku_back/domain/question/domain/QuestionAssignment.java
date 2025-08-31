@@ -8,7 +8,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.OffsetDateTime;
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Getter
@@ -34,28 +34,28 @@ public class QuestionAssignment {
 
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "recipient_member_id", nullable = false)
-  private Member recipient;
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
 
   @Column(name = "due_at")
-  private OffsetDateTime dueAt;
+  private LocalDateTime dueAt;
 
 
   @Column(name = "sent_at")
-  private OffsetDateTime sentAt;
+  private LocalDateTime sentAt;
 
 
   @Column(name = "read_at")
-  private OffsetDateTime readAt;
+  private LocalDateTime readAt;
 
 
   @Column(name = "answered_at")
-  private OffsetDateTime answeredAt;
+  private LocalDateTime answeredAt;
 
 
   @Column(name = "expired_at")
-  private OffsetDateTime expiredAt;
+  private LocalDateTime expiredAt;
 
 
   @Enumerated(EnumType.STRING)
@@ -68,7 +68,7 @@ public class QuestionAssignment {
 
 
   @Column(name = "last_reminded_at")
-  private OffsetDateTime lastRemindedAt;
+  private LocalDateTime lastRemindedAt;
 
 
   @PrePersist
