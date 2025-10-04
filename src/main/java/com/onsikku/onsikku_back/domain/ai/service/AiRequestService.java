@@ -1,16 +1,19 @@
 package com.onsikku.onsikku_back.domain.ai.service;
 
-
+import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onsikku.onsikku_back.domain.ai.dto.*;
-import com.onsikku.onsikku_back.domain.ai.entity.AnswerAnalysis;
+import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.global.exception.BaseException;
+import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.*;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.http.MediaType;
 import org.springframework.stereotype.Service;
-import org.springframework.web.client.HttpStatusCodeException;
-import org.springframework.web.client.RestTemplate;
+import org.springframework.web.client.HttpClientErrorException;
+import org.springframework.web.client.RestClient;
 
 import java.util.List;
 import java.util.Map;
@@ -18,37 +21,40 @@ import java.util.UUID;
 import java.util.stream.Collectors;
 
 @Service
+@Slf4j
 @RequiredArgsConstructor
 public class AiRequestService {
-  private final RestTemplate restTemplate = new RestTemplate();
-  // TODO : application.yml 에서 관리 고려, 요청별 상수 다르게 해야함
-  private final String AI_SERVER_URL = "https://editor.swagger.io/api/v1/questions/assign";
+
+  private final RestClient restClient;
   private final AnswerAnalysisRepository answerAnalysisRepository;
-  private final ObjectMapper objectMapper = new ObjectMapper();
+  private final ObjectMapper objectMapper;
 
   /**
-   *
-   * @param prompt
-   * @return
+   * AI 서버에 질문 생성을 요청하고, 응답을 DTO 객체로 반환합니다.
    */
-  // AI 에게 질문 생성 요청
-  // 한 가족씩, 멤버당 두개의 질문을 생성
-  // response : ai 서버한테 받은 결과 반환
-  public String requestQuestionGeneration(String prompt) {
-    // AI 서버에 질문 생성 요청 보내기
-    // 예시: HTTP 클라이언트를 사용하여 AI 서버에 요청을 보냄
-    // String aiResponse = httpClient.post("http://ai-server/generate-question", prompt);
+  public AiQuestionResponse requestQuestionGeneration(AiQuestionRequest requestDto) {
+    log.info("AI 서버에 질문 생성을 요청합니다. request: {}", requestDto);
 
-    // 여기서는 예시로 고정된 응답을 반환
-    String aiResponse = "Generated question based on informations: ";
-
-    return null;
+    try {
+      return restClient.post()
+          .uri("/api/v1/questions/api")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(requestDto)
+          .retrieve()
+          .body(AiQuestionResponse.class);
+    } catch (HttpClientErrorException e) {
+      log.error("AI 서버 요청 중 클라이언트 오류가 발생했습니다. Status: {}, Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+    } catch (Exception e) {
+      log.error("AI 서버 요청 중 알 수 없는 오류가 발생했습니다.", e);
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+    }
   }
 
-
-  // AI 에게 멤버 할당 요청 - 매일
-  public String requestTodayMember(UUID familyId, Map<UUID, Integer> memberAssignedCounts, int pickCount) {
-    // DTO 변환
+  /**
+   * AI에게 오늘의 멤버 할당을 요청합니다.
+   */
+  public MemberAssignResponse requestTodayMember(UUID familyId, Map<UUID, Integer> memberAssignedCounts, int pickCount) {
     List<MemberInfo> members = memberAssignedCounts.entrySet().stream()
         .map(entry -> new MemberInfo(entry.getKey(), entry.getValue()))
         .collect(Collectors.toList());
@@ -60,55 +66,52 @@ public class AiRequestService {
         .build();
 
     try {
-      // 요청 헤더 설정 및 AI 서버에 POST 요청 보내기
-      HttpHeaders headers = new HttpHeaders();
-      headers.setContentType(MediaType.APPLICATION_JSON);
-      ResponseEntity<String> response = restTemplate.exchange(
-          AI_SERVER_URL,
-          HttpMethod.POST,
-          new HttpEntity<>(requestDto, headers),
-          String.class
-      );
-      return response.getBody();
-    } catch (HttpStatusCodeException ex) {
-      if (ex.getStatusCode().value() == 422) {
-        throw new IllegalArgumentException(
-            "AI 서버 Validation Error: " + ex.getResponseBodyAsString(), ex
-        );
+      return restClient.post()
+          .uri("/api/v1/questions/assign")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(requestDto)
+          .retrieve()
+          .body(MemberAssignResponse.class);
+    } catch (HttpClientErrorException e) {
+      if (e.getStatusCode().value() == 422) {
+        log.error("AI 서버 Validation Error: {}", e.getResponseBodyAsString());
+        throw new BaseException(BaseResponseStatus.AI_SERVER_VALIDATION_ERROR);
       }
-      throw ex;
+      log.error("AI 서버 요청 중 클라이언트 오류가 발생했습니다.", e);
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
     }
   }
 
-
-  // 가족 멤버가 질문에 답변 시, AI는 답변이 온 줄 모름
-  // 그러므로 AI 서버 API에 답변 분석 요청
-  // 반환값 멤버간 친밀도 / 답변 분석 엔티티 저장하기
+  /**
+   * AI 서버에 답변 분석을 요청합니다.
+   */
   public AnswerAnalysis analyzeAnswer(Answer answer, AnswerAnalysisRequest request) {
-    // HTTP 요청 생성
-    HttpHeaders headers = new HttpHeaders();
-    headers.setContentType(MediaType.APPLICATION_JSON);
+    log.info("AI 서버에 답변 분석을 요청합니다. Answer ID: {}", answer.getId());
 
-    // AI 서버 호출
-    AnswerAnalysisResponse response = restTemplate.postForObject(AI_SERVER_URL, new HttpEntity<>(request, headers), AnswerAnalysisResponse.class);
+    try {
+      AnswerAnalysisResponse response = restClient.post()
+          .uri("/api/v1/analysis/answer/api")
+          .contentType(MediaType.APPLICATION_JSON)
+          .body(request)
+          .retrieve()
+          .body(AnswerAnalysisResponse.class);
 
-    if (response == null) {
-      throw new IllegalStateException("AI 서버 응답이 null 입니다.");
+      if (response == null) {
+        log.error("AI 서버 응답이 비어있습니다.");
+        throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+      }
+
+      JsonNode categories = objectMapper.valueToTree(response.getCategories());
+      JsonNode scores = objectMapper.valueToTree(response.getScores());
+
+      AnswerAnalysis analysis = AnswerAnalysis.createFromAIResponse(answer, response, categories, scores);
+      return answerAnalysisRepository.save(analysis);
+    } catch (HttpClientErrorException e) {
+      log.error("AI 서버 답변 분석 요청 중 클라이언트 오류가 발생했습니다.", e);
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+    } catch (Exception e) {
+      log.error("AI 서버 답변 분석 처리 중 오류가 발생했습니다.", e);
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
     }
-
-    // 결과 엔티티로 변환 후 저장
-    AnswerAnalysis analysis = AnswerAnalysis.builder()
-        .answer(answer)
-        .analysisModel("default") // 필요시 응답값에 맞춰 수정
-        .analysisParameters(response.getAnalysisParameters())
-        .analysisPrompt(response.getAnalysisPrompt())
-        .analysisRaw(response.getAnalysisRaw())
-        .analysisVersion(response.getAnalysisVersion())
-        .summary(response.getSummary())
-        .categories(objectMapper.valueToTree(response.getCategories()))
-        .scores(objectMapper.valueToTree(response.getScores()))
-        .build();
-
-    return answerAnalysisRepository.save(analysis);
   }
 }

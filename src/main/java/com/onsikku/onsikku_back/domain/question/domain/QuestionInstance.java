@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.question.domain;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.ai.dto.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -36,69 +37,72 @@ public class QuestionInstance {
   @JoinColumn(name = "family_id", nullable = false)
   private Family family;
 
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "template_id", nullable = true)
   private QuestionTemplate template;  // optional
 
-
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "subject_member_id", nullable = true)
-  private Member subject;             // 누군가한테 특화돼있는 질문일 수도 있다
-
+  private Member subject;             // 누군가한테 특화돼있는 질문일 경우 optional
 
   @Column(columnDefinition = "text", nullable = false)
   private String content;
 
-
   @Column(name = "planned_date", nullable = false)
   private LocalDate plannedDate;
-
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false)
   private InstanceStatus status;
 
-
   @Enumerated(EnumType.STRING)
   @Column(name = "generated_by")
   private GeneratedBy generatedBy; // nullable
 
-
   @Column(name = "generation_model")
   private String generationModel;
-
 
   @Type(JsonBinaryType.class)
   @Column(name = "generation_parameters", columnDefinition = "jsonb")
   private JsonNode generationParameters;
 
-
   @Column(name = "generation_prompt", columnDefinition = "text")
   private String generationPrompt;
-
 
   @Type(JsonBinaryType.class)
   @Column(name = "generation_metadata", columnDefinition = "jsonb")
   private JsonNode generationMetadata;
 
-
   @Column(name = "generation_confidence")
   private Float generationConfidence;
-
 
   @Column(name = "generated_at")
   private LocalDateTime generatedAt;
 
-
   @Column(name = "scheduled_at")
   private LocalDateTime scheduledAt;
-
 
   @Column(name = "sent_at")
   private LocalDateTime sentAt;
 
-
   @Column(name = "canceled_at")
   private LocalDateTime canceledAt;
+
+  public static QuestionInstance generateByAI(AiQuestionResponse response, Family family) {
+    QuestionInstance instance = new QuestionInstance();
+    instance.family = family;
+    instance.content = response.getContent();
+    instance.plannedDate = response.getPlannedDate();
+    instance.generatedAt = response.getGeneratedAt();
+    instance.generationMetadata = response.getGenerationMetadata();
+    instance.generationModel = response.getGenerationModel();
+    instance.generationPrompt = response.getGenerationPrompt();
+    instance.generationParameters = response.getGenerationParameters();
+    instance.generationConfidence = response.getGenerationConfidence();
+    // TODO: Enum.valueOf() 사용 시 발생할 수 있는 IllegalArgumentException에 대한 예외처리 로직 추가 (try-catch 또는 유틸리티 메서드)
+    instance.generatedBy = GeneratedBy.valueOf(response.getGeneratedBy().toUpperCase());
+    instance.status = InstanceStatus.valueOf(response.getStatus().toUpperCase());
+    // instance.subject = ... ; // 필요시 subject도 파라미터로 받아 설정
+    return instance;
+  }
 }

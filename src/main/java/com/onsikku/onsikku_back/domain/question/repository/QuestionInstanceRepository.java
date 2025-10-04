@@ -11,17 +11,15 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface QuestionInstanceRepository extends JpaRepository<QuestionInstanceRepository, Long> {
+public interface QuestionInstanceRepository extends JpaRepository<QuestionInstance, Long> {
   /**
    * 특정 가족의 특정 기간 동안의 모든 질문 인스턴스를 조회합니다.
-   * N+1 문제를 방지하기 위해 subject(Member)를 fetch join 합니다.
    * @param familyId 가족 ID
    * @param startDate 시작일
    * @param endDate 종료일
    * @return 질문 인스턴스 목록
    */
   @Query("SELECT qi FROM QuestionInstance qi " +
-      "JOIN FETCH qi.subject " +
       "WHERE qi.family.id = :familyId " +
       "AND qi.plannedDate BETWEEN :startDate AND :endDate " +
       "ORDER BY qi.plannedDate DESC")

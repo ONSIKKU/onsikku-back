@@ -1,11 +1,13 @@
 package com.onsikku.onsikku_back.domain.member.repository;
 
+import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import javax.swing.text.html.Option;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -16,4 +18,6 @@ public interface MemberRepository extends JpaRepository<Member, String> {
     Optional<Member> findById(UUID memberId);
     boolean existsByKakaoId(String kakaoId);
     void deleteById(UUID memberId);
+
+  List<Member> findByFamily(Family family);
 }
