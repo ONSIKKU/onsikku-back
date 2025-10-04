@@ -1,5 +1,6 @@
-package com.onsikku.onsikku_back.domain.ai.entity;
+package com.onsikku.onsikku_back.domain.ai.domain;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.ai.dto.AnswerAnalysisResponse;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
@@ -63,8 +64,21 @@ public class AnswerAnalysis extends BaseEntity {
   @Column(name = "categories", columnDefinition = "jsonb")
   private JsonNode categories;
 
-
   @Type(JsonBinaryType.class)
   @Column(name = "scores", columnDefinition = "jsonb")
   private JsonNode scores;
+
+  public static AnswerAnalysis createFromAIResponse(Answer answer, AnswerAnalysisResponse response, JsonNode categories, JsonNode scores) {
+    AnswerAnalysis analysis = new AnswerAnalysis();
+    analysis.answer = answer;
+    analysis.analysisModel = "default"; // 필요시 응답값에 맞춰 수정
+    analysis.analysisParameters = response.getAnalysisParameters();
+    analysis.analysisPrompt = response.getAnalysisPrompt();
+    analysis.analysisRaw = response.getAnalysisRaw();
+    analysis.analysisVersion = response.getAnalysisVersion();
+    analysis.summary = response.getSummary();
+    analysis.categories = categories;
+    analysis.scores = scores;
+    return analysis;
+  }
 }

@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.ai.entity;
+package com.onsikku.onsikku_back.domain.ai.domain;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
