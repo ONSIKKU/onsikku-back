@@ -1,9 +1,12 @@
 package com.onsikku.onsikku_back.domain.ai.dto;
 
+import lombok.Getter;
+
 import java.util.List;
 import java.util.UUID;
 
+@Getter
 public class MemberAssignResponse {
-  private List<UUID> memberIds;   // Swagger엔 number/string 예시가 섞여있지만 실제는 UUID라고 가정
+  private List<UUID> memberIds;
   private String version;
 }
