@@ -11,7 +11,9 @@ import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
+import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
+import org.hibernate.type.SqlTypes;
 
 import java.time.OffsetDateTime;
 import java.util.List;
@@ -32,7 +34,7 @@ public class QuestionTemplate extends BaseEntity {
 
   private String category;
 
-  @Type(ListArrayType.class)
+  @JdbcTypeCode(SqlTypes.ARRAY) // SQL ARRAY 타입을 사용하도록 명시
   @Column(columnDefinition = "text[]")
   private List<String> tags; // e.g., ["daily","fun"]
 
