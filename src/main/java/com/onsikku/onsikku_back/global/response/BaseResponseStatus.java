@@ -36,14 +36,17 @@ public enum BaseResponseStatus {
     INVALID_FAMILY_MEMBER(HttpStatus.UNAUTHORIZED, "해당 가족에 속한 회원이 아닙니다."),
 
     // 질문/답변 관련
-    INVALID_MEMBER(HttpStatus.UNAUTHORIZED, "자신에게 할당된 질문만 답변할 수 있습니다."),
-    INVALID_STORY(HttpStatus.BAD_REQUEST, "존재하지 않는 스토리입니다."),
-    INVALID_REQUEST(HttpStatus.BAD_REQUEST, "유효하지 않은 요청입니다."),
-    INVALID_QUESTION(HttpStatus.BAD_REQUEST, "유효하지 않은 질문입니다."),
+    CANNOT_ANSWER_OTHER_QUESTION(HttpStatus.UNAUTHORIZED, "질문이 할당된 사람만 가능한 권한입니단."),
     INVALID_ANSWER(HttpStatus.BAD_REQUEST, "답변을 입력해주세요."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변이 존재하지 않습니다."),
+    QUESTION_ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "할당된 질문이 존재하지 않습니다."),
+
+    // AI 서버 관련 (추가된 부분)
+    AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),
+    AI_SERVER_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버와 통신 중 오류가 발생했습니다."),
 
     // 서버 오류
+    REDIS_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서비스 이용이 불가합니다. Redis 서버에 문제가 발생했습니다."),
     INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버의 문제가 발생했습니다.");
 
     private final HttpStatus httpStatus;

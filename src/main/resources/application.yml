@@ -39,3 +39,12 @@ redis:
 jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION_TIME}
+
+
+management:
+  endpoint:
+    health:
+      show-details: always  # /actuator/health 접속 시 상세 정보(Redis 상태 포함) 항상 표시
+  health:
+    redis:
+      enabled: true         # Redis Health Indicator 활성화 (기본값)

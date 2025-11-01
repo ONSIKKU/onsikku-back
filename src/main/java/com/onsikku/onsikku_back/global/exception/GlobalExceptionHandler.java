@@ -4,13 +4,18 @@ import com.fasterxml.jackson.databind.JavaType;
 import com.fasterxml.jackson.databind.exc.InvalidFormatException;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
+import jakarta.persistence.QueryTimeoutException;
+import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ExceptionHandler;
+import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 
 import java.util.Arrays;
 import java.util.stream.Collectors;
 
+@Slf4j
 @RestControllerAdvice
 public class GlobalExceptionHandler {
 
@@ -18,6 +23,13 @@ public class GlobalExceptionHandler {
     protected BaseResponse<String> handleBaseException(BaseException e) {
         System.out.println(e.getMessage());
         return new BaseResponse<>(e.getStatus());
+    }
+
+    @ExceptionHandler({QueryTimeoutException.class, RedisConnectionFailureException.class})
+    @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // HTTP 500 상태 코드를 유지합니다.
+    public BaseResponse<Object> handleRedisException(Exception e) {
+        log.error("Redis Operation Failed (500): {}", e.getMessage(), e);
+        return new BaseResponse<>(BaseResponseStatus.REDIS_OPERATION_FAILED);
     }
 
     // JSON 역직렬화 실패(잘못된 Enum 값 등) 처리
