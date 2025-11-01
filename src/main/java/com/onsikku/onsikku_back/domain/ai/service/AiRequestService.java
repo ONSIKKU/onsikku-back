@@ -2,8 +2,14 @@ package com.onsikku.onsikku_back.domain.ai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onsikku.onsikku_back.domain.ai.dto.*;
 import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
+import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
+import com.onsikku.onsikku_back.domain.ai.dto.request.AnswerAnalysisRequest;
+import com.onsikku.onsikku_back.domain.ai.dto.request.MemberAssignRequest;
+import com.onsikku.onsikku_back.domain.ai.dto.request.MemberInfo;
+import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
+import com.onsikku.onsikku_back.domain.ai.dto.response.AnswerAnalysisResponse;
+import com.onsikku.onsikku_back.domain.ai.dto.response.MemberAssignResponse;
 import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.global.exception.BaseException;

@@ -1,6 +1,6 @@
 package com.onsikku.onsikku_back.domain.ai.domain;
 import com.fasterxml.jackson.databind.JsonNode;
-import com.onsikku.onsikku_back.domain.ai.dto.AnswerAnalysisResponse;
+import com.onsikku.onsikku_back.domain.ai.dto.response.AnswerAnalysisResponse;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;

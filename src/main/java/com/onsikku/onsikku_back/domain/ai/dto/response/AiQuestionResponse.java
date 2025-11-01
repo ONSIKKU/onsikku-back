@@ -1,18 +1,27 @@
-package com.onsikku.onsikku_back.domain.ai.dto;
+package com.onsikku.onsikku_back.domain.ai.dto.response;
 
+import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.annotation.JsonProperty;
 import com.fasterxml.jackson.databind.JsonNode;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.ToString;
+import com.onsikku.onsikku_back.domain.question.domain.enums.QuestionSource;
+import lombok.*;
 
 import java.time.LocalDate;
 import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
 @ToString
+@Builder(toBuilder = true)
+@AllArgsConstructor
+@JsonIgnoreProperties(ignoreUnknown = true)
 public class AiQuestionResponse {
+
+  @Setter
+  private QuestionSource source;  // 질문 출처, setter로 설정 가능
+  @Setter
+  private UUID usedTemplateId; // 사용된 템플릿 ID, setter로 설정 가능
 
   private String content;
   @JsonProperty("planned_date")

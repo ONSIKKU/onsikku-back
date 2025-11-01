@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.ai.dto;
+package com.onsikku.onsikku_back.domain.ai.dto.response;
 
 import lombok.Getter;
 

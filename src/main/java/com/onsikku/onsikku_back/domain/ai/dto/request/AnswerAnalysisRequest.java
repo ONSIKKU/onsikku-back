@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.ai.dto;
+package com.onsikku.onsikku_back.domain.ai.dto.request;
 
 
 import lombok.Builder;
