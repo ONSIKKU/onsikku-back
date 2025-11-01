@@ -40,6 +40,9 @@ jwt:
   secret: ${JWT_SECRET}
   expiration: ${JWT_EXPIRATION_TIME}
 
+ai:
+  server:
+    base-url: ${AI_SERVER_BASE_URL:http://localhost:8081} # AI 서버의 기본 URL
 
 management:
   endpoint:

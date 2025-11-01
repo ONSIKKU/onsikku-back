@@ -1,6 +1,6 @@
 package com.onsikku.onsikku_back.domain.question.repository;
 
-import com.onsikku.onsikku_back.domain.question.domain.AssignmentState;
+import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,8 +16,13 @@ import java.util.UUID;
 
 @Repository
 public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssignment, UUID> {
-  QuestionAssignment findTop1ByMemberCreatedAtAfter(LocalDateTime after);
-
+  /**
+   * QuestionAssignment을 조회할 때, 연관된 Member와 Family도 함께 조회합니다.
+   */
+  @Query("SELECT qa FROM QuestionAssignment qa " +
+      "JOIN FETCH qa.member m " +
+      "WHERE qa.id = :assignmentId")
+  Optional<QuestionAssignment> findByIdWithMember(@Param("assignmentId") UUID assignmentId);
   /**
    * 특정 가족의 '가장 오래된 미답변' QuestionInstance의 ID를 조회합니다.
    */
@@ -25,7 +30,7 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
       "JOIN qa.questionInstance qi " +
       "WHERE qi.family.id = :familyId AND qa.state <> :answeredState " +
       "ORDER BY qi.plannedDate ASC")
-  Optional<UUID> findOldestUnansweredInstanceId(
+  List<UUID> findOldestUnansweredInstanceId(
       @Param("familyId") UUID familyId,
       @Param("answeredState") AssignmentState answeredState,
       Pageable pageable
@@ -37,7 +42,7 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
   @Query("SELECT qi.id FROM QuestionInstance qi " +
       "WHERE qi.family.id = :familyId AND qi.plannedDate <= :currentDate " +
       "ORDER BY qi.plannedDate DESC")
-  Optional<UUID> findMostRecentInstanceId(@Param("familyId") UUID familyId, @Param("currentDate") LocalDate currentDate, Pageable pageable);
+  List<UUID> findMostRecentInstanceId(@Param("familyId") UUID familyId, @Param("currentDate") LocalDate currentDate, Pageable pageable);
 
   /**
    * 최종적으로 결정된 Instance ID로 모든 할당 목록을 조회하는 메서드

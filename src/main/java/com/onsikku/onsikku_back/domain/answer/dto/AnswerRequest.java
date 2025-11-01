@@ -1,11 +1,15 @@
 package com.onsikku.onsikku_back.domain.answer.dto;
 
+import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.answer.domain.AnswerType;
 import jakarta.validation.constraints.NotBlank;
 
-public record AnswerRequest (
-    Long id,
-    Long questionId,
-    @NotBlank(message = "내용을 입력해주세요.")
-    String content
+import java.util.UUID;
 
+public record AnswerRequest (
+    UUID id,
+    UUID questionAssignmentId,
+    AnswerType answerType,
+    @NotBlank(message = "내용을 입력해주세요.")
+    JsonNode content
 ) {}

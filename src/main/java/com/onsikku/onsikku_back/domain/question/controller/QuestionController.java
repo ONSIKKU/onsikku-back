@@ -23,10 +23,11 @@ public class QuestionController {
     // 가족 별 질문 조회
     @GetMapping()
     public BaseResponse<List<QuestionAssignment>> getTodayQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(questionService.findQuestions(customUserDetails.getMember().getFamily()));
+        return new BaseResponse<>(questionService.findQuestions(customUserDetails.getMember()));
     }
 
     // 가족 별 지난 질문 조회 + 주인공들
+    // TODO : Answer 포함해서 반환 고려
     @GetMapping("/monthly")
     public BaseResponse<List<QuestionAssignment>> getQuestionsByMonthAndYear(
         @RequestParam("year") int year,

@@ -17,7 +17,7 @@ public class AnswerResponse {
 
     public static AnswerResponse from(Answer answer) {
         return AnswerResponse.builder()
-                .familyRole(answer.getAuthor().getFamilyRole())
+                .familyRole(answer.getMember().getFamilyRole())
             //TODO : answer jsonnode -> String 변환
                 .content(answer.getContent().asText())
                 .build();
