@@ -28,7 +28,6 @@ dependencies {
 
 	// Database
 	implementation 'org.postgresql:postgresql'
-	implementation 'org.springframework.boot:spring-boot-starter-data-mongodb'
 	implementation 'org.springframework.boot:spring-boot-starter-data-redis'
 
 	// swagger
