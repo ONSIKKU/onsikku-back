@@ -6,12 +6,17 @@ import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
 @RequestMapping("/api/auth")
 @RequiredArgsConstructor
+@Tag(
+    name = "인증 API",
+    description = "인증 관련 API"
+)
 public class AuthController {
     private final AuthService authService;
 
