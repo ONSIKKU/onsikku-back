@@ -17,6 +17,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.util.Optional;
+import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
@@ -93,5 +94,14 @@ public class AuthService {
     // 가족 초대 모드인 경우, 가족 초대 코드로 가족 조회 후 반환합니다.
     return familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
+  }
+
+  public void withdraw(UUID memberId) {
+    // 회원이 존재하는지 확인
+    Member member = memberRepository.findById(memberId)
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
+
+    // 회원 삭제
+    memberRepository.delete(member);
   }
 }
