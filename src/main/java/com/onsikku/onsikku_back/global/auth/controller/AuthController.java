@@ -58,6 +58,11 @@ public class AuthController {
         description = """
     refreshToken을 통해 JWT 토큰을 재발급합니다.
     ## 인증(JWT): **불필요**
+    
+    ## 참고사항
+    - refreshToken은 accessToken 대신 사용할 수 없습니다.
+    - accessToken은 refreshToken 대신 사용할 수 없습니다.
+    - 재발급 후에, refreshToken은 블랙리스트 처리되어 재사용이 불가능합니다.
     """
     )
     public BaseResponse<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
