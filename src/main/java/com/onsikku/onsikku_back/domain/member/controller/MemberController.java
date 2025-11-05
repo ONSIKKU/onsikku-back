@@ -5,6 +5,7 @@ import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.service.MemberService;
+import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.*;
 public class MemberController {
 
   private final MemberService memberService;
+  private final AuthService authService;
 
   @GetMapping("/login")
   public String login() {
@@ -55,6 +57,23 @@ public class MemberController {
   public BaseResponse<MypageResponse> updateMyPage(@RequestBody MypageRequest request,
                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
     return new BaseResponse<>(memberService.updateMemberById(request, customUserDetails.getMember().getId()));
+  }
+
+  @PostMapping("/logout")
+  @Operation(
+      summary = "로그아웃",
+      description = """
+    로그아웃을 수행합니다.
+    Access Token의 사용자 정보를 기반으로, Refresh Token을 삭제합니다.
+    현재 Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
+    ## 인증(JWT): **필요 (Access Token)**
+    """
+  )
+  public BaseResponse<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails,
+                                     @RequestHeader("Authorization") String authorizationHeader) {
+    String accessToken = authorizationHeader.substring(7);
+    authService.logout(userDetails.getMember().getId(), accessToken);
+    return new BaseResponse<>("성공적으로 로그아웃되었습니다.");
   }
 
   @PostMapping(value = "/delete")

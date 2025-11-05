@@ -51,7 +51,7 @@ public class KakaoOAuth2Service {
     } catch (HttpClientErrorException e) {
       log.warn("Failed to fetch user info from Kakao: status={}, body={}",
           e.getStatusCode(), e.getResponseBodyAsString());
-      throw new BaseException(BaseResponseStatus.INVALID_ACCESS_TOKEN);
+      throw new BaseException(BaseResponseStatus.INVALID_TOKEN);
     } catch (Exception e) {
       log.error("Exception while fetching user info from Kakao", e);
       throw new BaseException(BaseResponseStatus.INTERNAL_SERVER_ERROR);
@@ -81,7 +81,12 @@ public class KakaoOAuth2Service {
     } catch (HttpClientErrorException e) {
       String body = e.getResponseBodyAsString();
       log.warn("Failed to request Kakao access token: {}", body);
-      throw new BaseException(BaseResponseStatus.KAKAO_INVALID_GRANT);
+      if(body.contains("KOE303")) {
+        throw new BaseException(BaseResponseStatus.KAKAO_REDIRECT_URI_MISMATCH);
+      }
+      else {
+        throw new BaseException(BaseResponseStatus.KAKAO_INVALID_GRANT);
+      }
     } catch (Exception e) {
       log.error("Unexpected Exception during Kakao token request", e);
       throw new BaseException(BaseResponseStatus.INTERNAL_SERVER_ERROR);

@@ -9,8 +9,9 @@ import lombok.NoArgsConstructor;
 @AllArgsConstructor
 @NoArgsConstructor
 @Builder
-public class KakaoLoginResponse {
+public class AuthResponse {
   private boolean isRegistered;
   private String accessToken;
+  private String refreshToken;
   private String registrationToken;
 }

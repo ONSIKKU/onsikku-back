@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.global.config;
 
 import com.onsikku.onsikku_back.global.jwt.JwtAuthenticationFilter;
 import com.onsikku.onsikku_back.global.jwt.JwtProvider;
+import com.onsikku.onsikku_back.global.redis.RedisService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
@@ -26,11 +27,12 @@ import static com.onsikku.onsikku_back.global.config.SecurityUrls.AUTH_WHITELIST
 @RequiredArgsConstructor
 public class SecurityConfig {
 
+    private final RedisService redisService;
     private final JwtProvider jwtProvider;
 
     @Bean
-    public JwtAuthenticationFilter jwtAuthenticationFilter(JwtProvider jwtProvider) {
-        return new JwtAuthenticationFilter(jwtProvider);
+    public JwtAuthenticationFilter jwtAuthenticationFilter() {
+        return new JwtAuthenticationFilter(redisService, jwtProvider);
     }
 
 
@@ -59,7 +61,7 @@ public class SecurityConfig {
 
 
         // JWT 필터를 UsernamePasswordAuthenticationFilter 전에 추가
-        http.addFilterBefore(jwtAuthenticationFilter(jwtProvider), UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(jwtAuthenticationFilter(), UsernamePasswordAuthenticationFilter.class);
 
         return http.build();
     }

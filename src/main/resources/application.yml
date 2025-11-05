@@ -35,14 +35,15 @@ oauth2:
 
 redis:
   registration-token:
-    minutes: 10
+    minutes: ${REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES}
 jwt:
   secret: ${JWT_SECRET}
-  expiration: ${JWT_EXPIRATION_TIME}
+  access-expiration: ${JWT_EXPIRATION_TIME}
+  refresh-expiration: ${JWT_REFRESH_EXPIRATION_TIME}
 
 ai:
   server:
-    base-url: ${AI_SERVER_BASE_URL:http://localhost:8081} # AI 서버의 기본 URL
+    base-url: ${AI_SERVER_BASE_URL} # AI 서버의 기본 URL
 
 management:
   endpoint:

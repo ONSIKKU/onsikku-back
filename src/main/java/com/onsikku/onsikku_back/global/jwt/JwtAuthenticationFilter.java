@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.global.jwt;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
 import com.onsikku.onsikku_back.global.exception.BaseException;
+import com.onsikku.onsikku_back.global.redis.RedisService;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import com.onsikku.onsikku_back.global.response.ErrorResponse;
 import io.jsonwebtoken.Claims;
@@ -24,14 +25,15 @@ import java.io.IOException;
 import java.util.Arrays;
 
 import static com.onsikku.onsikku_back.global.config.SecurityUrls.AUTH_WHITELIST;
+import static com.onsikku.onsikku_back.global.jwt.TokenConstants.ACCESS_TOKEN_TYPE;
 
 @RequiredArgsConstructor
 @Slf4j
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
+    private final RedisService redisService;
     private final JwtProvider jwtProvider;
     private static final AntPathMatcher matcher = new AntPathMatcher();
-
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
@@ -39,6 +41,12 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
             String token = getJwtFromRequest(request);
             log.info("JWT from request: {}", token);
             Claims claims = jwtProvider.validateToken(token);
+            jwtProvider.validateTokenType(claims, ACCESS_TOKEN_TYPE);
+
+            if (redisService.get(TokenConstants.AT_BLACKLIST_PREFIX + token, String.class) != null) {
+                log.warn("Access Token is blacklisted: {}", token);
+                throw new BaseException(BaseResponseStatus.TOKEN_BLACKLISTED);
+            }
 
             UsernamePasswordAuthenticationToken authentication = jwtProvider.getAuthenticationToken(claims);
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
