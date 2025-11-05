@@ -51,6 +51,10 @@ jobs:
             echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/app/.env
             echo "JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}" >> ~/app/.env
             echo "SPRING_PORT=${{ secrets.SPRING_PORT }}" >> ~/app/.env
+            echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> ~/app/.env
+            echo "REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES=${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}" >> ~/app/.env
+            echo "AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}" >> ~/app/.env
+          
             chmod 600 ~/app/.env
 
       - name: 원격 서버에서 기존 JAR 종료 후 실행
@@ -79,3 +83,40 @@ jobs:
             echo ".env 환경변수 로드 후 애플리케이션 실행"
             export $(grep -v '^#' ~/app/.env | xargs) 
             nohup java -jar ~/app/onsikku-back-0.0.1-SNAPSHOT.jar --server.port=${{ secrets.SPRING_PORT }} > ~/app/app.log 2>&1 &
+            
+
+      - name: 애플리케이션 Health Check (배포 성공 확인)
+        uses: appleboy/ssh-action@v1.0.3
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          port: ${{ secrets.SERVER_PORT }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          script: |
+            echo "애플리케이션 시작 대기 (60초)..."
+            sleep 60
+            
+            # Health Check 시도 (최대 5회)
+            HEALTH_URL="http://localhost:${{ secrets.SPRING_PORT }}/actuator/health"
+            MAX_ATTEMPTS=5
+            ATTEMPTS=0
+            
+            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+              ATTEMPTS=$((ATTEMPTS + 1))
+              echo "Health Check 시도 $ATTEMPTS/$MAX_ATTEMPTS..."
+            
+              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+            
+              if [ "$STATUS_CODE" -eq 200 ]; then
+                echo "Health Check 성공! 애플리케이션이 정상적으로 구동되었습니다. (HTTP 200)"
+                exit 0
+              fi
+            
+              if [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; then
+                echo "Health Check 실패 (HTTP $STATUS_CODE). 5초 후 재시도합니다."
+                sleep 5
+              fi
+            done
+            
+            echo "Health Check 최종 실패. 배포 실패!"
+            exit 1
