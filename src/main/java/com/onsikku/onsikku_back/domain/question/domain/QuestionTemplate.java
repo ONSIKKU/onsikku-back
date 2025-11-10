@@ -24,6 +24,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@Table(name = "question_template")
 public class QuestionTemplate extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)

@@ -20,9 +20,9 @@ public class QuestionScheduler {
   private static final int PAGE_SIZE = 10; // 한 번에 처리할 가족의 수
 
   /**
-   * 매일 밤 10시에 모든 가족을 대상으로 질문을 생성하고 할당합니다.
+   * 매일 밤 9시 30분에 모든 가족을 대상으로 질문을 생성하고 할당합니다.
    */
-  @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
+  @Scheduled(cron = "0 30 21 * * *", zone = "Asia/Seoul")
   public void createDailyQuestions() {
     log.info("[BATCH] Daily question creation job started.");
 
@@ -32,6 +32,7 @@ public class QuestionScheduler {
     do {
       // DB에서 PAGE_SIZE 만큼의 가족만 조회
       familyPage = familyRepository.findAll(pageable);
+      log.info("[BATCH] Processing page: {}, Families found: {}", pageable.getPageNumber(), familyPage.getNumberOfElements());
 
       // 조회된 가족들에 대해 질문 생성 로직 실행
       for (Family family : familyPage.getContent()) {

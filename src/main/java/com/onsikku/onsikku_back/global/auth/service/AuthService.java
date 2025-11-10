@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.global.auth.service;
 
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
+import com.onsikku.onsikku_back.global.auth.dto.AuthTestRequest;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
@@ -173,5 +174,31 @@ public class AuthService {
     // 가족 초대 모드인 경우, 가족 초대 코드로 가족 조회 후 반환합니다.
     return familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
+  }
+
+  public AuthResponse testRegister(AuthTestRequest request) {
+    // 가족 모드에 따라 가족을 생성하거나 조회합니다.
+    Family family = familyRepository.findByInvitationCode(request.familyInvitationCode())
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
+    // 새로운 회원 정보를 생성
+    Member member = Member.builder()
+        .profileImageUrl("https://example.com/profile.jpg")
+        .familyRole(request.familyRole())
+        .family(family)
+        .birthDate(request.birthDate())
+        .gender(request.gender())
+        .kakaoId(UUID.randomUUID().toString())
+        .isAlarmEnabled(true)
+        .build();
+    // 회원 정보 저장
+    memberRepository.save(member);
+    // 리프레시 토큰을 생성하고 Redis에 저장합니다.
+    String refreshToken = jwtProvider.generateRefreshTokenFromMember(member);
+    redisService.set(RT_KEY_PREFIX + member.getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
+    return AuthResponse.builder()
+        .isRegistered(true)
+        .accessToken(jwtProvider.generateAccessTokenFromMember(member))
+        .refreshToken(refreshToken)
+        .build();
   }
 }

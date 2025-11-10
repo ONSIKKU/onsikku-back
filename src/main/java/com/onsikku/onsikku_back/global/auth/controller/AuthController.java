@@ -1,6 +1,6 @@
 package com.onsikku.onsikku_back.global.auth.controller;
 
-import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.dto.AuthTestRequest;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoLoginRequest;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
 import com.onsikku.onsikku_back.global.auth.service.AuthService;
@@ -9,7 +9,6 @@ import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
-import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -67,5 +66,20 @@ public class AuthController {
     )
     public BaseResponse<AuthResponse> refresh(@RequestBody TokenRefreshRequest request) {
         return new BaseResponse<>(authService.reissueToken(request.getRefreshToken()));
+    }
+
+    @PostMapping("/test/signup")
+    @Operation(
+        summary = "테스트용 회원가입",
+        description = """
+    테스트용 목데이터 생성을 위한 회원가입을 수행합니다.
+    ## 인증(JWT): **불필요**
+    ## 참고사항 - 초대 전용입니다.
+    ## 카카오 로그인 없이 동작하니, 회원 삭제 시 accesstoken 으로만 관리 가능합니다.
+    ## 따라서 생성 후 access, refresh 토큰을 메모해주세요.
+    """
+    )
+    public BaseResponse<AuthResponse> testSignup(@RequestBody AuthTestRequest request) {
+        return new BaseResponse<>(authService.testRegister(request));
     }
 }

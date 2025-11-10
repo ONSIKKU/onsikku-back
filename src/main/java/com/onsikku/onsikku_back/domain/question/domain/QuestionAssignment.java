@@ -1,6 +1,8 @@
 package com.onsikku.onsikku_back.domain.question.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
 import jakarta.persistence.*;
@@ -19,6 +21,10 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Slf4j
+@Table(name = "question_assignment",
+    indexes = {
+        @Index(name = "idx_qa_family_sent_state", columnList = "family_id, sent_at DESC, state")
+    })
 public class QuestionAssignment {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -32,14 +38,19 @@ public class QuestionAssignment {
   @JoinColumn(name = "member_id", nullable = false)
   private Member member;
 
+  @ManyToOne(fetch = FetchType.LAZY, optional = false)
+  @JoinColumn(name = "family_id", nullable = false)
+  @JsonIgnore
+  private Family family;
+
   @Column(name = "due_at")
   private LocalDateTime dueAt;
 
   @Column(name = "sent_at")
   private LocalDateTime sentAt;
 
-  @Column(name = "read_at")
-  private LocalDateTime readAt;
+  //@Column(name = "read_at")
+  //private LocalDateTime readAt;
 
   @Column(name = "answered_at")
   private LocalDateTime answeredAt;
@@ -60,10 +71,21 @@ public class QuestionAssignment {
   public void markAsSent(LocalDateTime dueAt) {
     this.sentAt = LocalDateTime.now();
     this.dueAt = dueAt;
-    this.state = AssignmentState.DELIVERED;
+    this.state = AssignmentState.SENT;
   }
 
-  public void markAsRead() {
+  public void markAsExpired() {
+    this.expiredAt = LocalDateTime.now();
+    this.state = AssignmentState.EXPIRED;
+  }
+
+  public void markAsReminded() {
+    this.reminderCount += 1;
+    this.lastRemindedAt = LocalDateTime.now();
+  }
+
+  // TODO : 추후 필요 시 활성화
+  /*public void markAsRead() {
     this.readAt = LocalDateTime.now();
     if (this.state == AssignmentState.DELIVERED) {
       log.debug("Assignment has been marked as READ");
@@ -72,19 +94,20 @@ public class QuestionAssignment {
     else {
       log.debug("Assignment state is {}, not changing to READ", this.state);
     }
-  }
+  }*/
 
   public void markAsAnswered() {
     this.answeredAt = LocalDateTime.now();
     this.state = AssignmentState.ANSWERED;
   }
 
-  public static QuestionAssignment assignTo(QuestionInstance questionInstance, Member member) {
-    QuestionAssignment assignment = new QuestionAssignment();
-    assignment.questionInstance = questionInstance;
-    assignment.member = member;
-    assignment.reminderCount = 0;
-    assignment.state = AssignmentState.PENDING;
-    return assignment;
+  public static QuestionAssignment createAndAssignTo(QuestionInstance questionInstance, Member member, Family family) {
+    return QuestionAssignment.builder()
+        .questionInstance(questionInstance)
+        .family(family)
+        .member(member)
+        .reminderCount(0)
+        .state(AssignmentState.PENDING)
+        .build();
   }
 }

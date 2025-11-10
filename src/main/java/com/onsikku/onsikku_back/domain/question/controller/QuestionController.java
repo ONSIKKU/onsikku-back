@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.question.controller;
 
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionRequest;
+import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
@@ -58,15 +59,29 @@ public class QuestionController {
     - 없다면 빈 목록을 반환합니다.
     """
     )
-    public BaseResponse<List<QuestionAssignment>> getQuestionsByMonthAndYear(
+    public BaseResponse<QuestionResponse> getQuestionsByMonthAndYear(
         @RequestParam("year") int year,
         @RequestParam("month") int month,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(questionService.findMonthlyQuestions(
-            customUserDetails.getMember().getFamily(), year, month));
+        return new BaseResponse<>(questionService.findMonthlyQuestions(customUserDetails.getMember().getFamily(), year, month));
     }
 
-    @DeleteMapping
+    @GetMapping("/test/generate")
+    @Operation(
+        summary = "테스트용 질문 생성",
+        description = """
+    질문을 생성합니다.
+    ## 인증(JWT): **필요**
+    ## 참고사항
+    - 테스트용으로만 사용됩니다.
+    """
+    )
+    public BaseResponse<String> getAllQuestions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        questionService.generateAndAssignQuestionForFamily(customUserDetails.getMember().getFamily());
+        return new BaseResponse<>(BaseResponseStatus.SUCCESS);
+    }
+
+    @GetMapping("test/delete")
     @Operation(
         summary = "테스트용 질문 삭제",
         description = """
@@ -74,10 +89,11 @@ public class QuestionController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 테스트용으로만 사용됩니다.
+    - 특정 가족의 모든 질문 인스턴스, 할당이 사라집니다.
     """
     )
-    public BaseResponse<String> DeleteQuestion(@RequestBody QuestionRequest request) {
-        questionService.deleteQuestion(request);
+    public BaseResponse<String> DeleteQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        questionService.deleteQuestionsByFamilyId(customUserDetails.getMember().getFamily());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 }

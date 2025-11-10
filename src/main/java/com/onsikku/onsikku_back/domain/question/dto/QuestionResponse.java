@@ -1,8 +1,14 @@
 package com.onsikku.onsikku_back.domain.question.dto;
 
-import java.util.UUID;
+import lombok.AllArgsConstructor;
+import lombok.Builder;
+import lombok.Getter;
 
+import java.util.List;
+
+@Getter
+@AllArgsConstructor
+@Builder
 public class QuestionResponse {
-  private UUID memberId;
-  private String content;
+  private List<QuestionDetails> questionDetails;
 }

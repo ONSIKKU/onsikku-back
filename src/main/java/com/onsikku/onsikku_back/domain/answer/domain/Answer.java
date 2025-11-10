@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.answer.domain;
 
 
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
@@ -21,11 +22,10 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
-@Table(name = "answer")
-    /*indexes = {
-        @Index(name = "idx_answer_assignment", columnList = "assignment_id"),
-        @Index(name = "idx_answer_type", columnList = "answer_type")
-    })*/ // TODO : 인덱스? 는 보류
+@Table(name = "answer",
+    indexes = {
+        @Index(name = "idx_answer_family_created", columnList = "family_id, createdAt DESC")
+    })
 public class Answer extends BaseEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.UUID)
@@ -38,6 +38,10 @@ public class Answer extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "family_id", nullable = false)
+    private Family family;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "answer_type", nullable = false)
@@ -53,6 +57,7 @@ public class Answer extends BaseEntity {
         answer.member = member;
         answer.answerType = answerType;
         answer.content = content;
+        answer.family = member.getFamily();
 
         answer.validate(); // 생성 시점에 유효성 검증
         return answer;

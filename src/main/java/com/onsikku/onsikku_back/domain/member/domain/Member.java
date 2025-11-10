@@ -21,6 +21,7 @@ public class Member extends BaseEntity {
     private UUID id;
 
     @ManyToOne(fetch = FetchType.LAZY)
+    @Setter
     private Family family;
 
     @Column(nullable = false, unique = true)

@@ -1,15 +1,20 @@
 package com.onsikku.onsikku_back.domain.ai.dto.request;
 
+import com.fasterxml.jackson.annotation.JsonInclude.Include;
+import com.fasterxml.jackson.annotation.JsonInclude;
 import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionTemplate;
 import com.onsikku.onsikku_back.domain.question.domain.enums.QuestionSource;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.ToString;
 
 import java.util.List;
 
 @Getter
 @Builder
+@ToString
+@JsonInclude(Include.NON_NULL)
 public class AiQuestionRequest {
 
   private String content;
@@ -40,12 +45,14 @@ public class AiQuestionRequest {
 
   public static AiQuestionRequest defaultRequest() {
     return AiQuestionRequest.builder()
+        .content("일반 질문")
         .language("ko")
         .tone("따뜻한")
         .category("가족")
         .tags(List.of("감사", "일상"))
         .subjectRequired(false)
         .mood("차분한")
+        .answerAnalysis(null)
         .build();
   }
 }

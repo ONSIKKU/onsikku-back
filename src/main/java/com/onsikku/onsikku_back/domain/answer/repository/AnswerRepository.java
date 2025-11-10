@@ -13,4 +13,6 @@ import java.util.UUID;
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
     List<Answer> findByQuestionAssignmentId(UUID questionAssignmentId);
+
+  List<Answer> findAllByMember_Family_IdOrderByCreatedAtDesc(UUID familyId);
 }
