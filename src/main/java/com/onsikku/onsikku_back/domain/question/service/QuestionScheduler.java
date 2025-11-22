@@ -21,6 +21,8 @@ public class QuestionScheduler {
 
   /**
    * 매일 밤 9시 30분에 모든 가족을 대상으로 질문을 생성하고 할당합니다.
+   * @Scheduled 가 붙으면, 웹 요청 쓰레드가 아닌 별도의 스케줄러 쓰레드에 할당됩니다.
+   * 따라서 비동기 처리는 필요하지 않습니다.
    */
   @Scheduled(cron = "0 30 21 * * *", zone = "Asia/Seoul")
   public void createDailyQuestions() {
@@ -47,5 +49,19 @@ public class QuestionScheduler {
     } while (familyPage.hasNext()); // 다음 페이지가 있으면 루프 계속
 
     log.info("[BATCH] Daily question creation job finished.");
+  }
+
+  /**
+   * 매일 새벽 1시에 미답변 질문을 리마인드하거나 파기 처리합니다.
+   */
+  @Scheduled(cron = "0 0 1 * * *", zone = "Asia/Seoul") // 새벽 1시 실행
+  public void manageUnansweredQuestions() {
+    log.info("[BATCH] Unanswered question management job started.");
+    try {
+      int processedCount = questionService.remindOrExpireAssignments();
+      log.info("[BATCH] Unanswered question management job finished. Total assignments processed: {}", processedCount);
+    } catch (Exception e) {
+      log.error("[BATCH] Failed to run unanswered question management job.", e);
+    }
   }
 }

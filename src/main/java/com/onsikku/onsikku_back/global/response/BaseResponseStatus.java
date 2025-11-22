@@ -42,6 +42,8 @@ public enum BaseResponseStatus {
     INVALID_ANSWER(HttpStatus.BAD_REQUEST, "답변을 입력해주세요."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변이 존재하지 않습니다."),
     QUESTION_ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "할당된 질문이 존재하지 않습니다."),
+    QUESTION_INSTANCE_NOT_FOUND(HttpStatus.NOT_FOUND, "질문 인스턴스가 존재하지 않습니다."),
+    ALREADY_ANSWERED_QUESTION(HttpStatus.BAD_REQUEST, "이미 답변한 질문입니다."),
 
     // AI 서버 관련 (추가된 부분)
     AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),

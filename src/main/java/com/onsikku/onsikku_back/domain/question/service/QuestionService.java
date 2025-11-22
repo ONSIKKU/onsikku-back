@@ -7,19 +7,22 @@ import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.ai.dto.response.MemberAssignResponse;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.domain.answer.domain.Comment;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
+import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.service.FamilyService;
 import com.onsikku.onsikku_back.domain.question.domain.*;
 import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionDetails;
-import com.onsikku.onsikku_back.domain.question.dto.QuestionRequest;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionTemplateRepository;
+import com.onsikku.onsikku_back.global.exception.BaseException;
+import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -43,18 +46,85 @@ public class QuestionService {
     private final FamilyService familyService;
     private final AiRequestService aiRequestService;
     private final MemberRepository memberRepository;
+    private final CommentRepository commentRepository;
+
+    // ----------------------------------------------------------------------
+    // Scheduler Methods
+    // ----------------------------------------------------------------------
+    /**
+     * [Scheduler] 미답변 할당을 찾아 리마인드하거나, 만료 기한이 지난 할당을 파기 처리합니다.
+     * 이 메서드는 QuestionScheduler에서 주기적으로 호출됩니다.
+     * @return 처리된 할당(리마인드 + 파기)의 총 개수
+     */
+    @Transactional
+    public int remindOrExpireAssignments() {
+        LocalDateTime today = LocalDateTime.now();
+        LocalDateTime remindCutoff = today.minusDays(2);    // 리마인드 기한
+        LocalDateTime expireCutoff = today.minusDays(7);    // 파기 기한
+        log.info("[Scheduler] 미답변 할당 관리 시작");
+        List<QuestionAssignment> remindTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(remindCutoff);
+        int remindedCount = 0;
+
+        for (QuestionAssignment qa : remindTargets) {
+            if (qa.getReminderCount() < 2) { // TODO : 리마인드는 2회까지만 허용
+                qa.markAsReminded();
+                // TODO: 외부 알림 서비스(Push/SMS) 호출 로직 추가
+                remindedCount++;
+            }
+        }
+        questionAssignmentRepository.saveAll(remindTargets);
+        List<QuestionAssignment> expireTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(expireCutoff);
+        int expiredCount = expireTargets.size();
+        for (QuestionAssignment qa : expireTargets) {
+            qa.markAsExpired();
+        }
+        questionAssignmentRepository.saveAll(expireTargets);
+        log.info("[Scheduler] 미답변 할당 관리 완료. 총 처리 할당 수: {}", remindedCount + expiredCount);
+        return remindedCount + expiredCount;
+    }
+    /**
+     * [Scheduler] 새로운 질문 생성 및 할당 필요성을 검사하고, 필요 시 AI를 호출하여 질문을 생성합니다.
+     * @param family 질문을 생성할 가족
+     */
+    public void generateAndAssignQuestionForFamily(Family family) {
+        if (!isNewQuestionNeeded(family)) { // 새로운 질문이 필요하지 않다면 종료
+            log.info("가족 ID {}는 새로운 질문 생성이 필요하지 않습니다.", family.getId());
+            return;
+        }
+
+        // 오늘의 주인공 선정
+        Map<UUID, Integer> memberAssignedCounts = familyService.getMemberAssignedCounts(family);
+        log.info("오늘의 주인공 선정을 시작합니다.");
+        MemberAssignResponse memberAssignResponse = aiRequestService.requestTodayMember(family.getId(), memberAssignedCounts, 1);
+        log.info("오늘의 주인공 선정 완료: {}", memberAssignResponse.getMemberIds());
+
+        // TODO : 꼬리질문이 1회차인지 알기위해 엔티티에 boolean 추가해야하나? + tryGenerateFollowUpQuestion 검증로직 구현해야함
+        log.info("가족 ID {}의 새로운 질문 생성을 시작합니다.", family.getId());
+        AiQuestionResponse response = tryGenerateFollowUpQuestion(family)   // 꼬리 질문 시도 (1회만)
+            .or(() -> tryGenerateTemplateQuestion(family))                  // 템플릿 질문 시도
+            .orElseGet(() -> generateGeneralQuestion(family));              // 모두 해당 없으면 일반 질문 생성
 
 
+        // 응답 기반으로 Instance 및 Assignment 생성
+        saveInstanceAndAssignments(response, family, memberAssignResponse);
+    }
+
+
+    // ----------------------------------------------------------------------
+    // API Methods
+    // ----------------------------------------------------------------------
     /**
      * 특정 가족의 가장 최신인 질문 할당 리스트를 조회하는 로직
      * 1. 가장 오래된 미답변 질문 INSTANCE 우선 조회
      * 2. 미답변 질문이 없다면, 가장 최신 질문 INSTANCE 조회
      * 3. 해당 INSTANCE ID가 포함된 모든 질문 ASSIGNMENT 조회
+     * 4. 본인 멤버의 질문은 조회 시점에 읽음 처리
+     * 5. 조회된 질문 세트 반환
      * @param member 질문을 조회할 가족의 멤버
      * @return 조회된 질문 세트 목록
      */
-    @Transactional(readOnly = true)
-    public List<QuestionAssignment> findQuestions(Member member) {
+    @Transactional
+    public QuestionResponse findTodayQuestionInstance(Member member) {
         Family family = member.getFamily();
         // 가장 오래된 미답변 질문의 ID를 먼저 찾는다 (LIMIT 1)
         Optional<UUID> targetInstanceId = questionAssignmentRepository
@@ -72,57 +142,80 @@ public class QuestionService {
 
         // 최종적으로 찾은 ID가 있다면, 해당 ID로 질문 세트 전체를 조회한다. 없다면 빈 목록을 반환한다.
         log.info("최종 질문 인스턴스 ID 조회 완료: {}", targetInstanceId.orElse(null));
-        return targetInstanceId
+        List<QuestionAssignment> assignments = targetInstanceId
             .map(questionAssignmentRepository::findAllByInstanceId)
             .orElse(Collections.emptyList());
-    }
 
-
-    // XXXX 년 XX 월의 질문 세트 조회
-    @Transactional(readOnly = true)
-    public QuestionResponse findMonthlyQuestions(Family family, int year, int month) {
-        // 해당 월의 모든 질문 인스턴스 조회
-        YearMonth yearMonth = YearMonth.of(year, month);
-        List<QuestionInstance> instances = questionInstanceRepository.findSentQuestionsByFamilyIdAndDateTimeRange(
-            family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
-        if (instances.isEmpty()) return QuestionResponse.builder().questionDetails(List.of()).build();
-
-        // 조회된 인스턴스들의 ID를 추출
-        List<UUID> instanceIds = instances.stream()
-            .map(QuestionInstance::getId)
-            .toList();
-
-        // 인스턴스 ID 목록을 사용해 관련된 모든 '질문 할당'을 한 번의 쿼리로 조회 (N+1 방지를 위해 Member 페치 조인)
-        List<QuestionAssignment> questionAssignments = questionAssignmentRepository.findByInstanceIdsWithMembersAndQuestionInstance(instanceIds);
-
+        for (QuestionAssignment qa : assignments) {
+            if(qa.getMember().getId().equals(member.getId())) {
+                log.info("멤버 ID {}의 질문 할당을 읽음 처리합니다. 질문 할당 ID: {}", member.getId(), qa.getId());
+                qa.markAsRead();
+            }
+        }
         return QuestionResponse.builder()
-            .questionDetails(questionAssignments.stream()
-                .map(QuestionDetails::from)
-                .toList())
+            .todayAssignments(assignments)
+            .build();
+    }
+    // 특정 질문 인스턴스의 상세 정보를 조회합니다.
+    @Transactional(readOnly = true)
+    public QuestionResponse findQuestionDetails(Member member, UUID questionInstanceId) {
+        QuestionInstance instance = questionInstanceRepository.findById(questionInstanceId)
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
+        if (!instance.getFamily().getId().equals(member.getFamily().getId())) {
+            throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
+        }
+        return QuestionResponse.builder()
+            .questionDetails(QuestionDetails.from(instance,
+                // 할당 목록에서 Member 리스트 추출
+                questionAssignmentRepository.findAllByInstanceId(questionInstanceId).stream().map(QuestionAssignment::getMember).toList(),
+                answerRepository.findAllByQuestionInstanceId(questionInstanceId),
+                commentRepository.findAllByQuestionInstanceId(questionInstanceId))
+            )
             .build();
     }
 
-    public void generateAndAssignQuestionForFamily(Family family) {
-        if (!isNewQuestionNeeded(family)) { // 새로운 질문이 필요하지 않다면 종료
-            log.info("가족 ID {}는 새로운 질문 생성이 필요하지 않습니다.", family.getId());
-            return;
-        }
+    // 특정 월의 모든 질문 인스턴스를 조회하고, 각 인스턴스에 대한 모든 답변 정보를 담아 반환합니다.
+    @Transactional(readOnly = true)
+    public QuestionResponse findMonthlyQuestions(Family family, int year, int month) {
+        YearMonth yearMonth = YearMonth.of(year, month);
+        // 해당 월의 모든 QuestionInstance 조회
+        List<QuestionInstance> questionInstances = questionInstanceRepository.findQuestionsByFamilyIdAndDateTimeRange(
+            family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
+        if (questionInstances.isEmpty()) return QuestionResponse.builder().questionDetailsList(List.of()).build();
 
-        // 오늘의 주인공 선정
-        Map<UUID, Integer> memberAssignedCounts = familyService.getMemberAssignedCounts(family);
-        MemberAssignResponse memberAssignResponse = aiRequestService.requestTodayMember(family.getId(), memberAssignedCounts, 1);
+        // 인스턴스 ID 리스트 추출
+        List<UUID> instanceIds = questionInstances.stream().map(QuestionInstance::getId).toList();
 
-        // 어떤 방식으로 질문을 생성할지 정책에 따라 결정
-        // TODO : 꼬리질문이 1회차인지 알기위해 엔티티에 boolean 추가해야하나? + tryGenerateFollowUpQuestion 검증로직 구현해야함
-        log.info("가족 ID {}의 새로운 질문 생성을 시작합니다.", family.getId());
-        AiQuestionResponse response = tryGenerateFollowUpQuestion(family)   // 꼬리 질문 시도 (1회만)
-            .or(() -> tryGenerateTemplateQuestion(family))                  // 템플릿 질문 시도
-            .orElseGet(() -> generateGeneralQuestion(family));              // 모두 해당 없으면 일반 질문 생성
+        // 모든 인스턴스에 대한 Answer와 Comment를 단일 쿼리로 조회
+        List<Answer> allAnswers = answerRepository.findAllByQuestionInstanceIds(instanceIds);
+        List<Comment> allComments = commentRepository.findAllByQuestionInstanceIds(instanceIds);
+        List<QuestionAssignment> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
 
+        // Instance ID를 키로 Map 생성
+        Map<UUID, List<Answer>> answersByInstance = allAnswers.stream().collect(Collectors.groupingBy(a -> a.getQuestionAssignment().getQuestionInstance().getId()));
+        Map<UUID, List<Comment>> commentsByInstance = allComments.stream().collect(Collectors.groupingBy(c -> c.getQuestionInstance().getId()));
+        Map<UUID, List<Member>> membersByInstance = allAssignments.stream().collect(Collectors.groupingBy(qa -> qa.getQuestionInstance().getId(), Collectors.mapping(QuestionAssignment::getMember, Collectors.toList())));
 
-        // 응답 기반으로 Instance 및 Assignment 생성
-        saveInstanceAndAssignments(response, family, memberAssignResponse);
+        // QuestionInstance 리스트를 DTO로 변환 후 반환
+        return QuestionResponse.builder()
+            .questionDetailsList(
+                questionInstances.stream()
+                .map(instance -> {
+                    UUID instanceId = instance.getId();
+                    return QuestionDetails.from(instance,
+                        membersByInstance.getOrDefault(instanceId, Collections.emptyList()),
+                        answersByInstance.getOrDefault(instanceId, Collections.emptyList()),
+                        commentsByInstance.getOrDefault(instanceId, Collections.emptyList())
+                    );
+                })
+                .toList()
+            )
+            .build();
     }
+
+    // ----------------------------------------------------------------------
+    // private Methods
+    // ----------------------------------------------------------------------
 
     private boolean isNewQuestionNeeded(Family family) {
         // 가장 최신 질문 인스턴스 조회
@@ -142,11 +235,11 @@ public class QuestionService {
      */
     private Optional<AiQuestionResponse> tryGenerateFollowUpQuestion(Family family) {
 
-        List<Answer> answers = answerRepository.findAllByMember_Family_IdOrderByCreatedAtDesc(family.getId());
-        if (answers.isEmpty()) return Optional.empty();
-        log.info("가족 ID {}의 최근 답변 조회 완료. 총 {}개", family.getId(), answers.size());
+        Optional<Answer> answer = answerRepository.findTopByMember_Family_IdOrderByCreatedAtDesc(family.getId());
+        if (answer.isEmpty()) return Optional.empty();
+        log.info("가족 ID {}의 최근 답변 조회 완료. ", family.getId());
 
-        Answer recentAnswer = answers.getFirst();
+        Answer recentAnswer = answer.get();
         String prevQuestion = recentAnswer.getQuestionAssignment().getQuestionInstance().getContent();
         String prevAnswer = recentAnswer.getContent().path("text").asText("내용 없음");
 
