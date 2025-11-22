@@ -53,10 +53,12 @@ public class QuestionInstance {
   private GeneratedBy generatedBy; // nullable
 
   @Column(name = "generation_model")
+  @JsonIgnore
   private String generationModel;
 
   @Type(JsonBinaryType.class)
   @Column(name = "generation_parameters", columnDefinition = "jsonb")
+  @JsonIgnore
   private JsonNode generationParameters;
 
   @Column(name = "generation_prompt", columnDefinition = "text")
@@ -65,9 +67,11 @@ public class QuestionInstance {
 
   @Type(JsonBinaryType.class)
   @Column(name = "generation_metadata", columnDefinition = "jsonb")
+  @JsonIgnore
   private JsonNode generationMetadata;
 
   @Column(name = "generation_confidence")
+  @JsonIgnore
   private Float generationConfidence;
 
   @Column(name = "generated_at")
@@ -92,7 +96,7 @@ public class QuestionInstance {
     return QuestionInstance.builder()
         .family(family)
         .content(response.getContent())
-        .generatedAt(response.getGeneratedAt())
+        .generatedAt(LocalDateTime.now())
         .generationMetadata(response.getGenerationMetadata())
         .generationModel(response.getGenerationModel())
         .generationPrompt(response.getGenerationPrompt())
