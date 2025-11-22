@@ -9,5 +9,5 @@ import java.util.UUID;
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
   List<Comment> findAllByQuestionInstanceId(UUID questionInstanceId);
 
-  List<Comment> findAllByQuestionInstanceIds(List<UUID> instanceIds);
+  List<Comment> findAllByQuestionInstance_IdIn(List<UUID> instanceIds);
 }
