@@ -25,8 +25,8 @@ public class MypageResponse {
   private Role role;
   private String profileImageUrl;
   private FamilyRole familyRole;
-  private LocalDate birthDate;
   private Gender gender;
+  private LocalDate birthDate;
   private boolean isAlarmEnabled;
 
   public static MypageResponse from(Member member) {
