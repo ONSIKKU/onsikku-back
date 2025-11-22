@@ -22,7 +22,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 @Tag(
     name = "답변 API",
-    description = "질문에 대한 답변 생성, 조회, 수정 API"
+    description = "질문에 대한 답변 생성, 수정 API"
 )
 public class AnswerController {
     private final AnswerService answerService;
@@ -35,26 +35,12 @@ public class AnswerController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 요청 본문에 질문 ID와 답변 내용을 포함해야 합니다.
+    - AnswerType 은 String ENUM 타입입니다 : TEXT, IMAGE, AUDIO, VIDEO, FILE, MIXED
     """
     )
     public BaseResponse<Answer> createAnswer(@RequestBody AnswerRequest request,
                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return new BaseResponse<>(answerService.createAnswer(request, customUserDetails.getMember()));
-    }
-
-    @GetMapping("/answers/{questionAssignmentId}")
-    @Operation(
-        summary = "특정 질문 답변 조회",
-        description = """
-    특정 질문에 대한 답변을 조회합니다.
-    ## 인증(JWT): **필요**
-    ## 참고사항
-    - 질문 ID를 경로 변수로 전달해야 합니다.
-    """
-    )
-    public BaseResponse<List<Answer>> getAnswers(@PathVariable UUID questionAssignmentId,
-                                                @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(answerService.findAnswer(questionAssignmentId, customUserDetails.getMember()));
     }
 
     @PutMapping("/answers")
@@ -84,7 +70,7 @@ public class AnswerController {
     )
 
     public BaseResponse<String> deleteAnswer(@RequestBody AnswerRequest request) {
-        answerService.deleteAnswer(request.id());
+        answerService.deleteAnswer(request.answerId());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 }
