@@ -6,6 +6,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
+import java.util.UUID;
 
 @Getter
 @AllArgsConstructor
@@ -16,5 +17,6 @@ public class QuestionResponse {
   private int totalQuestions;
   private int answeredQuestions;
   private int totalReactions;
-  private List<QuestionAssignment> todayAssignments;
+  private List<QuestionAssignment> todayQuestionAssignments;
+  private UUID todayQuestionInstanceId;
 }
