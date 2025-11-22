@@ -13,7 +13,7 @@ import java.util.List;
 import java.util.UUID;
 
 @Repository
-public interface QuestionInstanceRepository extends JpaRepository<QuestionInstance, Long> {
+public interface QuestionInstanceRepository extends JpaRepository<QuestionInstance, UUID> {
   /**
    * 특정 가족의 '오늘을 포함한 가장 최신의' QuestionInstance의 ID를 조회합니다.
    */
@@ -30,14 +30,14 @@ public interface QuestionInstanceRepository extends JpaRepository<QuestionInstan
    * @return 질문 인스턴스 목록
    */
   @Query("SELECT qi FROM QuestionInstance qi " +
-      "WHERE qi.family.id = :familyId " +
-      "AND qi.generatedAt BETWEEN :startDate AND :endDate " +
+      "WHERE qi.family.id = :familyId AND qi.generatedAt BETWEEN :startDate AND :endDate " +
       "ORDER BY qi.generatedAt DESC")
-  List<QuestionInstance> findSentQuestionsByFamilyIdAndDateTimeRange(
+  List<QuestionInstance> findQuestionsByFamilyIdAndDateTimeRange(
       @Param("familyId") UUID familyId,
       @Param("startDate") LocalDateTime startDate,
       @Param("endDate") LocalDateTime endDate
   );
 
+  // 가족으로 삭제 (테스트용)
   int deleteAllByFamily(Family family);
 }
