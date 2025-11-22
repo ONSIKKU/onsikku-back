@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.domain.member.domain;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
 import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
@@ -22,9 +23,11 @@ public class Member extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY)
     @Setter
+    @JsonIgnore
     private Family family;
 
     @Column(nullable = false, unique = true)
+    @JsonIgnore
     private String kakaoId;
 
     @Enumerated(EnumType.STRING)
