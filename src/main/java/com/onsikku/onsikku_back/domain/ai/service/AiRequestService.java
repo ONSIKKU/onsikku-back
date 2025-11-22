@@ -36,13 +36,12 @@ public class AiRequestService {
   private final RestClient restClient;
   private final AnswerAnalysisRepository answerAnalysisRepository;
   private final ObjectMapper objectMapper;
-  private final WebClient webClient;
 
   /**
    * AI 서버에 질문 생성을 요청하고, 응답을 DTO 객체로 반환합니다.
    */
   public AiQuestionResponse requestQuestionGeneration(AiQuestionRequest requestDto) {
-   /* try {
+   try {
       com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
       String jsonBody = objectMapper.writeValueAsString(requestDto);
       log.info("AI 서버에 질문 생성을 요청합니다. JSON Body: {}", jsonBody);
@@ -50,31 +49,14 @@ public class AiRequestService {
       log.warn("DTO를 JSON으로 변환하는 데 실패했습니다.", e);
     }
     MediaType jsonUtf8 = new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8);
-    */
+
     try {
-      /*return restClient.post()
+      return restClient.post()
           .uri("/api/v1/questions/api")
           .contentType(jsonUtf8)
           .body(objectMapper.writeValueAsString(requestDto))
           .retrieve()
           .body(AiQuestionResponse.class);
-          */
-      return webClient.post()
-          .uri("/api/v1/questions/api")
-          .bodyValue(requestDto)
-          .retrieve()
-          // WebClient 에러 처리 (필수)
-          .onStatus(status -> status.isError(), clientResponse -> {
-            log.error("AI 서버 WebClient 오류 발생. Status: {}", clientResponse.statusCode());
-            return clientResponse.bodyToMono(String.class)
-                .flatMap(errorBody -> {
-                  log.error("Error Body: {}", errorBody);
-                  return reactor.core.publisher.Mono.error(
-                      new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR));
-                });
-          })
-          .bodyToMono(AiQuestionResponse.class)
-          .block(); // 동기적으로 사용하기 위해 block()을 사용합니다.
     } catch (HttpClientErrorException e) {
       log.error("AI 서버 요청 중 클라이언트 오류가 발생했습니다. Status: {}, Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
       throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
@@ -97,7 +79,7 @@ public class AiRequestService {
         .members(members)
         .pickCount(pickCount)
         .build();
-
+    log.info("AI 서버에 오늘의 주인공 생성을 요청합니다.");
     try {
       return restClient.post()
           .uri("/api/v1/questions/assign")
