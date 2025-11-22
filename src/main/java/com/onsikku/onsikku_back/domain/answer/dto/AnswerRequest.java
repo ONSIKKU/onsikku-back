@@ -7,7 +7,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 public record AnswerRequest (
-    UUID id,
+    UUID answerId,
     UUID questionAssignmentId,
     AnswerType answerType,
     @NotBlank(message = "내용을 입력해주세요.")
