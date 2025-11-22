@@ -1,10 +1,12 @@
 package com.onsikku.onsikku_back.domain.answer.domain;
 
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
@@ -34,6 +36,11 @@ public class Answer extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "question_assignment_id", nullable = false, unique = true)
     private QuestionAssignment questionAssignment;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "question_instance_id", nullable = false)
+    @JsonIgnore
+    private QuestionInstance questionInstance;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
@@ -87,6 +94,7 @@ public class Answer extends BaseEntity {
     public static Answer create(QuestionAssignment questionAssignment, Member member, AnswerType answerType, JsonNode content) {
         Answer answer = Answer.builder()
             .questionAssignment(questionAssignment)
+            .questionInstance(questionAssignment.getQuestionInstance()) // 현재 트랜잭션이 활성화된 상태이므로, Hibernate는 프록시 객체 반환 (실제 DB 접근 X)
             .member(member)
             .answerType(answerType)
             .content(content)
