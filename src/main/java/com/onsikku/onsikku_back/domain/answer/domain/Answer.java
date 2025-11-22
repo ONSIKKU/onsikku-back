@@ -51,14 +51,51 @@ public class Answer extends BaseEntity {
     @Column(name = "content", columnDefinition = "jsonb", nullable = false)
     private JsonNode content;
 
-    public static Answer create(QuestionAssignment questionAssignment, Member member, AnswerType answerType, JsonNode content) {
-        Answer answer = new Answer();
-        answer.questionAssignment = questionAssignment;
-        answer.member = member;
-        answer.answerType = answerType;
-        answer.content = content;
-        answer.family = member.getFamily();
+    @Column(name = "like_reaction_count", nullable = false)
+    private int likeReactionCount;
+    @Column(name = "angry_reaction_count", nullable = false)
+    private int angryReactionCount;
+    @Column(name = "sad_reaction_count", nullable = false)
+    private int sadReactionCount;
+    @Column(name = "funny_reaction_count", nullable = false)
+    private int funnyReactionCount;
+    public void incrementLikeReaction() {
+        this.likeReactionCount += 1;
+    }
+    public void incrementAngryReaction() {
+        this.angryReactionCount += 1;
+    }
+    public void incrementSadReaction() {
+        this.sadReactionCount += 1;
+    }
+    public void incrementFunnyReaction() {
+        this.funnyReactionCount += 1;
+    }
+    public void decreaseLikeReaction() {
+        if (this.likeReactionCount > 0) this.likeReactionCount -= 1;
+    }
+    public void decreaseAngryReaction() {
+        if (this.angryReactionCount > 0) this.angryReactionCount -= 1;
+    }
+    public void decreaseSadReaction() {
+        if (this.sadReactionCount > 0) this.sadReactionCount -= 1;
+    }
+    public void decreaseFunnyReaction() {
+        if (this.funnyReactionCount > 0) this.funnyReactionCount -= 1;
+    }
 
+    public static Answer create(QuestionAssignment questionAssignment, Member member, AnswerType answerType, JsonNode content) {
+        Answer answer = Answer.builder()
+            .questionAssignment(questionAssignment)
+            .member(member)
+            .answerType(answerType)
+            .content(content)
+            .family(member.getFamily())
+            .likeReactionCount(0)
+            .angryReactionCount(0)
+            .sadReactionCount(0)
+            .funnyReactionCount(0)
+            .build();
         answer.validate(); // 생성 시점에 유효성 검증
         return answer;
     }
