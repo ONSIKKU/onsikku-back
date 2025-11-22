@@ -25,14 +25,6 @@ public class FamilyService {
   private final MemberRepository memberRepository;
   private final QuestionAssignmentRepository questionAssignmentRepository;
 
-  public void getFamilyHome(Member member, UUID familyId, LocalDate date) {
-    Family family = validateFamilyMember(familyId, member);
-    // 오늘의 주인공
-    // 오늘의 질문 + 주인공 답변 여부
-    // 답변 시 답변 정보
-
-  }
-
   public Map<UUID, Integer> getMemberAssignedCounts(Family family) {
     List<Member> members = memberRepository.findByFamily(family);
     return members.stream()
