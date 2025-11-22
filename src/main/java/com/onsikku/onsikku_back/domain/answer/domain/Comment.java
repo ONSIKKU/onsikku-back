@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.answer.domain;
 
 import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
@@ -27,8 +28,8 @@ public class Comment extends BaseEntity {
 
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "answer_id", nullable = false)
-  private Answer answer;
+  @JoinColumn(name = "question_instance_id", nullable = false)
+  private QuestionInstance questionInstance;
 
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
