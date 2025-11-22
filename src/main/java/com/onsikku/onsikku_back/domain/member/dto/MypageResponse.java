@@ -11,12 +11,15 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 
 import java.time.LocalDate;
+import java.util.UUID;
 
 @Builder
 @Getter
 @AllArgsConstructor
 @NoArgsConstructor
 public class MypageResponse {
+  private UUID memberId;
+  private UUID familyId;
   private String familyName;
   private String familyInvitationCode;
   private Role role;
@@ -28,6 +31,8 @@ public class MypageResponse {
 
   public static MypageResponse from(Member member) {
     return MypageResponse.builder()
+        .memberId(member.getId())
+        .familyId(member.getFamily().getId())
         .familyName(member.getFamily().getFamilyName())
         .familyInvitationCode(member.getFamily().getInvitationCode())
         .role(member.getRole())
