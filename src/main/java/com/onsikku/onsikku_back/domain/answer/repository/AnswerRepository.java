@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.answer.repository;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
@@ -14,7 +15,8 @@ import java.util.UUID;
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
   List<Answer> findByQuestionAssignmentId(UUID questionAssignmentId);
   Optional<Answer> findTopByMember_Family_IdOrderByCreatedAtDesc(UUID familyId);
-  List<Answer> findAllByQuestionInstanceId(UUID questionInstanceId);
-
-  List<Answer> findAllByQuestionInstanceIds(List<UUID> instanceIds);
+  @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.questionInstance.id = :instanceId")
+  List<Answer> findAllByQuestionInstanceId(UUID instanceId);
+  @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.questionInstance.id IN :instanceIds")
+  List<Answer> findAllByQuestionInstance_IdIn(List<UUID> instanceIds);
 }
