@@ -2,6 +2,8 @@ package com.onsikku.onsikku_back.domain.question.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
+import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -9,6 +11,7 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -32,11 +35,7 @@ public interface QuestionInstanceRepository extends JpaRepository<QuestionInstan
   @Query("SELECT qi FROM QuestionInstance qi " +
       "WHERE qi.family.id = :familyId AND qi.generatedAt BETWEEN :startDate AND :endDate " +
       "ORDER BY qi.generatedAt DESC")
-  List<QuestionInstance> findQuestionsByFamilyIdAndDateTimeRange(
-      @Param("familyId") UUID familyId,
-      @Param("startDate") LocalDateTime startDate,
-      @Param("endDate") LocalDateTime endDate
-  );
+  List<QuestionInstance> findQuestionsByFamilyIdAndDateTimeRange(@Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
   // 가족으로 삭제 (테스트용)
   int deleteAllByFamily(Family family);

@@ -1,7 +1,6 @@
 package com.onsikku.onsikku_back.domain.question.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
-import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -16,16 +15,16 @@ import java.util.UUID;
 @Repository
 public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssignment, UUID> {
   // 리마인드 / 파기 대상 조회 (sentAt이 특정 시점보다 오래되었고, 상태가 SENT인 모든 할당)
-  @Query("SELECT qa FROM QuestionAssignment qa WHERE qa.sentAt < :cutoff AND qa.state = 'SENT'")
+  @Query("SELECT qa FROM QuestionAssignment qa WHERE qa.sentAt < :cutoff AND qa.state IN ('SENT','READ')")
   List<QuestionAssignment> findAssignmentsForSentAtAndSentState(@Param("cutoff") LocalDateTime cutoff);
 
   /**
    * 특정 가족의 '가장 오래된 미답변' QuestionAssignment ID를 조회합니다.
    */
   @Query("SELECT qi.id FROM QuestionAssignment qa JOIN qa.questionInstance qi " +
-      "WHERE qi.family.id = :familyId AND qa.state <> :answeredState " +
+      "WHERE qi.family.id = :familyId AND qa.state IN ('SENT','READ') " +
       "ORDER BY qi.generatedAt ASC")
-  List<UUID> findOldestUnansweredInstanceId(@Param("familyId") UUID familyId, @Param("answeredState") AssignmentState answeredState, Pageable pageable);
+  List<UUID> findOldestUnansweredInstanceId(@Param("familyId") UUID familyId, Pageable pageable);
 
   // 최종적으로 결정된 Instance ID로 모든 할당 목록을 조회하는 메서드
   @Query("SELECT qa FROM QuestionAssignment qa JOIN FETCH qa.questionInstance qi JOIN FETCH qa.member m JOIN FETCH m.family WHERE qi.id = :instanceId")
@@ -41,7 +40,7 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
 
   // 특정 가족의 '오늘을 포함한 가장 최신 미답변' QuestionAssignment의 ID를 조회합니다.
   @Query("SELECT qa FROM QuestionAssignment qa " +
-      "WHERE qa.family.id = :familyId AND qa.sentAt <= :currentDate AND qa.state <> 'ANSWERED'" +
+      "WHERE qa.family.id = :familyId AND qa.sentAt <= :currentDate AND qa.state IN ('SENT', 'READ')" +
       "ORDER BY qa.sentAt DESC")
   List<QuestionAssignment> findMostRecentUnansweredAssignmentId(@Param("familyId") UUID familyId, @Param("currentDate") LocalDateTime currentDate);
 
