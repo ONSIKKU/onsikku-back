@@ -3,7 +3,9 @@ package com.onsikku.onsikku_back.domain.question.dto;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Comment;
-import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
+import com.onsikku.onsikku_back.domain.answer.dto.CommentResponse;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -19,15 +21,16 @@ import java.util.UUID;
 public class QuestionDetails {
   private UUID questionInstanceId;
   private String questionContent;
-  private List<Member> assignedMembers; // 질문이 할당된 멤버들
-  private List<Answer> answers;
+  // TODO : 월별 조회시 가독성 안좋으므로 별도 DTO로 분리 고려
+  private List<QuestionAssignment> questionAssignments; // 질문이 할당된 멤버들
+  private List<AnswerResponse> answers;
   private List<Comment> comments;
 
-  public static QuestionDetails from(QuestionInstance questionInstance, List<Member> members, List<Answer> answers, List<Comment> comments) {
+  public static QuestionDetails from(QuestionInstance questionInstance, List<QuestionAssignment> questionAssignments, List<AnswerResponse> answers, List<Comment> comments) {
     return QuestionDetails.builder()
         .questionInstanceId(questionInstance.getId())
         .questionContent(questionInstance.getContent())
-        .assignedMembers(members)
+        .questionAssignments(questionAssignments)
         .answers(answers)
         .comments(comments)
         .build();
