@@ -32,6 +32,7 @@ public class QuestionAssignment {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "question_instance_id", nullable = false)
+  @JsonIgnore
   private QuestionInstance questionInstance;
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
