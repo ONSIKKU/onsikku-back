@@ -1,10 +1,8 @@
 package com.onsikku.onsikku_back.domain.question.dto;
 
 
-import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Comment;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
-import com.onsikku.onsikku_back.domain.answer.dto.CommentResponse;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import lombok.AllArgsConstructor;
