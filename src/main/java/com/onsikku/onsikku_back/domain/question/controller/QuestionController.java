@@ -37,8 +37,7 @@ public class QuestionController {
     ## 참고사항
     - 가장 오래된 미답변 질문을 먼저 조회합니다.
     - 미답변 질문 ID가 없다면, 가장 최신 질문을 조회합니다.
-    - 반환값은 QuestionResponse의 List<QuestionAssignment> todayAssignments 필드에 오늘의 질문 할당 목록이 포함됩니다.
-    - 없다면 빈 목록을 반환합니다.
+    - QuestionInstace의 UUID와, QuestionAssignment 리스트로 반환됩니다.
     """
     )
     public BaseResponse<QuestionResponse> getTodayQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -57,8 +56,8 @@ public class QuestionController {
     """
     )
     public BaseResponse<QuestionResponse> getQuestionInstanceDetails(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                                                     UUID questionInstanceId) {
-        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), questionInstanceId));
+                                                                     @PathVariable String questionInstanceId) {
+        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), UUID.fromString(questionInstanceId)));
     }
 
     // 가족 별 지난 질문 조회
