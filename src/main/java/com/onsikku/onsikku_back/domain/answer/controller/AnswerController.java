@@ -36,7 +36,14 @@ public class AnswerController {
     ## 참고사항
     - 요청 본문에 질문 ID와 답변 내용을 포함해야 합니다.
     - AnswerType 은 String ENUM 타입입니다 : TEXT, IMAGE, AUDIO, VIDEO, FILE, MIXED
-    - 반환값은 생성된 답변 정보 입니다.
+    - JsonNode content 예시:
+      {
+        "text": "이것은 텍스트 답변입니다.",
+        "images": [
+          "https://example.com/image1.jpg",
+          "https://example.com/image2.jpg"
+        ]
+      }
     """
     )
     public BaseResponse<AnswerResponse> createAnswer(@RequestBody AnswerRequest request,
