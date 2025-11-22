@@ -49,8 +49,8 @@ public class QuestionAssignment {
   @Column(name = "sent_at")
   private LocalDateTime sentAt;
 
-  //@Column(name = "read_at")
-  //private LocalDateTime readAt;
+  @Column(name = "read_at")
+  private LocalDateTime readAt;
 
   @Column(name = "answered_at")
   private LocalDateTime answeredAt;
@@ -84,17 +84,16 @@ public class QuestionAssignment {
     this.lastRemindedAt = LocalDateTime.now();
   }
 
-  // TODO : 추후 필요 시 활성화
-  /*public void markAsRead() {
+  public void markAsRead() {
     this.readAt = LocalDateTime.now();
-    if (this.state == AssignmentState.DELIVERED) {
+    if (this.state == AssignmentState.SENT) {
       log.debug("Assignment has been marked as READ");
       this.state = AssignmentState.READ;
     }
     else {
       log.debug("Assignment state is {}, not changing to READ", this.state);
     }
-  }*/
+  }
 
   public void markAsAnswered() {
     this.answeredAt = LocalDateTime.now();
