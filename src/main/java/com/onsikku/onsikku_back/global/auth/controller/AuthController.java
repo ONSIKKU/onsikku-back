@@ -1,10 +1,7 @@
 package com.onsikku.onsikku_back.global.auth.controller;
 
-import com.onsikku.onsikku_back.global.auth.dto.AuthTestRequest;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoLoginRequest;
-import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
+import com.onsikku.onsikku_back.global.auth.dto.*;
 import com.onsikku.onsikku_back.global.auth.service.AuthService;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;

@@ -6,7 +6,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
@@ -23,8 +23,8 @@ spring:
 logging:
   level:
     root: INFO
-    io.lettuce.core: DEBUG
-    org.springframework.data.redis: DEBUG
+    io.lettuce.core: INFO
+    org.springframework.data.redis: INFO
 
 
 oauth2:

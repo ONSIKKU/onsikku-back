@@ -8,6 +8,7 @@ import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
@@ -54,13 +55,6 @@ public class JwtProvider {
 
     public String generateRefreshTokenFromMember(Member member) {
         return generateTokenWithMs(member, jwtRefreshExpirationInMs, REFRESH_TOKEN_TYPE);
-    }
-
-    public UsernamePasswordAuthenticationToken getAuthenticationToken(Claims claims) {
-        String memberIdStr = claims.getSubject();
-        log.info("Parsed memberId: {}", memberIdStr);
-        CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(memberIdStr);
-        return new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
     }
 
     public UUID getMemberIdFromClaims(Claims claims) {
@@ -147,5 +141,14 @@ public class JwtProvider {
         Date now = new Date();
         long diff = expiration.getTime() - now.getTime();
         return Math.max(0, diff); // 0보다 작을 수 없으므로 max(0, diff) 처리
+    }
+    public String extractToken(HttpServletRequest request) {
+        String bearerToken = request.getHeader("Authorization");
+
+        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
+            // "Bearer " (7자리) 이후의 문자열만 반환
+            return bearerToken.substring(7);
+        }
+        return null;
     }
 }

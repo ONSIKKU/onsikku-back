@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.global.auth.controller;
+package com.onsikku.onsikku_back.global.auth.dto;
 
 import lombok.Getter;
 import lombok.Setter;

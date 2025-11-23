@@ -70,9 +70,8 @@ public class MemberController {
     """
   )
   public BaseResponse<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails,
-                                     @RequestHeader("Authorization") String authorizationHeader) {
-    String accessToken = authorizationHeader.substring(7);
-    authService.logout(userDetails.getMember().getId(), accessToken);
+                                    HttpServletRequest request) {
+    authService.logout(userDetails.getMember().getId(), request);
     return new BaseResponse<>("성공적으로 로그아웃되었습니다.");
   }
 
@@ -80,14 +79,16 @@ public class MemberController {
   @Operation(
       summary = "회원 탈퇴",
       description = """
-    회원 탈퇴를 진행합니다. 회원 정보 및 회원의 답변들은 softDelete 처리되며, 그 외 데이터는 모두 hardDelete 처리됩니다.
+    회원 탈퇴를 진행합니다.
+    로그아웃 처리 후, 회원이 생성한 답변, 질문 할당, 댓글 및 회원 데이터를 삭제합니다.
     ## 인증(JWT): **필요**
     """
   )
   public BaseResponse<Void> deleteMember(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
-      HttpServletRequest httpServletRequest) {
-    memberService.deleteMember(customUserDetails.getMember(), httpServletRequest);
+      HttpServletRequest request) {
+    authService.logout(customUserDetails.getMember().getId(), request);
+    memberService.deleteMember(customUserDetails.getMember());
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 }

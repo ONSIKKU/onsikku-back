@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.question.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
+import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -46,4 +47,6 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
 
   // 가족으로 삭제 (테스트용)
   int deleteAllByFamily(Family family);
+
+  void deleteByMember(Member member);
 }

@@ -2,6 +2,8 @@ package com.onsikku.onsikku_back.global.jwt;
 
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.auth.service.CustomUserDetailsService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.redis.RedisService;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
@@ -17,6 +19,7 @@ import org.springframework.http.MediaType;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.security.web.authentication.WebAuthenticationDetailsSource;
+import org.springframework.stereotype.Component;
 import org.springframework.util.AntPathMatcher;
 import org.springframework.util.StringUtils;
 import org.springframework.web.filter.OncePerRequestFilter;
@@ -29,26 +32,33 @@ import static com.onsikku.onsikku_back.global.jwt.TokenConstants.ACCESS_TOKEN_TY
 
 @RequiredArgsConstructor
 @Slf4j
+@Component
 public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
     private final RedisService redisService;
     private final JwtProvider jwtProvider;
+    private final CustomUserDetailsService customUserDetailsService;
     private static final AntPathMatcher matcher = new AntPathMatcher();
 
     @Override
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
-            String token = getJwtFromRequest(request);
+            String token = jwtProvider.extractToken(request);
             log.info("Filtering request URI: {}", request.getRequestURI());
             Claims claims = jwtProvider.validateToken(token);
             jwtProvider.validateTokenType(claims, ACCESS_TOKEN_TYPE);
 
+            // 블랙리스트 확인
             if (redisService.get(TokenConstants.AT_BLACKLIST_PREFIX + token, String.class) != null) {
                 log.warn("Access Token is blacklisted: {}", token);
                 throw new BaseException(BaseResponseStatus.TOKEN_BLACKLISTED);
             }
-
-            UsernamePasswordAuthenticationToken authentication = jwtProvider.getAuthenticationToken(claims);
+            // 사용자 정보 로드
+            String memberIdStr = claims.getSubject();
+            log.info("Parsed memberId: {}", memberIdStr);
+            CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(memberIdStr);
+            // 인증 토큰 생성
+            UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
             authentication.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
 
             // SecurityContext 설정
@@ -98,15 +108,5 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getWriter(), errorResponse);
-    }
-
-
-    private String getJwtFromRequest(HttpServletRequest request) {
-        String bearerToken = request.getHeader("Authorization");
-
-        if (StringUtils.hasText(bearerToken) && bearerToken.startsWith("Bearer ")) {
-            return bearerToken.substring(7);
-        }
-        return null;
     }
 }

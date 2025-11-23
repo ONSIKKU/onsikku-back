@@ -15,6 +15,7 @@ import com.onsikku.onsikku_back.global.jwt.JwtProvider;
 import com.onsikku.onsikku_back.global.redis.RedisService;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.jsonwebtoken.Claims;
+import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -132,7 +133,8 @@ public class AuthService {
 
   // 로그아웃 처리: Redis에서 Refresh Token 삭제
   @Transactional
-  public void logout(UUID memberId, String accessToken) {
+  public void logout(UUID memberId, HttpServletRequest request) {
+    String accessToken = jwtProvider.extractToken(request);
     // 회원의 Refresh Token 삭제
     String redisKey = RT_KEY_PREFIX + memberId.toString();
     redisService.delete(redisKey);
