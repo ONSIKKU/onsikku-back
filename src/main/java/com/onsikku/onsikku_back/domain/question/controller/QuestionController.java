@@ -56,8 +56,8 @@ public class QuestionController {
     """
     )
     public BaseResponse<QuestionResponse> getQuestionInstanceDetails(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                                                     @PathVariable String questionInstanceId) {
-        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), UUID.fromString(questionInstanceId)));
+                                                                     @PathVariable UUID questionInstanceId) {
+        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), questionInstanceId));
     }
 
     // 가족 별 지난 질문 조회
