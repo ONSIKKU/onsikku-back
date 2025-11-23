@@ -31,8 +31,8 @@ public class Comment extends BaseEntity {
 
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
-  @JoinColumn(name = "commenter_member_id", nullable = false)
-  private Member commenter;
+  @JoinColumn(name = "member_id", nullable = false)
+  private Member member;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_comment_id", nullable = true)
