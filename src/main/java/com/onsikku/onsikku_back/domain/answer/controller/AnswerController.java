@@ -46,12 +46,12 @@ public class AnswerController {
       }
     """
     )
-    public BaseResponse<AnswerResponse> createAnswer(@RequestBody AnswerRequest request,
+    public BaseResponse<AnswerResponse> createAnswer(@Valid @RequestBody AnswerRequest request,
                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return new BaseResponse<>(answerService.createAnswer(request, customUserDetails.getMember()));
     }
 
-    @PutMapping("/answers")
+    @PatchMapping("/answers")
     @Operation(
         summary = "답변 수정",
         description = """
