@@ -38,12 +38,15 @@ public enum BaseResponseStatus {
     INVALID_FAMILY_MEMBER(HttpStatus.UNAUTHORIZED, "해당 가족에 속한 회원이 아닙니다."),
 
     // 질문/답변 관련
-    CANNOT_ANSWER_OTHER_QUESTION(HttpStatus.UNAUTHORIZED, "질문이 할당된 사람만 가능한 권한입니단."),
+    CANNOT_ANSWER_OTHER_QUESTION(HttpStatus.UNAUTHORIZED, "질문이 할당된 사람만 가능한 권한입니다."),
     INVALID_ANSWER(HttpStatus.BAD_REQUEST, "답변을 입력해주세요."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변이 존재하지 않습니다."),
     QUESTION_ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "할당된 질문이 존재하지 않습니다."),
     QUESTION_INSTANCE_NOT_FOUND(HttpStatus.NOT_FOUND, "질문 인스턴스가 존재하지 않습니다."),
     ALREADY_ANSWERED_QUESTION(HttpStatus.BAD_REQUEST, "이미 답변한 질문입니다."),
+    COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
+    INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "부모 댓글은 같은 질문 인스턴스에서만 가능합니다."),
+    CANNOT_MODIFY_OTHER_COMMENT(HttpStatus.UNAUTHORIZED, "본인이 작성한 댓글만 관리할 수 있습니다."),
 
     // AI 서버 관련 (추가된 부분)
     AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),
