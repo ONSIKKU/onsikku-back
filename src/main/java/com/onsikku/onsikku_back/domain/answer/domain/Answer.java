@@ -90,6 +90,24 @@ public class Answer extends BaseEntity {
     public void decreaseFunnyReaction() {
         if (this.funnyReactionCount > 0) this.funnyReactionCount -= 1;
     }
+    public String extractTextContent() {
+        if (this.content == null) {
+            return "";
+        }
+        // .asText()는 NullNode(키가 없을 때)에도 예외 없이 빈 문자열을 반환합니다.
+        return this.content.path("text").asText();
+    }
+
+    public String extractUrlContent() {
+        if (this.content == null) {
+            return null; // URL이 없으면 null 반환
+        }
+        // content 내에 'url' 또는 'primary_url' 키가 있을 수 있다고 가정하고 처리 가능
+        if (this.content.has("url")) {
+            return this.content.path("url").asText();
+        }
+        return null;
+    }
 
     public static Answer create(QuestionAssignment questionAssignment, Member member, AnswerType answerType, JsonNode content) {
         Answer answer = Answer.builder()

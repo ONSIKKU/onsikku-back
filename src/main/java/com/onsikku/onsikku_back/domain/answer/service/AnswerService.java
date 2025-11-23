@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.answer.service;
 
 
+import com.onsikku.onsikku_back.domain.ai.dto.request.AnswerAnalysisRequest;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerRequest;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
@@ -41,7 +42,7 @@ public class AnswerService {
         Answer newAnswer = Answer.create(assignment, member, request.answerType(), request.content());
         assignment.markAsAnswered();
         // AI 분석 요청
-        //aiRequestService.analyzeAnswer(newAnswer, answer);
+        aiRequestService.analyzeAnswer(newAnswer, AnswerAnalysisRequest.createFromAnswerAndQuestionInstance(newAnswer, assignment.getQuestionInstance()));
         return AnswerResponse.from(answerRepository.save(newAnswer));
     }
 

@@ -17,6 +17,7 @@ import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
+import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
@@ -100,6 +101,7 @@ public class AiRequestService {
   /**
    * AI 서버에 답변 분석을 요청합니다.
    */
+  @Async
   public AnswerAnalysis analyzeAnswer(Answer answer, AnswerAnalysisRequest request) {
     log.info("AI 서버에 답변 분석을 요청합니다. Answer ID: {}", answer.getId());
 
