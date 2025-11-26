@@ -36,4 +36,6 @@ public interface QuestionInstanceRepository extends JpaRepository<QuestionInstan
 
   // 가족으로 삭제 (테스트용)
   int deleteAllByFamily(Family family);
+
+  List<QuestionInstance> findAllByFamily(Family family);
 }

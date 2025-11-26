@@ -97,13 +97,13 @@ public class QuestionController {
 
     @GetMapping("test/delete")
     @Operation(
-        summary = "테스트용 질문 삭제",
+        summary = "테스트용 질문 삭제 (답변, 댓글 포함)",
         description = """
     특정 질문을 삭제합니다.
     ## 인증(JWT): **필요**
     ## 참고사항
     - 테스트용으로만 사용됩니다.
-    - 특정 가족의 모든 질문 인스턴스, 할당이 사라집니다.
+    - 특정 가족의 모든 질문 인스턴스, 할당, 답변, 댓글이 사라집니다.
     """
     )
     public BaseResponse<String> DeleteQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {

@@ -325,6 +325,9 @@ public class QuestionService {
     // 질문 삭제
     @Transactional
     public void deleteQuestionsByFamilyId(Family family) {
+        List<QuestionInstance> instances = questionInstanceRepository.findAllByFamily(family);
+        log.info("삭제한 answers : {}", answerRepository.deleteAllByQuestionInstanceIn(instances));
+        log.info("삭제한 comments : {}", commentRepository.deleteAllByQuestionInstanceIn(instances));
         log.info("삭제한 assignments : {}", questionAssignmentRepository.deleteAllByFamily(family));
         log.info("삭제한 instances : {}", questionInstanceRepository.deleteAllByFamily(family));
     }
