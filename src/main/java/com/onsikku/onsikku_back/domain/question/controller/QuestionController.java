@@ -37,7 +37,7 @@ public class QuestionController {
     ## 참고사항
     - 가장 오래된 미답변 질문을 먼저 조회합니다.
     - 미답변 질문 ID가 없다면, 가장 최신 질문을 조회합니다.
-    - QuestionInstace의 UUID와, QuestionAssignment 리스트로 반환됩니다.
+    - QuestionInstance의 UUID와, QuestionAssignment 리스트로 반환됩니다.
     """
     )
     public BaseResponse<QuestionResponse> getTodayQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {

@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.question.repository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -22,10 +23,10 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
   /**
    * 특정 가족의 '가장 오래된 미답변' QuestionAssignment ID를 조회합니다.
    */
-  @Query("SELECT qi.id FROM QuestionAssignment qa JOIN qa.questionInstance qi " +
+  @Query("SELECT qi FROM QuestionAssignment qa JOIN qa.questionInstance qi " +
       "WHERE qi.family.id = :familyId AND qa.state IN ('SENT','READ') " +
       "ORDER BY qi.generatedAt ASC")
-  List<UUID> findOldestUnansweredInstanceId(@Param("familyId") UUID familyId, Pageable pageable);
+  List<QuestionInstance> findOldestUnansweredInstance(@Param("familyId") UUID familyId, Pageable pageable);
 
   // 최종적으로 결정된 Instance ID로 모든 할당 목록을 조회하는 메서드
   @Query("SELECT qa FROM QuestionAssignment qa JOIN FETCH qa.questionInstance qi JOIN FETCH qa.member m JOIN FETCH m.family WHERE qi.id = :instanceId")

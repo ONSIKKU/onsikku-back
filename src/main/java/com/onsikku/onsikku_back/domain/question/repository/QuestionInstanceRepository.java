@@ -2,8 +2,6 @@ package com.onsikku.onsikku_back.domain.question.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
-import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
-import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
@@ -11,7 +9,6 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -20,10 +17,10 @@ public interface QuestionInstanceRepository extends JpaRepository<QuestionInstan
   /**
    * 특정 가족의 '오늘을 포함한 가장 최신의' QuestionInstance의 ID를 조회합니다.
    */
-  @Query("SELECT qi.id FROM QuestionInstance qi " +
+  @Query("SELECT qi FROM QuestionInstance qi " +
       "WHERE qi.family.id = :familyId AND qi.generatedAt <= :currentDate " +
       "ORDER BY qi.generatedAt DESC")
-  List<UUID> findMostRecentInstanceId(@Param("familyId") UUID familyId, @Param("currentDate") LocalDateTime currentDate, Pageable pageable);
+  List<QuestionInstance> findMostRecentInstance(@Param("familyId") UUID familyId, @Param("currentDate") LocalDateTime currentDate, Pageable pageable);
 
   /**
    * 특정 가족의 특정 기간 동안의 모든 질문 인스턴스를 조회합니다.

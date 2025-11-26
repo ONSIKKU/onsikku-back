@@ -33,4 +33,11 @@ public class QuestionDetails {
         .comments(comments)
         .build();
   }
+
+  public static QuestionDetails fromInstance(QuestionInstance questionInstance) {
+    return QuestionDetails.builder()
+        .questionInstanceId(questionInstance.getId())
+        .questionContent(questionInstance.getContent())
+        .build();
+  }
 }

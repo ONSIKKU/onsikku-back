@@ -128,25 +128,27 @@ public class QuestionService {
     public QuestionResponse findTodayQuestionInstance(Member member) {
         Family family = member.getFamily();
         // 가장 오래된 미답변 질문의 ID를 먼저 찾는다 (LIMIT 1)
-        Optional<UUID> targetInstanceId = questionAssignmentRepository
-            .findOldestUnansweredInstanceId(family.getId(), PageRequest.of(0, 1))
+        Optional<QuestionInstance> targetInstance = questionAssignmentRepository
+            .findOldestUnansweredInstance(family.getId(), PageRequest.of(0, 1))
             .stream().findFirst();
-        log.info("가족 ID {}의 미답변 질문 인스턴스 ID 조회 완료 : {}", family.getId(), targetInstanceId.orElse(null));
+        log.info("가족 ID {}의 미답변 질문 인스턴스 ID 조회 완료 : {}", family.getId(), targetInstance.map(QuestionInstance::getId).orElse(null));
 
-        if (targetInstanceId.isEmpty()) {
+        if (targetInstance.isEmpty()) {
             log.info("미답변 질문이 없습니다. 가장 최신 질문을 조회합니다.");
             // 미답변 질문 ID가 없다면, 가장 최신 질문의 ID를 찾는다 (LIMIT 1)
-            targetInstanceId = questionInstanceRepository
-                .findMostRecentInstanceId(family.getId(), LocalDateTime.now(), PageRequest.of(0, 1))
+            targetInstance = questionInstanceRepository
+                .findMostRecentInstance(family.getId(), LocalDateTime.now(), PageRequest.of(0, 1))
                 .stream().findFirst();
+        }
+        if (targetInstance.isEmpty()) {
+            log.info("가족 ID {}의 질문 인스턴스가 없습니다. 빈 목록을 반환합니다.", family.getId());
+            return QuestionResponse.builder().todayQuestionAssignments(Collections.emptyList()).build();
         }
 
         // 최종적으로 찾은 ID가 있다면, 해당 ID로 질문 세트 전체를 조회한다. 없다면 빈 목록을 반환한다.
-        log.info("최종 질문 인스턴스 ID 조회 완료: {}", targetInstanceId.orElse(null));
-        List<QuestionAssignment> assignments = targetInstanceId
-            .map(questionAssignmentRepository::findAllByInstanceId)
-            .orElse(Collections.emptyList());
-
+        UUID instanceId = targetInstance.get().getId();
+        log.info("최종 질문 인스턴스 ID 조회 완료: {}", instanceId);
+        List<QuestionAssignment> assignments = questionAssignmentRepository.findAllByInstanceId(instanceId);
         for (QuestionAssignment qa : assignments) {
             if(qa.getMember().getId().equals(member.getId())) {
                 log.info("멤버 ID {}의 질문 할당을 읽음 처리합니다. 질문 할당 ID: {}", member.getId(), qa.getId());
@@ -154,8 +156,8 @@ public class QuestionService {
             }
         }
         return QuestionResponse.builder()
+            .questionDetails(QuestionDetails.fromInstance(targetInstance.get()))
             .todayQuestionAssignments(assignments)
-            .todayQuestionInstanceId(targetInstanceId.orElse(null))
             .build();
     }
     // 특정 질문 인스턴스의 상세 정보를 조회합니다.

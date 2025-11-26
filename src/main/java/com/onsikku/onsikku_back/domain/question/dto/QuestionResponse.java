@@ -18,5 +18,4 @@ public class QuestionResponse {
   private int answeredQuestions;
   private int totalReactions;
   private List<QuestionAssignment> todayQuestionAssignments;
-  private UUID todayQuestionInstanceId;
 }
