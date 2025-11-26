@@ -17,5 +17,4 @@ public class QuestionResponse {
   private int totalQuestions;
   private int answeredQuestions;
   private int totalReactions;
-  private List<QuestionAssignment> todayQuestionAssignments;
 }

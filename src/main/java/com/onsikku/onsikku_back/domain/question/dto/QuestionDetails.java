@@ -34,10 +34,11 @@ public class QuestionDetails {
         .build();
   }
 
-  public static QuestionDetails fromInstance(QuestionInstance questionInstance) {
+  public static QuestionDetails fromInstanceAndAssignments(QuestionInstance questionInstance, List<QuestionAssignment> assignments) {
     return QuestionDetails.builder()
         .questionInstanceId(questionInstance.getId())
         .questionContent(questionInstance.getContent())
+        .questionAssignments(assignments)
         .build();
   }
 }

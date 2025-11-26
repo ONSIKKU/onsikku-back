@@ -142,7 +142,7 @@ public class QuestionService {
         }
         if (targetInstance.isEmpty()) {
             log.info("가족 ID {}의 질문 인스턴스가 없습니다. 빈 목록을 반환합니다.", family.getId());
-            return QuestionResponse.builder().todayQuestionAssignments(Collections.emptyList()).build();
+            return QuestionResponse.builder().questionDetails(null).build();
         }
 
         // 최종적으로 찾은 ID가 있다면, 해당 ID로 질문 세트 전체를 조회한다. 없다면 빈 목록을 반환한다.
@@ -156,8 +156,7 @@ public class QuestionService {
             }
         }
         return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.fromInstance(targetInstance.get()))
-            .todayQuestionAssignments(assignments)
+            .questionDetails(QuestionDetails.fromInstanceAndAssignments(targetInstance.get(), assignments))
             .build();
     }
     // 특정 질문 인스턴스의 상세 정보를 조회합니다.
