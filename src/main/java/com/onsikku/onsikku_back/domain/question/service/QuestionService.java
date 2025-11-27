@@ -173,7 +173,7 @@ public class QuestionService {
                 // 할당 목록에서 Member 리스트 추출
                 questionAssignmentRepository.findAllByInstanceId(questionInstanceId),
                 answerRepository.findAllByQuestionInstanceId(questionInstanceId).stream().map(AnswerResponse::from).toList(),
-                commentRepository.findAllByQuestionInstanceId(questionInstanceId))
+                commentRepository.findAllByQuestionInstance_IdOrderByCreatedAtDesc(questionInstanceId))
             )
             .build();
     }
@@ -196,7 +196,7 @@ public class QuestionService {
         // 모든 인스턴스에 대한 Answer와 Comment를 단일 쿼리로 조회
         List<QuestionAssignment> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
         List<Answer> allAnswers = answerRepository.findAllByQuestionInstance_IdIn(instanceIds);
-        List<Comment> allComments = commentRepository.findAllByQuestionInstance_IdIn(instanceIds);
+        List<Comment> allComments = commentRepository.findAllByQuestionInstance_IdInOrderByCreatedAtDesc(instanceIds);
 
         // Instance ID를 키로 Map 생성
         Map<UUID, List<AnswerResponse>> answerResponseByInstance = allAnswers.stream().collect(Collectors.groupingBy(

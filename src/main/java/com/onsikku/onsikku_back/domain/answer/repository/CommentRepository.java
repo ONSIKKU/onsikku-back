@@ -11,9 +11,9 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-  List<Comment> findAllByQuestionInstanceId(UUID questionInstanceId);
+  List<Comment> findAllByQuestionInstance_IdOrderByCreatedAtDesc(UUID questionInstanceId);
 
-  List<Comment> findAllByQuestionInstance_IdIn(List<UUID> instanceIds);
+  List<Comment> findAllByQuestionInstance_IdInOrderByCreatedAtDesc(List<UUID> instanceIds);
 
   void deleteByMember(Member member);
 
