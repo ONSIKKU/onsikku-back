@@ -45,7 +45,7 @@ public class AnswerController {
       }
     """
     )
-    public BaseResponse<AnswerResponse> createAnswer(@Valid @RequestBody AnswerRequest request,
+    public BaseResponse<AnswerResponse> createAnswer(@RequestBody AnswerRequest request,
                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return new BaseResponse<>(answerService.createAnswer(request, customUserDetails.getMember()));
     }
@@ -60,7 +60,7 @@ public class AnswerController {
     - 요청 본문에 질문 ID, 답변 ID, 수정된 내용을 포함해야 합니다.
     """
     )
-    public BaseResponse<AnswerResponse> updateAnswer(@Valid @RequestBody AnswerRequest request,
+    public BaseResponse<AnswerResponse> updateAnswer(@RequestBody AnswerRequest request,
                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         return new BaseResponse<>(answerService.updateAnswer(request, customUserDetails.getMember()));
     }
