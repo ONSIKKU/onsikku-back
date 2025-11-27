@@ -83,9 +83,9 @@ public class AnswerController {
 
     @GetMapping("/test/analysis")
     @Operation(
-        summary = "테스트용 질문 분석 실행",
+        summary = "테스트용 질문 분석 조회",
         description = """
-    질문 분석 내용을 반환합니다.
+    질문 분석 내용을 조회합니다.
     ## 인증(JWT): **필요**
     ## 참고사항
     - 테스트용입니다.
