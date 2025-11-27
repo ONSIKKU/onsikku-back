@@ -4,6 +4,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import lombok.Data;
 
 import java.time.Instant;
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 
@@ -16,5 +17,5 @@ public class AnswerAnalysisResponse {
   private String summary;
   private List<String> categories;
   private Map<String, Object> scores;
-  private Instant createdAt;         // "created_at" 와 매핑
+  private LocalDateTime createdAt;         // "created_at" 와 매핑
 }
