@@ -19,6 +19,7 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.MediaType;
 import org.springframework.scheduling.annotation.Async;
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
 import org.springframework.web.reactive.function.client.WebClient;
@@ -102,9 +103,9 @@ public class AiRequestService {
    * AI 서버에 답변 분석을 요청합니다.
    */
   @Async
-  public AnswerAnalysis analyzeAnswer(Answer answer, AnswerAnalysisRequest request) {
-    log.info("AI 서버에 답변 분석을 요청합니다. Answer ID: {}", answer.getId());
-
+  @Transactional
+  public void analyzeAnswer(Answer answer, AnswerAnalysisRequest request) {
+    log.info("AI 서버에 답변 분석을 요청합니다.");
     try {
       AnswerAnalysisResponse response = restClient.post()
           .uri("/api/v1/analysis/answer/api")
@@ -117,12 +118,13 @@ public class AiRequestService {
         log.error("AI 서버 응답이 비어있습니다.");
         throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
       }
-
+      log.info("AI 서버로부터 답변 분석 응답을 성공적으로 받았습니다.");
       JsonNode categories = objectMapper.valueToTree(response.getCategories());
       JsonNode scores = objectMapper.valueToTree(response.getScores());
 
       AnswerAnalysis analysis = AnswerAnalysis.createFromAIResponse(answer, response, categories, scores);
-      return answerAnalysisRepository.save(analysis);
+      answerAnalysisRepository.save(analysis);
+      log.info("답변 분석 결과가 성공적으로 저장되었습니다. AnswerAnalysis entity: {}", analysis.toString());
     } catch (HttpClientErrorException e) {
       log.error("AI 서버 답변 분석 요청 중 클라이언트 오류가 발생했습니다.", e);
       throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
