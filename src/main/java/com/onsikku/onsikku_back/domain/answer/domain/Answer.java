@@ -10,10 +10,7 @@ import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import com.vladmihalcea.hibernate.type.json.JsonBinaryType;
 import jakarta.persistence.*;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
+import lombok.*;
 import org.hibernate.annotations.Type;
 
 import java.util.Objects;
@@ -24,6 +21,7 @@ import java.util.UUID;
 @AllArgsConstructor
 @NoArgsConstructor
 @Entity
+@ToString
 @Table(name = "answer",
     indexes = {
         @Index(name = "idx_answer_family_created", columnList = "family_id, createdAt DESC")
