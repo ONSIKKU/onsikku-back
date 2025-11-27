@@ -69,6 +69,7 @@ public class AnswerService {
         QuestionAssignment questionAssignment = questionAssignmentRepository.findById(request.questionAssignmentId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
         questionAssignment.markAsSent(LocalDateTime.now().plusWeeks(1L));
+        answerAnalysisRepository.deleteByAnswer_Id(answer.getId());
         answerRepository.delete(answer);
     }
     @Transactional

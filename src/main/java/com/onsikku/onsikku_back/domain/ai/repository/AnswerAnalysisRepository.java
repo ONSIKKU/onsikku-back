@@ -13,4 +13,6 @@ public interface AnswerAnalysisRepository extends JpaRepository<AnswerAnalysis, 
 
   @Query("SELECT aa FROM AnswerAnalysis aa JOIN FETCH aa.answer a WHERE a.member.id = :memberId")
   List<AnswerAnalysis> findAllAnalysesByMemberId(@Param("memberId") UUID memberId);
+
+  void deleteByAnswer_Id(UUID answerId);
 }
