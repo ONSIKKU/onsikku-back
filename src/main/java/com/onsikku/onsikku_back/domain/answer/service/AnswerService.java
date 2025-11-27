@@ -1,7 +1,9 @@
 package com.onsikku.onsikku_back.domain.answer.service;
 
 
+import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.domain.ai.dto.request.AnswerAnalysisRequest;
+import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerRequest;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
@@ -16,6 +18,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
@@ -25,6 +28,7 @@ public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
     private final AiRequestService aiRequestService;
+    private final AnswerAnalysisRepository answerAnalysisRepository;
 
     @Transactional
     public AnswerResponse createAnswer(AnswerRequest request, Member member) {
@@ -58,11 +62,18 @@ public class AnswerService {
     }
 
     // ---------------------------- 테스트용 ----------------------------
-    public void deleteAnswer(UUID answerId) {
-        Answer answer = answerRepository.findById(answerId)
+    @Transactional
+    public void deleteAnswer(AnswerRequest request, Member member) {
+        Answer answer = answerRepository.findById(request.answerId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.ANSWER_NOT_FOUND));
-
+        QuestionAssignment questionAssignment = questionAssignmentRepository.findById(request.questionAssignmentId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
+        questionAssignment.markAsSent(LocalDateTime.now().plusWeeks(1L));
         answerRepository.delete(answer);
+    }
+    @Transactional
+    public List<AnswerAnalysis> getAllAnswerAnalysis(Member member) {
+        return answerAnalysisRepository.findAllAnalysesByMemberId(member.getId());
     }
 
     private QuestionAssignment findQuestionAssignmentAndAuthorizeFamily(UUID questionAssignmentId, Member member) {
