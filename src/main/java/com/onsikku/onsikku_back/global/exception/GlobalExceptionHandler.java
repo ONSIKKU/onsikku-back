@@ -7,6 +7,7 @@ import com.onsikku.onsikku_back.global.response.BaseResponse;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import jakarta.persistence.QueryTimeoutException;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.data.redis.RedisConnectionFailureException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -83,5 +84,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR));
+    }
+
+    /**
+     * DB 제약 조건 위반 처리 (NOT NULL, UNIQUE, CHECK constraint 위반)
+     */
+    @ExceptionHandler(DataIntegrityViolationException.class)
+    protected ResponseEntity<BaseResponse<String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+        String message = ex.getMostSpecificCause().getMessage();
+
+        // 내부 로그 기록
+        log.error("[DB Integrity Violation] Error: {}", message, ex);
+
+        // 사용자에게 노출할 메시지 결정
+        String userMessage;
+        if (message != null && message.contains("violates not-null constraint")) {
+            userMessage = "필수 입력 항목이 누락되었거나 데이터베이스에 잘못된 값이 전달되었습니다. (NOT NULL 위반)";
+        } else if (message != null && message.contains("violates unique constraint")) {
+            userMessage = "이미 존재하는 값입니다. (UNIQUE 제약 조건 위반)";
+        } else {
+            userMessage = "데이터 무결성 제약 조건을 위반했습니다. 요청 데이터를 확인해주세요.";
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new BaseResponse<>(500, userMessage));
     }
 }

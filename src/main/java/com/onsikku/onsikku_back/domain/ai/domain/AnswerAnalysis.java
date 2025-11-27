@@ -1,4 +1,5 @@
 package com.onsikku.onsikku_back.domain.ai.domain;
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.domain.ai.dto.response.AnswerAnalysisResponse;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
@@ -31,6 +32,7 @@ public class AnswerAnalysis extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "answer_id", nullable = false)
+  @JsonIgnore
   private Answer answer;
 
 
@@ -44,11 +46,13 @@ public class AnswerAnalysis extends BaseEntity {
 
 
   @Column(name = "analysis_prompt", columnDefinition = "text")
+  @JsonIgnore
   private String analysisPrompt;
 
 
   @Type(JsonBinaryType.class)
   @Column(name = "analysis_raw", columnDefinition = "jsonb")
+  @JsonIgnore
   private JsonNode analysisRaw;
 
 
