@@ -24,7 +24,7 @@ public class GlobalExceptionHandler {
 
     @ExceptionHandler(BaseException.class)
     protected BaseResponse<String> handleBaseException(BaseException e) {
-        System.out.println(e.getMessage());
+        log.error(e.getMessage());
         return new BaseResponse<>(e.getStatus());
     }
 
