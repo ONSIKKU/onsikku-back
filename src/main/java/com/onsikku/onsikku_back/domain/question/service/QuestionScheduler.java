@@ -33,6 +33,7 @@ public class QuestionScheduler {
 
     do {
       // DB에서 PAGE_SIZE 만큼의 가족만 조회
+      // TODO : 가족 랜덤 셔플하기 (추후 구현)
       familyPage = familyRepository.findAll(pageable);
       log.info("[BATCH] Processing page: {}, Families found: {}", pageable.getPageNumber(), familyPage.getNumberOfElements());
 
