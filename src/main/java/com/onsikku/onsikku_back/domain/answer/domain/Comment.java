@@ -16,6 +16,7 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "comment")
+@ToString
 public class Comment extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
@@ -30,7 +31,6 @@ public class Comment extends BaseEntity {
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "member_id", nullable = false)
-  @JsonIgnore
   private Member member;
 
   @ManyToOne(fetch = FetchType.LAZY)

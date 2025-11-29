@@ -33,6 +33,8 @@ public class CommentController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 답변이 달렸을 경우만 댓글을 작성할 수 있습니다.
+    - 대댓글이 아닐 시, parentCommentId 필드를 제외하고 전송해야 합니다.
+    - 대댓글은 1단계까지만 허용됩니다. (대댓글의 대댓글 작성 불가)
     """
   )
   public BaseResponse<CommentResponse> createComment(@AuthenticationPrincipal CustomUserDetails customUserDetails,
@@ -63,6 +65,7 @@ public class CommentController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 댓글 작성자만 해당 댓글을 삭제할 수 있습니다.
+    - 댓글 삭제 시, 모든 자식 댓글들은 부모를 잃게 됩니다.
     """
   )
   public BaseResponse<Void> deleteComment(@AuthenticationPrincipal CustomUserDetails customUserDetails,

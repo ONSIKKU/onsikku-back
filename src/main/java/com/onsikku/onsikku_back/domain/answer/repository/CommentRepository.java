@@ -1,21 +1,24 @@
 package com.onsikku.onsikku_back.domain.answer.repository;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Comment;
-import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 
-import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-  List<Comment> findAllByQuestionInstance_IdOrderByCreatedAtDesc(UUID questionInstanceId);
+  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p " +
+      "WHERE c.questionInstance.id = :instanceId " +
+      "ORDER BY c.createdAt DESC")
+  List<Comment> findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(@Param("instanceId") UUID questionInstanceId);
 
-  List<Comment> findAllByQuestionInstance_IdInOrderByCreatedAtDesc(List<UUID> instanceIds);
-
-  void deleteByMember(Member member);
+  void deleteAllByMember(Member member);
 
   int deleteAllByQuestionInstanceIn(List<QuestionInstance> questionInstances);
+
+  List<Comment> findByParent(Comment parent);
 }

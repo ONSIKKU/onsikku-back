@@ -14,13 +14,16 @@ import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class CommentService {
   private final CommentRepository commentRepository;
   private final AnswerRepository answerRepository;
@@ -44,15 +47,20 @@ public class CommentService {
         .member(member)
         .questionInstance(instance)
         .build();
+    log.info("Parent Comment ID: {}", request.parentCommentId());
     if (request.parentCommentId() != null) {
       // 부모 댓글 존재 여부 확인
       Comment parentComment = commentRepository.findById(request.parentCommentId())
           .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
+      if(parentComment.getParent() != null) {
+        throw new BaseException(BaseResponseStatus.CANNOT_NESTED_COMMENT);
+      }
       // 부모 댓글이 같은 질문 인스턴스에 속하는지 확인
       if (!parentComment.getQuestionInstance().getId().equals(request.questionInstanceId())) {
         throw new BaseException(BaseResponseStatus.INVALID_PARENT_COMMENT);
       }
       comment.setParent(parentComment);
+      log.info("comment: {}", comment.toString());
     }
     return CommentResponse.builder()
         .comment(commentRepository.save(comment))
@@ -69,7 +77,12 @@ public class CommentService {
   }
   @Transactional
   public void deleteComment(UUID commentId, Member member) {
+    //TODO : soft delete로 변경 고려
     Comment comment = authorizeCommentAccess(commentId, member);
+    List<Comment> comments = commentRepository.findByParent(comment);
+    for (Comment childComment : comments) {
+      childComment.setParent(null);
+    }
     commentRepository.delete(comment);
   }
 

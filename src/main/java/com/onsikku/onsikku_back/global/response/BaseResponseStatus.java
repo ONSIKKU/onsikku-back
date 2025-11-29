@@ -47,7 +47,7 @@ public enum BaseResponseStatus {
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "부모 댓글은 같은 질문 인스턴스에서만 가능합니다."),
     CANNOT_MODIFY_OTHER_COMMENT(HttpStatus.UNAUTHORIZED, "본인이 작성한 댓글만 관리할 수 있습니다."),
-
+    CANNOT_NESTED_COMMENT(HttpStatus.BAD_REQUEST, "대댓글에는 대댓글을 달 수 없습니다."),
     // AI 서버 관련 (추가된 부분)
     AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),
     AI_SERVER_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버와 통신 중 오류가 발생했습니다."),
