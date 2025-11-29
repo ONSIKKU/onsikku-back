@@ -58,6 +58,7 @@ public class AnswerController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 요청 본문에 질문 ID, 답변 ID, 수정된 내용을 포함해야 합니다.
+    - 내용 변경만 가능합니다.
     """
     )
     public BaseResponse<AnswerResponse> updateAnswer(@RequestBody AnswerRequest request,
