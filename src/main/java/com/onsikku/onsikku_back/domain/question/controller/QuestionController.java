@@ -38,6 +38,7 @@ public class QuestionController {
     - 가장 오래된 미답변 질문을 먼저 조회합니다.
     - 미답변 질문 ID가 없다면, 가장 최신 질문을 조회합니다.
     - QuestionInstance의 UUID와, QuestionAssignment 리스트로 반환됩니다.
+    - assignmentState enums : PENDING, SENT, READ, ANSWERED, EXPIRED, FAILED
     """
     )
     public BaseResponse<QuestionResponse> getTodayQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
@@ -69,7 +70,7 @@ public class QuestionController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - year, month 쿼리 파라미터로 해당 월의 질문들을 조회합니다.
-    - 반환은 questionDetails 리스트와, 나머지 정보(총 질문 수, 답변 완료 수, 총 반응)로 이루어집니다.
+    - 성능 이슈로 답변 등의 정보는 제외하고, questionDetails 리스트만 반환합니다.
     - 없다면 빈 목록을 반환합니다.
     """
     )

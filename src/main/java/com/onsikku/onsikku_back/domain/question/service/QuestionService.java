@@ -146,7 +146,8 @@ public class QuestionService {
         }
 
         // 최종적으로 찾은 ID가 있다면, 해당 ID로 질문 세트 전체를 조회한다. 없다면 빈 목록을 반환한다.
-        UUID instanceId = targetInstance.get().getId();
+        QuestionInstance instance = targetInstance.get();
+        UUID instanceId = instance.getId();
         log.info("최종 질문 인스턴스 ID 조회 완료: {}", instanceId);
         List<QuestionAssignment> assignments = questionAssignmentRepository.findAllByInstanceId(instanceId);
         for (QuestionAssignment qa : assignments) {
@@ -156,7 +157,11 @@ public class QuestionService {
             }
         }
         return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.fromInstanceAndAssignments(targetInstance.get(), assignments))
+            .questionDetails(QuestionDetails.from(instance,
+                assignments,
+                answerRepository.findAllByQuestionInstanceId(instanceId).stream().map(AnswerResponse::from).toList(),
+                commentRepository.findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(instanceId))
+            )
             .build();
     }
     // 특정 질문 인스턴스의 상세 정보를 조회합니다.
@@ -173,7 +178,7 @@ public class QuestionService {
                 // 할당 목록에서 Member 리스트 추출
                 questionAssignmentRepository.findAllByInstanceId(questionInstanceId),
                 answerRepository.findAllByQuestionInstanceId(questionInstanceId).stream().map(AnswerResponse::from).toList(),
-                commentRepository.findAllByQuestionInstance_IdOrderByCreatedAtDesc(questionInstanceId))
+                commentRepository.findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(questionInstanceId))
             )
             .build();
     }
@@ -190,20 +195,9 @@ public class QuestionService {
             return QuestionResponse.builder().questionDetailsList(List.of()).build();
         }
 
-        // 인스턴스 ID 리스트 추출
+        // 인스턴스 ID 리스트 추출 및 해당 ID들로 모든 QuestionAssignment 조회
         List<UUID> instanceIds = questionInstances.stream().map(QuestionInstance::getId).toList();
-
-        // 모든 인스턴스에 대한 Answer와 Comment를 단일 쿼리로 조회
         List<QuestionAssignment> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
-        List<Answer> allAnswers = answerRepository.findAllByQuestionInstance_IdIn(instanceIds);
-        List<Comment> allComments = commentRepository.findAllByQuestionInstance_IdInOrderByCreatedAtDesc(instanceIds);
-
-        // Instance ID를 키로 Map 생성
-        Map<UUID, List<AnswerResponse>> answerResponseByInstance = allAnswers.stream().collect(Collectors.groupingBy(
-            a -> a.getQuestionAssignment().getQuestionInstance().getId(),
-            Collectors.mapping(AnswerResponse::from, Collectors.toList()))
-        );
-        Map<UUID, List<Comment>> commentsByInstance = allComments.stream().collect(Collectors.groupingBy(c -> c.getQuestionInstance().getId()));
 
         // QuestionInstance 리스트를 DTO로 변환 후 반환
         return QuestionResponse.builder()
@@ -211,12 +205,7 @@ public class QuestionService {
                 questionInstances.stream()
                 .map(instance -> {
                     UUID instanceId = instance.getId();
-                    return QuestionDetails.from(
-                        instance,
-                        allAssignments,
-                        answerResponseByInstance.getOrDefault(instanceId, Collections.emptyList()),
-                        commentsByInstance.getOrDefault(instanceId, Collections.emptyList())
-                    );
+                    return QuestionDetails.fromInstanceAndAssignments(instance, allAssignments);
                 })
                 .toList()
             )
