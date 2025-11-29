@@ -6,7 +6,7 @@ spring:
 
   jpa:
     hibernate:
-      ddl-auto: update
+      ddl-auto: create
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
     show-sql: true
@@ -52,3 +52,7 @@ management:
   health:
     redis:
       enabled: true         # Redis Health Indicator 활성화 (기본값)
+
+fcm:
+  server-key: AAAAB.... # 실제 FCM 서버 키 (보안상 환경 변수 사용 권장)
+  api-url: https://fcm.googleapis.com/fcm/send # Legacy HTTP API URL
