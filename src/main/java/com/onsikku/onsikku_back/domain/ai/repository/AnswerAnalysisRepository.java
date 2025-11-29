@@ -6,6 +6,7 @@ import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.util.Collection;
 import java.util.List;
 import java.util.UUID;
 
@@ -14,5 +15,7 @@ public interface AnswerAnalysisRepository extends JpaRepository<AnswerAnalysis, 
   @Query("SELECT aa FROM AnswerAnalysis aa JOIN FETCH aa.answer a WHERE a.member.id = :memberId")
   List<AnswerAnalysis> findAllAnalysesByMemberId(@Param("memberId") UUID memberId);
 
-  void deleteByAnswer_Id(UUID answerId);
+  void deleteAllByAnswerIn(List<Answer> answers);
+
+  void deleteByAnswer(Answer answer);
 }

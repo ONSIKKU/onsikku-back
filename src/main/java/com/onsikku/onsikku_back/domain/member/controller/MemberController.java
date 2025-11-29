@@ -80,15 +80,16 @@ public class MemberController {
       summary = "회원 탈퇴",
       description = """
     회원 탈퇴를 진행합니다.
-    로그아웃 처리 후, 회원이 생성한 답변, 질문 할당, 댓글 및 회원 데이터를 삭제합니다.
+    회원이 생성한 답변, 질문 할당, 댓글 및 회원 데이터를 삭제합니다.
+    탈퇴 후 해당 회원의 Refresh Token을 삭제하고, Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
     ## 인증(JWT): **필요**
     """
   )
   public BaseResponse<Void> deleteMember(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
       HttpServletRequest request) {
-    authService.logout(customUserDetails.getMember().getId(), request);
     memberService.deleteMember(customUserDetails.getMember());
+    authService.logout(customUserDetails.getMember().getId(), request);
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 }

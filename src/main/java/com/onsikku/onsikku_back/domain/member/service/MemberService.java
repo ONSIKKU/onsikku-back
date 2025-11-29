@@ -1,5 +1,7 @@
 package com.onsikku.onsikku_back.domain.member.service;
 
+import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
+import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
@@ -9,25 +11,17 @@ import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
-import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
-import com.onsikku.onsikku_back.global.jwt.JwtProvider;
-import com.onsikku.onsikku_back.global.redis.RedisService;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
-import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.dao.DataIntegrityViolationException;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
-
-import static com.onsikku.onsikku_back.global.jwt.TokenConstants.RT_KEY_PREFIX;
 
 @Service
 @RequiredArgsConstructor
@@ -40,6 +34,7 @@ public class MemberService {
     private final QuestionAssignmentRepository questionAssignmentRepository;
     private final CommentRepository commentRepository;
     private final InvitationCodeGenerator invitationCodeGenerator;
+    private final AnswerAnalysisRepository answerAnalysisRepository;
 
     public MypageResponse getMemberById(UUID memberId) {
         return MypageResponse.from(
@@ -72,9 +67,16 @@ public class MemberService {
     @Transactional
     public void deleteMember(Member member) {
         // TODO : 회원이 생성한 답변 softDelete 처리
-        answerRepository.deleteByMember(member);
-        questionAssignmentRepository.deleteByMember(member);
-        commentRepository.deleteByMember(member);
+        List<Answer> answers = answerRepository.findAllByMember_Id(member.getId());
+        log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
+        answerAnalysisRepository.deleteAllByAnswerIn(answers);
+        log.info("회원이 생성한 답변 분석 데이터 삭제 완료");
+        answerRepository.deleteAllByMember(member);
+        log.info("회원이 생성한 답변 삭제 완료");
+        questionAssignmentRepository.deleteAllByMember(member);
+        log.info("회원이 생성한 질문 할당 삭제 완료");
+        commentRepository.deleteAllByMember(member);
+        log.info("회원이 생성한 댓글 삭제 완료");
         // TODO : 회원 삭제 softDelete 처리
         memberRepository.deleteById(member.getId());
         log.info("회원 삭제 완료");
