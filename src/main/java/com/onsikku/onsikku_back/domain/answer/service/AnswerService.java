@@ -43,11 +43,11 @@ public class AnswerService {
                 throw new BaseException(BaseResponseStatus.ALREADY_ANSWERED_QUESTION);
             }
         }
-        Answer newAnswer = Answer.create(assignment, member, request.answerType(), request.content());
+        Answer newAnswer = answerRepository.save(Answer.create(assignment, member, request.answerType(), request.content()));
         assignment.markAsAnswered();
         // AI 분석 요청
         aiRequestService.analyzeAnswer(newAnswer, AnswerAnalysisRequest.createFromAnswerAndQuestionInstance(newAnswer, assignment.getQuestionInstance()));
-        return AnswerResponse.from(answerRepository.save(newAnswer));
+        return AnswerResponse.from(newAnswer);
     }
 
     @Transactional  // @Transactional에 의해 변경 감지(dirty checking)가 동작하므로 save를 호출할 필요가 없음
