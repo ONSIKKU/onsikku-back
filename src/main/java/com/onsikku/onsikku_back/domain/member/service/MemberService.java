@@ -46,7 +46,7 @@ public class MemberService {
 
     @Transactional
     public MypageResponse updateMember(MypageRequest req, UUID memberId) {
-        Member member = memberRepository.findById(memberId)
+        Member member = memberRepository.findMemberWithFamily(memberId)
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
 
         // 부분 업데이트 (JsonNullable 사용 가정)
