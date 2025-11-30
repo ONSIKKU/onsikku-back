@@ -87,38 +87,38 @@ jobs:
 
       - name: 애플리케이션 Health Check (배포 성공 확인)
         uses: appleboy/ssh-action@v1.0.3
+        env:
+          HEALTH_CHECK_URL: "https://api.onsikku.xyz/actuator/health" # <--- 여기에 정의
         with:
           host: ${{ secrets.SERVER_HOST }}
           port: ${{ secrets.SERVER_PORT }}
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
-        env:
-          HEALTH_CHECK_URL: "https://api.onsikku.xyz/actuator/health" # <--- 여기에 정의
-        script: |
-          echo "애플리케이션 시작 대기 (20초)..."
-            sleep 20
-          
-            # Health Check 시도 (최대 5회)
-            HEALTH_URL="${{ env.HEALTH_CHECK_URL }}" # <--- 환경 변수로 사용
-            MAX_ATTEMPTS=5
-            ATTEMPTS=0
-          
-            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-              ATTEMPTS=$((ATTEMPTS + 1))
-              echo "Health Check 시도 $ATTEMPTS/$MAX_ATTEMPTS..."
-          
-              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
-          
-              if [ "$STATUS_CODE" -eq 200 ]; then
-                echo "Health Check 성공! 애플리케이션이 정상적으로 구동되었습니다. (HTTP 200)"
-                exit 0
-              fi
-          
-              if [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; then
-                echo "Health Check 실패 (HTTP $STATUS_CODE). 5초 후 재시도합니다."
-                sleep 5
-              fi
-            done
-          
-            echo "Health Check 최종 실패. 배포 실패!"
-            exit 1
+          script: |
+            echo "애플리케이션 시작 대기 (20초)..."
+              sleep 20
+            
+              # Health Check 시도 (최대 5회)
+              HEALTH_URL="${{ env.HEALTH_CHECK_URL }}" # <--- 환경 변수로 사용
+              MAX_ATTEMPTS=5
+              ATTEMPTS=0
+            
+              while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+                ATTEMPTS=$((ATTEMPTS + 1))
+                echo "Health Check 시도 $ATTEMPTS/$MAX_ATTEMPTS..."
+            
+                STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+            
+                if [ "$STATUS_CODE" -eq 200 ]; then
+                  echo "Health Check 성공! 애플리케이션이 정상적으로 구동되었습니다. (HTTP 200)"
+                  exit 0
+                fi
+            
+                if [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; then
+                  echo "Health Check 실패 (HTTP $STATUS_CODE). 5초 후 재시도합니다."
+                  sleep 5
+                fi
+              done
+            
+              echo "Health Check 최종 실패. 배포 실패!"
+              exit 1
