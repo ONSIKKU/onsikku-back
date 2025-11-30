@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.domain.question.dto;
 
+import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -17,4 +18,5 @@ public class QuestionResponse {
   private int totalQuestions;
   private int answeredQuestions;
   private int totalReactions;
+  private List<Member> familyMembers;
 }

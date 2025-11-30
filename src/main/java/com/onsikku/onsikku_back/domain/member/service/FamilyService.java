@@ -11,7 +11,6 @@ import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import org.springframework.stereotype.Service;
 
-import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
@@ -26,7 +25,7 @@ public class FamilyService {
   private final QuestionAssignmentRepository questionAssignmentRepository;
 
   public Map<UUID, Integer> getMemberAssignedCounts(Family family) {
-    List<Member> members = memberRepository.findByFamily(family);
+    List<Member> members = memberRepository.findAllByFamily_Id(family.getId());
     return members.stream()
         .collect(
             java.util.stream.Collectors.toMap(

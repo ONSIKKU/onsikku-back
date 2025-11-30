@@ -169,6 +169,7 @@ public class AuthService {
           Family.builder()
               .familyName(request.familyName())
               .invitationCode(invitationCodeGenerator.generate())
+              .isFamilyInviteEnabled(true)
               .grandparentType(request.grandParentType())
               .build()
       );
@@ -179,7 +180,6 @@ public class AuthService {
   }
 
   public AuthResponse testRegister(AuthTestRequest request) {
-    // 가족 모드에 따라 가족을 생성하거나 조회합니다.
     Family family = familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
     // 새로운 회원 정보를 생성

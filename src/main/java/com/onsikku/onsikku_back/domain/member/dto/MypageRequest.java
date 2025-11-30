@@ -24,8 +24,8 @@ public record MypageRequest(
     @Schema(description = "알림 수신 여부", example = "true")
     JsonNullable<Boolean> isAlarmEnabled,
 
-    @Schema(description = "가족 초대코드 재발급 여부 (true면 새 코드 발급)", example = "true")
-    JsonNullable<Boolean> regenerateFamilyInvitationCode
+    @Schema(description = "가족 초대 가능 여부 (true면 새 코드 발급, false면 코드 삭제)", example = "true")
+    JsonNullable<Boolean> isFamilyInviteEnabled
 ) {}
 
 

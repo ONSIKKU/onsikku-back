@@ -36,15 +36,16 @@ public class MemberService {
     private final InvitationCodeGenerator invitationCodeGenerator;
     private final AnswerAnalysisRepository answerAnalysisRepository;
 
-    public MypageResponse getMemberById(UUID memberId) {
+    public MypageResponse getMemberByMember(Member member) {
         return MypageResponse.from(
-            memberRepository.findMemberWithFamily(memberId)
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND))
+            memberRepository.findMemberWithFamily(member.getId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND)),
+            memberRepository.findAllByFamily_Id(member.getFamily().getId())
         );
     }
 
     @Transactional
-    public MypageResponse updateMemberById(MypageRequest req, UUID memberId) {
+    public MypageResponse updateMember(MypageRequest req, UUID memberId) {
         Member member = memberRepository.findById(memberId)
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
 
@@ -56,12 +57,20 @@ public class MemberService {
         req.isAlarmEnabled().ifPresent(member::changeAlarmEnabled);
 
         // 초대코드 재발급
-        if (req.regenerateFamilyInvitationCode().orElse(false)) {
-            Family family = member.getFamily();
+        // false -> true 로 변경되는 경우에만 재발급 (true -> true 인 경우는 자동 무시)
+        Family family = member.getFamily();
+        if (req.isFamilyInviteEnabled().orElse(false) && !member.getFamily().isFamilyInviteEnabled()) {
+            log.info("Family Invite Enabled");
             regenerateUniqueInvitationCode(family); // 별도 메서드로 추출
         }
-
-        return MypageResponse.from(member);
+        // true -> false 인 경우 가족의 초대 설정 변경
+        // false -> false 인 경우 변화 없음
+        else if (!req.isFamilyInviteEnabled().orElse(true) && member.getFamily().isFamilyInviteEnabled()) {
+            log.info("Family Invite Disabled");
+            family.changeFamilyInviteEnabled(false);
+            family.deleteInvitationCode();
+        }
+        return MypageResponse.from(member, memberRepository.findAllByFamily_Id(family.getId()));
     }
 
     @Transactional
@@ -78,8 +87,13 @@ public class MemberService {
         commentRepository.deleteAllByMember(member);
         log.info("회원이 생성한 댓글 삭제 완료");
         // TODO : 회원 삭제 softDelete 처리
+        UUID familyId = member.getFamily().getId();
         memberRepository.deleteById(member.getId());
         log.info("회원 삭제 완료");
+        if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
+            familyRepository.deleteById(familyId);
+            log.info("회원의 가족 삭제 완료");
+        }
     }
 
     private void regenerateUniqueInvitationCode(Family family) {
@@ -88,7 +102,9 @@ public class MemberService {
             String candidate = invitationCodeGenerator.generate();
             try {
                 if (!familyRepository.existsByInvitationCode(candidate)) {
+                    log.info("가족 초대 코드 생성 성공, unique 초대 코드 생성 시도 횟수: {}회", i + 1);
                     family.changeInvitationCode(candidate);
+                    family.changeFamilyInviteEnabled(true);
                     return;
                 }
             } catch (DataIntegrityViolationException e) {

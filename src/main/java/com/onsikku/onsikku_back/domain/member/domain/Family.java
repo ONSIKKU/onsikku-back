@@ -25,16 +25,27 @@ public class Family extends BaseEntity {
     @Column(nullable = false)
     private String familyName;
 
-    @Column(nullable = false, unique = true, length = 8)
+    @Column(nullable = true, unique = true, length = 8)
     private String invitationCode;
 
     @Enumerated(EnumType.STRING)
     private GrandParentType grandparentType;
+
+    @Column(nullable = false)
+    private boolean isFamilyInviteEnabled;
 
     public void changeInvitationCode(String newCode) {
         if (!newCode.matches("^[A-Z0-9]{8}$")) {
             throw new BaseException(BaseResponseStatus.INVALID_GENERATED_INVITATION_CODE);
         }
         this.invitationCode = newCode;
+    }
+
+    public void changeFamilyInviteEnabled(boolean isEnabled) {
+        this.isFamilyInviteEnabled = isEnabled;
+    }
+
+    public void deleteInvitationCode() {
+        this.invitationCode = null;
     }
 }

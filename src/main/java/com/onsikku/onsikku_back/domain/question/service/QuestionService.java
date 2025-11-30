@@ -7,7 +7,6 @@ import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.ai.dto.response.MemberAssignResponse;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
-import com.onsikku.onsikku_back.domain.answer.domain.Comment;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
@@ -34,7 +33,6 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.*;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -162,6 +160,7 @@ public class QuestionService {
                 answerRepository.findAllByQuestionInstanceId(instanceId).stream().map(AnswerResponse::from).toList(),
                 commentRepository.findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(instanceId))
             )
+            .familyMembers(memberRepository.findAllByFamily_Id(family.getId()))
             .build();
     }
     // 특정 질문 인스턴스의 상세 정보를 조회합니다.

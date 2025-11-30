@@ -38,10 +38,12 @@ public class MemberController {
       description = """
     회원 마이페이지 정보를 조회합니다.
     ## 인증(JWT): **필요**
+    ## 참고사항
+    - 가족에 속한 회원의 정보(이름, 이메일, 프로필 이미지 등)와 함께 본인 정보를 반환합니다.
     """
   )
   public BaseResponse<MypageResponse> getMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-    return new BaseResponse<>(memberService.getMemberById(customUserDetails.getMember().getId()));
+    return new BaseResponse<>(memberService.getMemberByMember(customUserDetails.getMember()));
   }
   @PatchMapping("/mypage")
   @Operation(
@@ -52,11 +54,14 @@ public class MemberController {
     ## 참고사항
     - PATCH 메서드를 사용하며, JSON에서 원하는 필드만 포함하면 해당 필드만 수정됩니다.
     - 예: { "profileImageUrl": "https://example.com/new.jpg" }
+    - 가족 초대 가능 필드를 false로 변경 시, 기존의 가족 초대 코드는 삭제됩니다.
+    - 가족 초대 가능 필드를 true로 변경 시, 새로운 가족 초대 코드가 생성됩니다.
+    - 가족 초대 가능 필드를 true -> false, false -> true로 변경될때만 적용됩니다.
     """
   )
   public BaseResponse<MypageResponse> updateMyPage(@RequestBody MypageRequest request,
                                                    @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-    return new BaseResponse<>(memberService.updateMemberById(request, customUserDetails.getMember().getId()));
+    return new BaseResponse<>(memberService.updateMember(request, customUserDetails.getMember().getId()));
   }
 
   @PostMapping("/logout")
