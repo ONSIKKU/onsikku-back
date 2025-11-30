@@ -71,6 +71,7 @@ public class CommentService {
   public CommentResponse updateComment(@Valid CommentRequest request, Member member) {
     Comment comment = authorizeCommentAccess(request.commentId(), member);
     comment.updateContent(request.content());
+    comment.setMember(member);
     return CommentResponse.builder()
         .comment(comment)
         .build();
