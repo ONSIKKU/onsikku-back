@@ -102,7 +102,7 @@ public class AiRequestService {
   /**
    * AI 서버에 답변 분석을 요청합니다.
    */
-  @Async
+  @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
   @Transactional
   public void analyzeAnswer(Answer answer, AnswerAnalysisRequest request) {
     log.info("AI 서버에 답변 분석을 요청합니다.");
