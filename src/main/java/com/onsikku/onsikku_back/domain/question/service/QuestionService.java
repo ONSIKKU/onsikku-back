@@ -2,9 +2,12 @@ package com.onsikku.onsikku_back.domain.question.service;
 
 
 
+import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
+import com.onsikku.onsikku_back.domain.ai.dto.request.AnswerAnalysisDetails;
 import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.ai.dto.response.MemberAssignResponse;
+import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
@@ -23,6 +26,7 @@ import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepos
 import com.onsikku.onsikku_back.domain.question.repository.QuestionTemplateRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
+import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.data.domain.PageRequest;
@@ -46,6 +50,8 @@ public class QuestionService {
     private final AiRequestService aiRequestService;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
+    private final EntityManager entityManager;
+    private final AnswerAnalysisRepository answerAnalysisRepository;
 
     // ----------------------------------------------------------------------
     // Scheduler Methods
@@ -90,7 +96,6 @@ public class QuestionService {
             log.info("가족 ID {}는 새로운 질문 생성이 필요하지 않습니다.", family.getId());
             return;
         }
-
         // 오늘의 주인공 선정
         Map<UUID, Integer> memberAssignedCounts = familyService.getMemberAssignedCounts(family);
         log.info("오늘의 주인공 선정을 시작합니다.");
@@ -99,13 +104,8 @@ public class QuestionService {
 
         // TODO : 꼬리질문이 1회차인지 알기위해 엔티티에 boolean 추가해야하나? + tryGenerateFollowUpQuestion 검증로직 구현해야함
         log.info("가족 ID {}의 새로운 질문 생성을 시작합니다.", family.getId());
-        AiQuestionResponse response = tryGenerateFollowUpQuestion(family)   // 꼬리 질문 시도 (1회만)
-            .or(() -> tryGenerateTemplateQuestion(family))                  // 템플릿 질문 시도
-            .orElseGet(() -> generateGeneralQuestion(family));              // 모두 해당 없으면 일반 질문 생성
-
-
-        // 응답 기반으로 Instance 및 Assignment 생성
-        saveInstanceAndAssignments(response, family, memberAssignResponse);
+        tryGenerateFollowUpQuestion(family, memberAssignResponse);        // 꼬리 질문 시도
+        tryGenerateTemplateQuestion(family, memberAssignResponse);        // 템플릿 질문 시도
     }
 
 
@@ -227,76 +227,54 @@ public class QuestionService {
         return assignments.stream().allMatch(assignment -> assignment.getState() == AssignmentState.ANSWERED);
     }
 
-    /**
-     * (1순위) 꼬리 질문 생성을 시도합니다.
-     * @return 성공 시 AiQuestionResponse, 대상이 없으면 빈 Optional
-     */
-    private Optional<AiQuestionResponse> tryGenerateFollowUpQuestion(Family family) {
-
+    // 꼬리 질문 생성 시도
+    private void tryGenerateFollowUpQuestion(Family family, MemberAssignResponse memberAssignResponse) {
         Optional<Answer> answer = answerRepository.findTopByMember_Family_IdOrderByCreatedAtDesc(family.getId());
-        if (answer.isEmpty()) return Optional.empty();
+        if (answer.isEmpty()) return;
         log.info("가족 ID {}의 최근 답변 조회 완료. ", family.getId());
 
         Answer recentAnswer = answer.get();
-        String prevQuestion = recentAnswer.getQuestionAssignment().getQuestionInstance().getContent();
-        String prevAnswer = recentAnswer.getContent().path("text").asText("내용 없음");
+        QuestionInstance instance = questionInstanceRepository.findByIdWithQuestionTemplate(recentAnswer.getQuestionInstance().getId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
 
         log.info("가족 ID {}의 꼬리 질문 생성을 시도합니다. (이전 답변 ID: {})", family.getId(), recentAnswer.getId());
 
         // AI에게 이전 질문/답변을 알려주며 꼬리 질문을 요청하는 DTO 구성
-        AiQuestionRequest request = AiQuestionRequest.forFollowUp(prevQuestion, prevAnswer);
-
-        return Optional.of(aiRequestService.requestQuestionGeneration(request));
+        AnswerAnalysis analysis = answerAnalysisRepository.findByAnswer(recentAnswer);
+        AiQuestionResponse response = aiRequestService.requestQuestionGeneration(AiQuestionRequest.forFollowUp(instance, AnswerAnalysisDetails.fromAnswerAnalysis(analysis)));
+        saveInstanceAndAssignments(response, family, memberAssignResponse, true);
     }
-
-    /**
-     * (2순위) 템플릿 기반 질문 생성을 시도합니다.
-     * @return 성공 시 AiQuestionResponse, 대상이 없으면 빈 Optional
-     */
-    private Optional<AiQuestionResponse> tryGenerateTemplateQuestion(Family family) {
+    // 템플릿 질문 생성 시도
+    private void tryGenerateTemplateQuestion(Family family, MemberAssignResponse memberAssignResponse) {
         // 해당 가족이 최근 N일 내에 사용하지 않은 템플릿 중 하나를 무작위로 조회
         // QuestionTemplate을 반환하는 쿼리는 QuestionTemplateRepository에 속한다 : SRP - 책임 분리 원칙
         List<QuestionTemplate> templates = questionTemplateRepository
             .findUnusedTemplatesRecentlyByFamily(family.getId(), LocalDateTime.now().minusMonths(2L));
-        if (templates.isEmpty()) return Optional.empty();
-
+        if (templates.isEmpty()) {
+            log.warn("가족 ID {}에 사용할 수 있는 템플릿 질문이 없습니다. 질문 생성 프로세스를 종료합니다.", family.getId());
+            return;
+        }
         // DB 부하 없이, 애플리케이션 메모리에서 무작위 선택
         Collections.shuffle(templates);
         QuestionTemplate template = templates.getFirst();
-        log.info("가족 ID {}의 템플릿 질문 생성을 시도합니다. (템플릿 ID: {})", family.getId(), template.getId());
+        log.info("가족 ID {}의 템플릿 질문 생성을 시도합니다. 템플릿 ID: {}", family.getId(), template.getId());
 
         // 템플릿 내용을 기반으로 질문을 생성하도록 AI에 요청
         AiQuestionRequest request = AiQuestionRequest.fromTemplate(template);
         AiQuestionResponse response = aiRequestService.requestQuestionGeneration(request);
-
-        // 생성된 질문 인스턴스에 어떤 템플릿을 사용했는지 기록
-        AiQuestionResponse responseWithTemplate = response.toBuilder()
-            .usedTemplateId(template.getId())
-            .build();
-        return Optional.of(responseWithTemplate);
+        // 생성된 질문 인스턴스에 템플릿 ID 기록 후 저장
+        response.setUsedTemplateId(template.getId());
+        saveInstanceAndAssignments(response, family, memberAssignResponse, false);
     }
 
-    /**
-     * (3순위) 일반적인 AI 질문을 생성합니다.
-     * @return 항상 AiQuestionResponse 반환
-     */
-    private AiQuestionResponse generateGeneralQuestion(Family family) {
-        log.info("가족 ID {}의 일반 질문을 생성합니다.", family.getId());
-        AiQuestionRequest request = AiQuestionRequest.defaultRequest(); // 기본 프롬프트 사용
-        return aiRequestService.requestQuestionGeneration(request);
-    }
-
-    /**
-     * 전달받은 AI 응답과 주인공 정보를 바탕으로 QuestionInstance와 QuestionAssignment를 생성하고 저장합니다.
-     */
+    // 전달받은 AI 응답과 주인공 정보, 꼬리질문 여부를 바탕으로 QuestionInstance, QuestionAssignment를 생성, 저장
     @Transactional
-    public void saveInstanceAndAssignments(AiQuestionResponse response, Family family, MemberAssignResponse memberAssignResponse) {
-        QuestionInstance questionInstance = QuestionInstance.generateByAI(response, family);
+    public void saveInstanceAndAssignments(AiQuestionResponse response, Family family, MemberAssignResponse memberAssignResponse, boolean isFollowUp) {
+        QuestionInstance questionInstance = QuestionInstance.generateByAI(response, family, isFollowUp);
 
         // 만약 템플릿 질문이었다면, 사용된 템플릿 정보 연결
         if (response.getUsedTemplateId() != null) {
-            QuestionTemplate usedTemplate = questionTemplateRepository.findById(response.getUsedTemplateId()).orElse(null);
-            questionInstance.setTemplate(usedTemplate);
+            questionInstance.setTemplate(entityManager.getReference(QuestionTemplate.class, response.getUsedTemplateId()));
         }
         questionInstanceRepository.save(questionInstance);
 

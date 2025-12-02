@@ -15,6 +15,7 @@ import org.hibernate.annotations.JdbcTypeCode;
 import org.hibernate.annotations.Type;
 import org.hibernate.type.SqlTypes;
 
+import java.time.LocalDateTime;
 import java.time.OffsetDateTime;
 import java.util.List;
 import java.util.UUID;
@@ -27,8 +28,8 @@ import java.util.UUID;
 @Table(name = "question_template")
 public class QuestionTemplate extends BaseEntity {
   @Id
-  @GeneratedValue(strategy = GenerationType.UUID)
-  private UUID id;
+  @Column(length = 5)
+  private String id;
 
   @Column(columnDefinition = "text", nullable = false)
   private String content;
@@ -56,7 +57,7 @@ public class QuestionTemplate extends BaseEntity {
   private Boolean isActive;
 
   @Column(name = "archived_at")
-  private OffsetDateTime archivedAt;
+  private LocalDateTime archivedAt;
 
   @PrePersist
   void prePersist() {

@@ -121,8 +121,9 @@ public class AiRequestService {
       log.info("AI 서버로부터 답변 분석 응답을 성공적으로 받았습니다.");
       JsonNode categories = objectMapper.valueToTree(response.getCategories());
       JsonNode scores = objectMapper.valueToTree(response.getScores());
+      JsonNode keywords = objectMapper.valueToTree(response.getKeywords());
 
-      AnswerAnalysis analysis = AnswerAnalysis.createFromAIResponse(answer, response, categories, scores);
+      AnswerAnalysis analysis = AnswerAnalysis.createFromAIResponse(answer, response, categories, scores, keywords);
       answerAnalysisRepository.save(analysis);
       log.info("답변 분석 결과가 성공적으로 저장되었습니다. AnswerAnalysis entity: {}", analysis.toString());
     } catch (HttpClientErrorException e) {

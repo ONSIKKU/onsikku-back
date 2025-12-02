@@ -9,7 +9,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
-public interface QuestionTemplateRepository extends JpaRepository<QuestionTemplate, UUID> {
+public interface QuestionTemplateRepository extends JpaRepository<QuestionTemplate, String> {
   @Query("SELECT qt FROM QuestionTemplate qt " +
       "WHERE qt.isActive = true " + // 활성 템플릿만
       "AND qt.id NOT IN (" +

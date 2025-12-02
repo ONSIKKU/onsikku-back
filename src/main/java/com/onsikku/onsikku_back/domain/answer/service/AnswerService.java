@@ -11,7 +11,9 @@ import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
+import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -27,6 +29,7 @@ import java.util.UUID;
 public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
+    private final QuestionInstanceRepository questionInstanceRepository;
     private final AiRequestService aiRequestService;
     private final AnswerAnalysisRepository answerAnalysisRepository;
 
@@ -45,8 +48,10 @@ public class AnswerService {
         }
         Answer newAnswer = answerRepository.save(Answer.create(assignment, member, request.answerType(), request.content()));
         assignment.markAsAnswered();
+        QuestionInstance instance = questionInstanceRepository.findByIdWithQuestionTemplate(assignment.getQuestionInstance().getId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
         // AI 분석 요청
-        aiRequestService.analyzeAnswer(newAnswer, AnswerAnalysisRequest.createFromAnswerAndQuestionInstance(newAnswer, assignment.getQuestionInstance()));
+        aiRequestService.analyzeAnswer(newAnswer, AnswerAnalysisRequest.createFromAnswerAndQuestionInstance(newAnswer, instance));
         return AnswerResponse.from(newAnswer);
     }
 
@@ -74,7 +79,7 @@ public class AnswerService {
     }
     @Transactional
     public List<AnswerAnalysis> getAllAnswerAnalysis(Member member) {
-        return answerAnalysisRepository.findAllAnalysesByMemberId(member.getId());
+        return answerAnalysisRepository.findAllAnalysisByMemberId(member.getId());
     }
 
     private QuestionAssignment findQuestionAssignmentAndAuthorizeFamily(UUID questionAssignmentId, Member member) {

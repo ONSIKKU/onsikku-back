@@ -29,40 +29,29 @@ public class AnswerAnalysis extends BaseEntity {
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
 
-
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "answer_id", nullable = false)
   @JsonIgnore
   private Answer answer;
 
-
-  @Column(name = "analysis_model")
-  private String analysisModel;
-
-
   @Type(JsonBinaryType.class)
   @Column(name = "analysis_parameters", columnDefinition = "jsonb")
   private JsonNode analysisParameters;
 
-
   @Column(name = "analysis_prompt", columnDefinition = "text")
   @JsonIgnore
   private String analysisPrompt;
-
 
   @Type(JsonBinaryType.class)
   @Column(name = "analysis_raw", columnDefinition = "jsonb")
   @JsonIgnore
   private JsonNode analysisRaw;
 
-
   @Column(name = "analysis_version")
   private String analysisVersion;
 
-
   @Column(name = "summary", columnDefinition = "text")
   private String summary;
-
 
   @Type(JsonBinaryType.class)
   @Column(name = "categories", columnDefinition = "jsonb")
@@ -72,17 +61,21 @@ public class AnswerAnalysis extends BaseEntity {
   @Column(name = "scores", columnDefinition = "jsonb")
   private JsonNode scores;
 
-  public static AnswerAnalysis createFromAIResponse(Answer answer, AnswerAnalysisResponse response, JsonNode categories, JsonNode scores) {
-    AnswerAnalysis analysis = new AnswerAnalysis();
-    analysis.answer = answer;
-    analysis.analysisModel = "default"; // 필요시 응답값에 맞춰 수정
-    analysis.analysisParameters = response.getAnalysisParameters();
-    analysis.analysisPrompt = response.getAnalysisPrompt();
-    analysis.analysisRaw = response.getAnalysisRaw();
-    analysis.analysisVersion = response.getAnalysisVersion();
-    analysis.summary = response.getSummary();
-    analysis.categories = categories;
-    analysis.scores = scores;
-    return analysis;
+  @Type(JsonBinaryType.class)
+  @Column(name = "keywords", columnDefinition = "jsonb")
+  private JsonNode keywords;
+
+  public static AnswerAnalysis createFromAIResponse(Answer answer, AnswerAnalysisResponse response, JsonNode categories, JsonNode scores, JsonNode keywords) {
+    return AnswerAnalysis.builder()
+        .answer(answer)
+        .analysisParameters(response.getAnalysisParameters())
+        .analysisPrompt(response.getAnalysisPrompt())
+        .analysisRaw(response.getAnalysisRaw())
+        .analysisVersion(response.getAnalysisVersion())
+        .summary(response.getSummary())
+        .categories(categories)
+        .scores(scores)
+        .keywords(keywords)
+        .build();
   }
 }

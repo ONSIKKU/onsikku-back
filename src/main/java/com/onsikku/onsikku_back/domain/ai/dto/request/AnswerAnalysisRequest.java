@@ -27,6 +27,7 @@ public class AnswerAnalysisRequest {
       return AnswerAnalysisRequest.builder()
           .answerText(answer.extractTextContent())
           .language("ko")
+          // TODO : 변경 필요
           .questionContent(questionInstance.getContent())
           .questionCategory("가족")
           .questionTags(List.of("감사", "일상"))

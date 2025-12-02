@@ -10,13 +10,15 @@ import org.springframework.stereotype.Repository;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 @Repository
 public interface QuestionInstanceRepository extends JpaRepository<QuestionInstance, UUID> {
-  /**
-   * 특정 가족의 '오늘을 포함한 가장 최신의' QuestionInstance의 ID를 조회합니다.
-   */
+  @Query("SELECT qi FROM QuestionInstance qi LEFT JOIN FETCH qi.template WHERE qi.id = :id")
+  Optional<QuestionInstance> findByIdWithQuestionTemplate(UUID id);
+
+  // 특정 가족의 '오늘을 포함한 가장 최신의' QuestionInstance의 ID를 조회합니다.
   @Query("SELECT qi FROM QuestionInstance qi " +
       "WHERE qi.family.id = :familyId AND qi.generatedAt <= :currentDate " +
       "ORDER BY qi.generatedAt DESC")

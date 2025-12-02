@@ -77,13 +77,15 @@ public class QuestionInstance {
   @Column(name = "generated_at")
   private LocalDateTime generatedAt;
 
+  private boolean isFollowUp;
+
   //@Column(name = "scheduled_at")
   //private LocalDateTime scheduledAt;
 
   //@Column(name = "canceled_at")
   //private LocalDateTime canceledAt;
 
-  public static QuestionInstance generateByAI(AiQuestionResponse response, Family family) {
+  public static QuestionInstance generateByAI(AiQuestionResponse response, Family family, boolean isFollowUp) {
     GeneratedBy generatedBy = GeneratedBy.AI;
     try {
       if (response.getGeneratedBy() != null) {
@@ -103,6 +105,7 @@ public class QuestionInstance {
         .generationParameters(response.getGenerationParameters())
         .generationConfidence(response.getGenerationConfidence())
         .generatedBy(generatedBy)
+        .isFollowUp(isFollowUp)
         .build();
   }
 }

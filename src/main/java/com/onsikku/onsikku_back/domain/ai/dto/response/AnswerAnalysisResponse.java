@@ -16,6 +16,7 @@ public class AnswerAnalysisResponse {
   private String analysisVersion;    // "analysis_version" 와 매핑
   private String summary;
   private List<String> categories;
-  private Map<String, Object> scores;
+  private JsonNode scores;
+  private List<String> keywords;
   private LocalDateTime createdAt;         // "created_at" 와 매핑
 }
