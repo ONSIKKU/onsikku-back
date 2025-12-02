@@ -8,6 +8,7 @@ import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerRequest;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
+import com.onsikku.onsikku_back.domain.answer.dto.ReactionType;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
@@ -17,6 +18,7 @@ import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepos
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,6 +28,7 @@ import java.util.UUID;
 
 @Service
 @RequiredArgsConstructor
+@Slf4j
 public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
@@ -35,7 +38,10 @@ public class AnswerService {
 
     @Transactional
     public AnswerResponse createAnswer(AnswerRequest request, Member member) {
-        QuestionAssignment assignment = findQuestionAssignmentAndAuthorizeFamily(request.questionAssignmentId(), member);
+        QuestionAssignment assignment =questionAssignmentRepository.findById(request.questionAssignmentId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
+        authorizeFamily(assignment.getFamily().getId(), member);
+
         if (!assignment.getMember().getId().equals(member.getId())) {
             throw new BaseException(BaseResponseStatus.CANNOT_ANSWER_OTHER_QUESTION);
         }
@@ -66,6 +72,30 @@ public class AnswerService {
         return AnswerResponse.from(answerRepository.save(answer));
     }
 
+    @Transactional
+    public AnswerResponse reactionAnswer(AnswerRequest request, Member member) {
+        Answer answer = answerRepository.findById(request.answerId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.ANSWER_NOT_FOUND));
+       authorizeFamily(answer.getFamily().getId(), member);
+        if(request.reactionType().equals(ReactionType.LIKE)) {
+            log.info("LIKE reaction received");
+            answer.incrementLikeReaction();
+        }
+        else if(request.reactionType().equals(ReactionType.ANGRY)) {
+            log.info("ANGRY reaction received");
+            answer.incrementAngryReaction();
+        }
+        else if(request.reactionType().equals(ReactionType.SAD)) {
+            log.info("SAD reaction received");
+            answer.incrementSadReaction();
+        }
+        else if(request.reactionType().equals(ReactionType.FUNNY)) {
+            log.info("FUNNY reaction received");
+            answer.incrementFunnyReaction();
+        }
+        return AnswerResponse.from(answerRepository.save(answer));
+    }
+
     // ---------------------------- 테스트용 ----------------------------
     @Transactional
     public void deleteAnswer(AnswerRequest request, Member member) {
@@ -82,12 +112,9 @@ public class AnswerService {
         return answerAnalysisRepository.findAllAnalysisByMemberId(member.getId());
     }
 
-    private QuestionAssignment findQuestionAssignmentAndAuthorizeFamily(UUID questionAssignmentId, Member member) {
-        QuestionAssignment assignment = questionAssignmentRepository.findById(questionAssignmentId)
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
-        if(!assignment.getMember().getFamily().getId().equals(member.getFamily().getId())) {
-            throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
+    private void authorizeFamily(UUID memberId, Member member) {
+        if (!memberId.equals(member.getFamily().getId())) {
+            throw new BaseException(BaseResponseStatus.CANNOT_ANSWER_OTHER_QUESTION);
         }
-        return assignment;
     }
 }

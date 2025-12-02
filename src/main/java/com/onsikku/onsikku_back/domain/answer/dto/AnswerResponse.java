@@ -19,21 +19,20 @@ public class AnswerResponse {
     private UUID memberId;
     private FamilyRole familyRole;
     private Gender gender;
-    // TODO : EC2에서 로컬데이트타임 변환 문제 해결 필요
-    private LocalDateTime createdAt;
     private JsonNode content;
     private UUID answerId;
     private int likeReactionCount;
     private int angryReactionCount;
     private int sadReactionCount;
     private int funnyReactionCount;
+    private LocalDateTime createdAt;
+    private LocalDateTime updatedAt;
 
     public static AnswerResponse from(Answer answer) {
         return AnswerResponse.builder()
             .memberId(answer.getMember().getId())
             .familyRole(answer.getMember().getFamilyRole())
             .gender(answer.getMember().getGender())
-            .createdAt(answer.getCreatedAt())
             //TODO : answer jsonnode -> String 변환
             .content(answer.getContent())
             .answerId(answer.getId())
@@ -41,6 +40,8 @@ public class AnswerResponse {
             .angryReactionCount(answer.getAngryReactionCount())
             .sadReactionCount(answer.getSadReactionCount())
             .funnyReactionCount(answer.getFunnyReactionCount())
+            .createdAt(answer.getCreatedAt())
+            .updatedAt(answer.getUpdatedAt())
             .build();
     }
 }

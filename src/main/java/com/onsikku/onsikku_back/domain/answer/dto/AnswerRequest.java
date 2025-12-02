@@ -10,5 +10,6 @@ public record AnswerRequest (
     UUID answerId,
     UUID questionAssignmentId,
     AnswerType answerType,
-    JsonNode content
+    JsonNode content,
+    ReactionType reactionType
 ) {}

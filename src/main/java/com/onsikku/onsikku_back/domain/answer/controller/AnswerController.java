@@ -66,6 +66,23 @@ public class AnswerController {
         return new BaseResponse<>(answerService.updateAnswer(request, customUserDetails.getMember()));
     }
 
+    @PostMapping("/answers/reaction")
+    @Operation(
+        summary = "답변 반응 추가/수정",
+        description = """
+    답변에 대한 반응을 추가하거나 수정합니다.
+    ## 인증(JWT): **필요**
+    ## 참고사항
+    - 요청 본문에 답변 ID, ReactionType을 포함해야 합니다.
+    - ReactionType은 String ENUM 타입입니다 : LIKE, ANGRY, SAD, FUNNY
+    """
+    )
+    public BaseResponse<AnswerResponse> reactionAnswer(@RequestBody AnswerRequest request,
+                                                       @AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        return new BaseResponse<>(answerService.reactionAnswer(request, customUserDetails.getMember()));
+    }
+
+
     @DeleteMapping("/test/answers")
     @Operation(
         summary = "테스트용 답변 삭제",
