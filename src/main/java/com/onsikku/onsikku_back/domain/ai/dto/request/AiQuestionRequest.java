@@ -41,6 +41,7 @@ public class AiQuestionRequest {
 
   public static AiQuestionRequest fromTemplate(QuestionTemplate template) {
     return AiQuestionRequest.builder()
+        .content(template.getContent())
         .language(template.getLanguage())
         .tone(template.getTone())
         .category(template.getCategory())
