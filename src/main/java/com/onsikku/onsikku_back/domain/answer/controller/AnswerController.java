@@ -68,9 +68,9 @@ public class AnswerController {
 
     @PostMapping("/answers/reaction")
     @Operation(
-        summary = "답변 반응 추가/수정",
+        summary = "답변 반응 추가",
         description = """
-    답변에 대한 반응을 추가하거나 수정합니다.
+    답변에 대한 반응을 추가합니다. (무제한)
     ## 인증(JWT): **필요**
     ## 참고사항
     - 요청 본문에 답변 ID, ReactionType을 포함해야 합니다.
