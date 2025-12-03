@@ -62,8 +62,9 @@ public class CommentService {
       comment.setParent(parentComment);
       log.info("comment: {}", comment.toString());
     }
+    commentRepository.save(comment);
     return CommentResponse.builder()
-        .comment(commentRepository.save(comment))
+        .comment(comment)
         .build();
   }
 
