@@ -11,7 +11,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p " +
+  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p JOIN FETCH c.member " +
       "WHERE c.questionInstance.id = :instanceId " +
       "ORDER BY c.createdAt DESC")
   List<Comment> findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(@Param("instanceId") UUID questionInstanceId);

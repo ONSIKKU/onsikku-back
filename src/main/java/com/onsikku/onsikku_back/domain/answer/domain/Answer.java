@@ -33,6 +33,7 @@ public class Answer extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "question_assignment_id", nullable = false, unique = true)
+    @JsonIgnore
     private QuestionAssignment questionAssignment;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
@@ -46,6 +47,7 @@ public class Answer extends BaseEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "family_id", nullable = false)
+    @JsonIgnore
     private Family family;
 
     @Enumerated(EnumType.STRING)
