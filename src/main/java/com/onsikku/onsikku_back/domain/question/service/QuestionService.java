@@ -295,6 +295,6 @@ public class QuestionService {
         log.info("삭제한 answers : {}", answerRepository.deleteAllByQuestionInstanceIn(instances));
         log.info("삭제한 comments : {}", commentRepository.deleteAllByQuestionInstanceIn(instances));
         log.info("삭제한 assignments : {}", questionAssignmentRepository.deleteAllByFamily(family));
-        log.info("삭제한 instances : {}", questionInstanceRepository.deleteAllByFamily(family));
+        log.info("삭제한 instances : {}", questionInstanceRepository.deleteAllByFamilyId(family.getId()));
     }
 }

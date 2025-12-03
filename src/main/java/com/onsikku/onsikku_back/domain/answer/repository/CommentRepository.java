@@ -16,7 +16,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
       "ORDER BY c.createdAt DESC")
   List<Comment> findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(@Param("instanceId") UUID questionInstanceId);
 
-  void deleteAllByMember(Member member);
+  int deleteAllByMember(Member member);
 
   int deleteAllByQuestionInstanceIn(List<QuestionInstance> questionInstances);
 

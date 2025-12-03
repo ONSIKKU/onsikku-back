@@ -20,7 +20,7 @@ public interface AnswerRepository extends JpaRepository<Answer, UUID> {
   @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.questionInstance.id = :instanceId")
   List<Answer> findAllByQuestionInstanceId(UUID instanceId);
 
-  void deleteAllByMember(Member member);
+  int deleteAllByMember(Member member);
 
   int deleteAllByQuestionInstanceIn(List<QuestionInstance> questionInstances);
 

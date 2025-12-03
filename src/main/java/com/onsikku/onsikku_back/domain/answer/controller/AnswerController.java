@@ -91,6 +91,7 @@ public class AnswerController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 테스트용입니다.
+    - 답변 ID, 할당 ID를 요청 본문에 포함해야 합니다.
     """
     )
     public BaseResponse<String> deleteAnswer(@RequestBody AnswerRequest request,

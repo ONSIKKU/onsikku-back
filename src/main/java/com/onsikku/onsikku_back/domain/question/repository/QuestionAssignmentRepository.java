@@ -49,5 +49,5 @@ public interface QuestionAssignmentRepository extends JpaRepository<QuestionAssi
   // 가족으로 삭제 (테스트용)
   int deleteAllByFamily(Family family);
 
-  void deleteAllByMember(Member member);
+  int deleteAllByMember(Member member);
 }

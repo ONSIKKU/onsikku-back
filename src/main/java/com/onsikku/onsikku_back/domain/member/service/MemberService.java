@@ -12,6 +12,7 @@ import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
+import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -32,6 +33,7 @@ public class MemberService {
     private final FamilyRepository familyRepository;
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
+    private final QuestionInstanceRepository questionInstanceRepository;
     private final CommentRepository commentRepository;
     private final InvitationCodeGenerator invitationCodeGenerator;
     private final AnswerAnalysisRepository answerAnalysisRepository;
@@ -78,19 +80,17 @@ public class MemberService {
         // TODO : 회원이 생성한 답변 softDelete 처리
         List<Answer> answers = answerRepository.findAllByMember_Id(member.getId());
         log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
-        answerAnalysisRepository.deleteAllByAnswerIn(answers);
-        log.info("회원이 생성한 답변 분석 데이터 삭제 완료");
-        answerRepository.deleteAllByMember(member);
-        log.info("회원이 생성한 답변 삭제 완료");
-        questionAssignmentRepository.deleteAllByMember(member);
-        log.info("회원이 생성한 질문 할당 삭제 완료");
-        commentRepository.deleteAllByMember(member);
-        log.info("회원이 생성한 댓글 삭제 완료");
+        log.info("회원이 생성한 답변 분석 데이터 삭제 완료 : {} 개", answerAnalysisRepository.deleteAllByAnswerIn(answers));
+        log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));
+        log.info("회원에게 할당된 질문 할당 삭제 완료 : {} 개", questionAssignmentRepository.deleteAllByMember(member));
+        log.info("회원이 생성한 댓글 삭제 완료 : {} 개", commentRepository.deleteAllByMember(member));
         // TODO : 회원 삭제 softDelete 처리
         UUID familyId = member.getFamily().getId();
         memberRepository.deleteById(member.getId());
         log.info("회원 삭제 완료");
         if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
+            log.info("가족에 속한 회원이 없어 가족 데이터 삭제를 진행합니다.");
+            log.info("가족의 질문 인스턴스 삭제 완료 : {} 개", questionInstanceRepository.deleteAllByFamilyId(familyId));
             familyRepository.deleteById(familyId);
             log.info("회원의 가족 삭제 완료");
         }

@@ -37,7 +37,7 @@ public interface QuestionInstanceRepository extends JpaRepository<QuestionInstan
   List<QuestionInstance> findQuestionsByFamilyIdAndDateTimeRange(@Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
   // 가족으로 삭제 (테스트용)
-  int deleteAllByFamily(Family family);
+  int deleteAllByFamilyId(UUID familyId);
 
   List<QuestionInstance> findAllByFamily(Family family);
 }
