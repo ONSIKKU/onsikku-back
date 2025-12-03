@@ -8,6 +8,7 @@ import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
@@ -21,4 +22,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
   int deleteAllByQuestionInstanceIn(List<QuestionInstance> questionInstances);
 
   List<Comment> findByParent(Comment parent);
+
+  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p WHERE c.id = :uuid")
+  Optional<Comment> findByIdWithParent(@Param("uuid") UUID uuid);
 }

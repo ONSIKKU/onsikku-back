@@ -69,8 +69,12 @@ public class CommentService {
   }
 
   @Transactional
-  public CommentResponse updateComment(@Valid CommentRequest request, Member member) {
-    Comment comment = authorizeCommentAccess(request.commentId(), member);
+  public CommentResponse updateComment(CommentRequest request, Member member) {
+    Comment comment = commentRepository.findByIdWithParent(request.commentId())
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
+    if (!comment.getMember().getId().equals(member.getId())) {
+      throw new BaseException(BaseResponseStatus.CANNOT_MODIFY_OTHER_COMMENT);
+    }
     comment.updateContent(request.content());
     comment.setMember(member);
     return CommentResponse.builder()
@@ -80,21 +84,15 @@ public class CommentService {
   @Transactional
   public void deleteComment(UUID commentId, Member member) {
     //TODO : soft delete로 변경 고려
-    Comment comment = authorizeCommentAccess(commentId, member);
-    List<Comment> comments = commentRepository.findByParent(comment);
-    for (Comment childComment : comments) {
-      childComment.setParent(null);
-    }
-    commentRepository.delete(comment);
-  }
-
-  // ------------------ Private Methods ------------------- //
-  private Comment authorizeCommentAccess(UUID commentId, Member member) {
     Comment comment = commentRepository.findById(commentId)
         .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
     if (!comment.getMember().getId().equals(member.getId())) {
       throw new BaseException(BaseResponseStatus.CANNOT_MODIFY_OTHER_COMMENT);
     }
-    return comment;
+    List<Comment> comments = commentRepository.findByParent(comment);
+    for (Comment childComment : comments) {
+      childComment.setParent(null);
+    }
+    commentRepository.delete(comment);
   }
 }
