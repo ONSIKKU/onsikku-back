@@ -24,7 +24,7 @@ public class QuestionScheduler {
    * @Scheduled 가 붙으면, 웹 요청 쓰레드가 아닌 별도의 스케줄러 쓰레드에 할당됩니다.
    * 따라서 비동기 처리는 필요하지 않습니다.
    */
-  @Scheduled(cron = "0 30 21 * * *", zone = "Asia/Seoul")
+  @Scheduled(cron = "0 45 21 * * *", zone = "Asia/Seoul")
   public void createDailyQuestions() {
     log.info("[BATCH] Daily question creation job started.");
 

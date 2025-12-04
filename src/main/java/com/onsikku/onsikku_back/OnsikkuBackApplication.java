@@ -14,9 +14,4 @@ public class OnsikkuBackApplication {
 	public static void main(String[] args) {
 		SpringApplication.run(OnsikkuBackApplication.class, args);
 	}
-	@PostConstruct
-	public void init() {
-		// JVM의 기본 시간대를 'Asia/Seoul'로 설정
-		TimeZone.setDefault(TimeZone.getTimeZone("Asia/Seoul"));
-	}
 }
