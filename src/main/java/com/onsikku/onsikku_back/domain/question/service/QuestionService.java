@@ -37,6 +37,7 @@ import java.time.LocalDateTime;
 import java.time.LocalTime;
 import java.time.YearMonth;
 import java.util.*;
+import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -197,15 +198,15 @@ public class QuestionService {
         // 인스턴스 ID 리스트 추출 및 해당 ID들로 모든 QuestionAssignment 조회
         List<UUID> instanceIds = questionInstances.stream().map(QuestionInstance::getId).toList();
         List<QuestionAssignment> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
+        // 인스턴스 ID 별로 할당 리스트를 매핑한 Map 생성
+        Map<UUID, List<QuestionAssignment>> assignmentsMap = allAssignments.stream()
+            .collect(Collectors.groupingBy(assignment -> assignment.getQuestionInstance().getId()));
 
         // QuestionInstance 리스트를 DTO로 변환 후 반환
         return QuestionResponse.builder()
             .questionDetailsList(
-                questionInstances.stream()
-                .map(instance -> {
-                    UUID instanceId = instance.getId();
-                    return QuestionDetails.fromInstanceAndAssignments(instance, allAssignments);
-                })
+                questionInstances.stream()          // 각 인스턴스에 해당하는 할당 리스트를 매핑 후 DTO 변환 (Map 활용)
+                .map(instance -> QuestionDetails.fromInstanceAndAssignments(instance, assignmentsMap.getOrDefault(instance.getId(), List.of())))
                 .toList()
             )
             .build();
