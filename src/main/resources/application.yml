@@ -1,7 +1,7 @@
 spring:
   sql:
     init:
-      mode: none
+      mode: never
   datasource:
     url: jdbc:postgresql://localhost:5432/onsikku
     username: ${DB_USERNAME}
