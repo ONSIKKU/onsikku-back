@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.global.auth.service;
 
+import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
 import com.onsikku.onsikku_back.global.auth.dto.AuthTestRequest;
@@ -38,6 +39,7 @@ public class AuthService {
   private final FamilyRepository familyRepository;
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
+  private final QuestionService questionService;
 
   @Transactional
   public AuthResponse kakaoLoginWithCode(String code) {
@@ -83,6 +85,8 @@ public class AuthService {
     // 회원 정보를 저장하고, 등록 토큰을 삭제합니다.
     memberRepository.save(member);
     registrationTokenService.delete(request.registrationToken());
+
+    questionService.generateAndAssignQuestionForFamily(family);
 
     // 리프레시 토큰을 생성하고 Redis에 저장합니다.
     String refreshToken = jwtProvider.generateRefreshTokenFromMember(member);

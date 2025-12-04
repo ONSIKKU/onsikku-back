@@ -9,10 +9,8 @@ import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
-import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -50,7 +48,7 @@ public class CommentService {
     log.info("Parent Comment ID: {}", request.parentCommentId());
     if (request.parentCommentId() != null) {
       // 부모 댓글 존재 여부 확인
-      Comment parentComment = commentRepository.findById(request.parentCommentId())
+      Comment parentComment = commentRepository.findByIdWithMember(request.parentCommentId())
           .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
       if(parentComment.getParent() != null) {
         throw new BaseException(BaseResponseStatus.CANNOT_NESTED_COMMENT);
@@ -60,7 +58,6 @@ public class CommentService {
         throw new BaseException(BaseResponseStatus.INVALID_PARENT_COMMENT);
       }
       comment.setParent(parentComment);
-      log.info("comment: {}", comment.toString());
     }
     commentRepository.save(comment);
     return CommentResponse.builder()
@@ -70,7 +67,7 @@ public class CommentService {
 
   @Transactional
   public CommentResponse updateComment(CommentRequest request, Member member) {
-    Comment comment = commentRepository.findByIdWithParent(request.commentId())
+    Comment comment = commentRepository.findByIdWithMemberAndParentAndParentMember(request.commentId())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
     if (!comment.getMember().getId().equals(member.getId())) {
       throw new BaseException(BaseResponseStatus.CANNOT_MODIFY_OTHER_COMMENT);
