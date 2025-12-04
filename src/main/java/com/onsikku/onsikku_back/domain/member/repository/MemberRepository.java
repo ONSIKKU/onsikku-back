@@ -19,4 +19,6 @@ public interface MemberRepository extends JpaRepository<Member, String> {
     void deleteById(UUID memberId);
 
     List<Member> findAllByFamily_Id(UUID familyId);
+
+    List<Member> findAllByFamily_IdAndIdNot(UUID familyId, UUID id);
 }
