@@ -104,7 +104,7 @@ public class QuestionService {
 
         // TODO : 꼬리질문이 1회차인지 알기위해 엔티티에 boolean 추가해야하나? + tryGenerateFollowUpQuestion 검증로직 구현해야함
         log.info("가족 ID {}의 새로운 질문 생성을 시작합니다.", family.getId());
-        tryGenerateFollowUpQuestion(family, memberAssignResponse);        // 꼬리 질문 시도
+        //tryGenerateFollowUpQuestion(family, memberAssignResponse);        // 꼬리 질문 시도
         tryGenerateTemplateQuestion(family, memberAssignResponse);        // 템플릿 질문 시도
     }
 
