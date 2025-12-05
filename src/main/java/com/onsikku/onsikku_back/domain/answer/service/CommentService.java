@@ -86,10 +86,7 @@ public class CommentService {
     if (!comment.getMember().getId().equals(member.getId())) {
       throw new BaseException(BaseResponseStatus.CANNOT_MODIFY_OTHER_COMMENT);
     }
-    List<Comment> comments = commentRepository.findByParent(comment);
-    for (Comment childComment : comments) {
-      childComment.setParent(null);
-    }
+    // 자식 댓글은 자동으로 null 처리됨 (OnDeleteAction.SET_NULL)
     commentRepository.delete(comment);
   }
 }

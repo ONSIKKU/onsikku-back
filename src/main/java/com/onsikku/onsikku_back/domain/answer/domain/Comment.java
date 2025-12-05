@@ -7,6 +7,8 @@ import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.NotBlank;
 import lombok.*;
+import org.hibernate.annotations.OnDelete;
+import org.hibernate.annotations.OnDeleteAction;
 
 import java.util.UUID;
 
@@ -37,6 +39,7 @@ public class Comment extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   @JoinColumn(name = "parent_comment_id", nullable = true)
   @Setter
+  @OnDelete(action = OnDeleteAction.SET_NULL)    // 삭제시 자식 댓글은 자동으로 null 처리됨
   private Comment parent;
 
   @Column(name = "content", columnDefinition = "text", nullable = false)
