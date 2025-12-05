@@ -179,11 +179,17 @@ public class AuthService {
       );
     }
     // 가족 초대 모드인 경우, 가족 초대 코드로 가족 조회 후 반환합니다.
+    if (request.familyInvitationCode() == null || request.familyInvitationCode().isBlank()) {
+      throw new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE);
+    }
     return familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
   }
-
+ @Transactional
   public AuthResponse testRegister(AuthTestRequest request) {
+   if (request.familyInvitationCode() == null || request.familyInvitationCode().isBlank()) {
+     throw new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE);
+   }
     Family family = familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
     // 새로운 회원 정보를 생성
