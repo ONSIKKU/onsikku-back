@@ -1,7 +1,5 @@
 package com.onsikku.onsikku_back.global.jwt;
 
-import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
-import com.onsikku.onsikku_back.global.auth.service.CustomUserDetailsService;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
@@ -13,7 +11,6 @@ import lombok.Getter;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.stereotype.Component;
 import org.springframework.util.StringUtils;
 
@@ -40,7 +37,6 @@ public class JwtProvider {
 
     private Key key;
 
-    private final CustomUserDetailsService customUserDetailsService;
 
     // secret key 초기화
     @PostConstruct

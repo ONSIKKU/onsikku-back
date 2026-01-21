@@ -22,16 +22,17 @@ jobs:
       - name: Gradle 빌드
         run: ./gradlew build -x test
 
-      - name: JAR 전송
-        uses: appleboy/scp-action@v0.1.7
+      - name: 도커 허브 로그인
+        uses: docker/login-action@v3
         with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: ${{ secrets.SERVER_PORT }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          source: "build/libs/*.jar"
-          target: "~/app/"
-          strip_components: 2
+          username: ${{ secrets.DOCKER_USERNAME }}
+          password: ${{ secrets.DOCKER_PASSWORD }}
+
+      - name: 도커 이미지 빌드 및 푸시
+        run: |
+          # 이미지 태그에 깃허브 샤(SHA)를 붙여 버전을 관리하면 좋습니다.
+          docker build -t ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest .
+          docker push ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
 
       - name: EC2에 .env 생성
         uses: appleboy/ssh-action@v1.0.3
@@ -41,6 +42,7 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
+            mkdir -p ~/app
             echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > ~/app/.env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/app/.env
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ~/app/.env
@@ -54,10 +56,9 @@ jobs:
             echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> ~/app/.env
             echo "REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES=${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}" >> ~/app/.env
             echo "AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}" >> ~/app/.env
-          
             chmod 600 ~/app/.env
 
-      - name: 원격 서버에서 기존 JAR 종료 후 실행
+      - name: EC2에서 컨테이너 교체 배포
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -65,30 +66,27 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            echo "이전 프로세스 종료 중..."
-            PID=$(lsof -t -i :9131)
-            if [ -n "$PID" ]; then
-              echo "PID $PID 종료 시도"
-              kill -9 $PID
-              sleep 2
-              if ps -p $PID > /dev/null; then
-                echo "PID $PID 여전히 살아있음"
-              else
-                echo "PID $PID 종료 완료"
-              fi
-            else
-              echo "실행 중인 프로세스 없음"
-            fi
+            # 1. 최신 이미지 가져오기
+            docker pull ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
             
-            echo ".env 환경변수 로드 후 애플리케이션 실행"
-            export $(grep -v '^#' ~/app/.env | xargs) 
-            nohup java -Duser.timezone=Asia/Seoul -jar ~/app/onsikku-back-0.0.1-SNAPSHOT.jar --server.port=${{ secrets.SPRING_PORT }} > ~/app/app.log 2>&1 &
+            # 2. 기존 컨테이너 중지 및 삭제 (오류 무시)
+            docker stop onsikku-server || true
+            docker rm onsikku-server || true
             
+            # 3. 사용하지 않는 도커 이미지 정리 (용량 확보)
+            docker image prune -f
+            
+            # 4. 새 컨테이너 실행 (.env 파일의 환경변수 주입)
+            # 호스트 포트는 기존처럼 SPRING_PORT(9131 예상)를 사용합니다.
+            docker run -d \
+              --name onsikku-server \
+              -p ${{ secrets.SPRING_PORT }}:${{ secrets.SPRING_PORT }} \
+              --env-file ~/app/.env \
+              -e TZ=Asia/Seoul \
+              ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
 
-      - name: 애플리케이션 Health Check (배포 성공 확인)
+      - name: 애플리케이션 Health Check
         uses: appleboy/ssh-action@v1.0.3
-        env:
-          HEALTH_CHECK_URL: "https://api.onsikku.xyz/actuator/health" # <--- 여기에 정의
         with:
           host: ${{ secrets.SERVER_HOST }}
           port: ${{ secrets.SERVER_PORT }}
@@ -96,29 +94,19 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             echo "애플리케이션 시작 대기 (20초)..."
-              sleep 20
-            
-              # Health Check 시도 (최대 5회)
-              HEALTH_URL="${{ env.HEALTH_CHECK_URL }}" # <--- 환경 변수로 사용
-              MAX_ATTEMPTS=5
-              ATTEMPTS=0
-            
-              while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
-                ATTEMPTS=$((ATTEMPTS + 1))
-                echo "Health Check 시도 $ATTEMPTS/$MAX_ATTEMPTS..."
-            
-                STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
-            
-                if [ "$STATUS_CODE" -eq 200 ]; then
-                  echo "Health Check 성공! 애플리케이션이 정상적으로 구동되었습니다. (HTTP 200)"
-                  exit 0
-                fi
-            
-                if [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; then
-                  echo "Health Check 실패 (HTTP $STATUS_CODE). 5초 후 재시도합니다."
-                  sleep 5
-                fi
-              done
-            
-              echo "Health Check 최종 실패. 배포 실패!"
-              exit 1
+            sleep 20
+            HEALTH_URL="${{ secrets.HEALTH_CHECK_URL }}"
+            MAX_ATTEMPTS=5
+            ATTEMPTS=0
+            while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
+              ATTEMPTS=$((ATTEMPTS + 1))
+              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+              if [ "$STATUS_CODE" -eq 200 ]; then
+                echo "Health Check 성공! (HTTP 200)"
+                exit 0
+              fi
+              echo "실패 (HTTP $STATUS_CODE). 5초 후 재시도..."
+              sleep 5
+            done
+            echo "Health Check 최종 실패!"
+            exit 1
