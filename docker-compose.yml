@@ -1,0 +1,35 @@
+version: '3.8'
+
+services:
+  # 레디스 서비스
+  ${REDIS_HOST}:
+    image: redis:alpine
+    container_name: onsikku-redis
+    ports:
+      - "${REDIS_PORT}:${REDIS_PORT}"
+    command: redis-server --requirepass ${REDIS_PASSWORD}
+    networks:
+      - onsikku-net
+    restart: always
+
+  # 스프링 부트 앱 서비스
+  app:
+    image: ${DOCKER_USERNAME}/onsikku-back:latest
+    container_name: onsikku-server
+    ports:
+      - "${SPRING_PORT}:${SPRING_PORT}"
+    env_file:
+      - ~/app/.env
+    environment:
+      - REDIS_HOST=${REDIS_HOST}
+      - REDIS_PORT=${REDIS_PORT}
+      - TZ=Asia/Seoul
+    depends_on:
+      - ${REDIS_HOST}
+    networks:
+      - onsikku-net
+    restart: always
+
+networks:
+  onsikku-net:
+    driver: bridge

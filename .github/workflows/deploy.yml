@@ -30,9 +30,19 @@ jobs:
 
       - name: 도커 이미지 빌드 및 푸시
         run: |
-          # 이미지 태그에 깃허브 샤(SHA)를 붙여 버전을 관리하면 좋습니다.
           docker build -t ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
+
+      # docker-compose.yml 파일을 EC2로 전송
+      - name: docker-compose.yml 전송
+        uses: appleboy/scp-action@v0.1.7
+        with:
+          host: ${{ secrets.SERVER_HOST }}
+          username: ${{ secrets.SERVER_USER }}
+          key: ${{ secrets.SERVER_KEY }}
+          port: ${{ secrets.SERVER_PORT }}
+          source: "docker-compose.yml"
+          target: "~/app/"
 
       - name: EC2에 .env 생성
         uses: appleboy/ssh-action@v1.0.3
@@ -43,23 +53,32 @@ jobs:
           key: ${{ secrets.SERVER_KEY }}
           script: |
             mkdir -p ~/app
-            echo "DB_URL=${{ secrets.DB_URL }}" > ~/app/.env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ~/app/.env
-            echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/app/.env
-            echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ~/app/.env
-            echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ~/app/.env
-            echo "REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}" >> ~/app/.env
-            echo "KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}" >> ~/app/.env
-            echo "KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}" >> ~/app/.env
-            echo "JWT_SECRET=${{ secrets.JWT_SECRET }}" >> ~/app/.env
-            echo "JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}" >> ~/app/.env
-            echo "SPRING_PORT=${{ secrets.SPRING_PORT }}" >> ~/app/.env
-            echo "JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}" >> ~/app/.env
-            echo "REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES=${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}" >> ~/app/.env
-            echo "AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}" >> ~/app/.env
+            # 첫 줄은 > 로 생성, 나머지는 >> 로 추가 (작은따옴표로 특수문자 보호)
+            echo "DB_URL='${{ secrets.DB_URL }}'" > ~/app/.env
+            echo "DB_USERNAME='${{ secrets.DB_USERNAME }}'" >> ~/app/.env
+            echo "DB_PASSWORD='${{ secrets.DB_PASSWORD }}'" >> ~/app/.env
+            
+            # Redis 관련 시크릿
+            echo "REDIS_HOST='${{ secrets.REDIS_HOST }}'" >> ~/app/.env
+            echo "REDIS_PORT='${{ secrets.REDIS_PORT }}'" >> ~/app/.env
+            echo "REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'" >> ~/app/.env
+            echo "REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES='${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}'" >> ~/app/.env
+            
+            # 기타 인증 및 서비스 설정
+            echo "KAKAO_CLIENT_ID='${{ secrets.KAKAO_CLIENT_ID }}'" >> ~/app/.env
+            echo "KAKAO_REDIRECT_URI='${{ secrets.KAKAO_REDIRECT_URI }}'" >> ~/app/.env
+            echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'" >> ~/app/.env
+            echo "JWT_EXPIRATION_TIME='${{ secrets.JWT_EXPIRATION_TIME }}'" >> ~/app/.env
+            echo "JWT_REFRESH_EXPIRATION_TIME='${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}'" >> ~/app/.env
+            echo "SPRING_PORT='${{ secrets.SPRING_PORT }}'" >> ~/app/.env
+            echo "AI_SERVER_BASE_URL='${{ secrets.AI_SERVER_BASE_URL }}'" >> ~/app/.env
+            
+            # Compose용 추가 변수
+            echo "DOCKER_USERNAME='${{ secrets.DOCKER_USERNAME }}'" >> ~/app/.env
+            
             chmod 600 ~/app/.env
 
-      - name: EC2에서 컨테이너 교체 배포
+      - name: EC2에서 Docker Compose 배포
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -67,24 +86,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
-            # 1. 최신 이미지 가져오기
-            docker pull ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
-            
-            # 2. 기존 컨테이너 중지 및 삭제 (오류 무시)
-            docker stop onsikku-server || true
-            docker rm onsikku-server || true
-            
-            # 3. 사용하지 않는 도커 이미지 정리 (용량 확보)
+            cd ~/app
+            # 최신 이미지를 불러오고 서비스를 갱신합니다.
+            docker compose pull
+            docker compose up -d
+            # 사용하지 않는 옛날 이미지들 삭제
             docker image prune -f
-            
-            # 4. 새 컨테이너 실행 (.env 파일의 환경변수 주입)
-            # 호스트 포트는 기존처럼 SPRING_PORT(9131 예상)를 사용합니다.
-            docker run -d \
-              --name onsikku-server \
-              -p ${{ secrets.SPRING_PORT }}:${{ secrets.SPRING_PORT }} \
-              --env-file ~/app/.env \
-              -e TZ=Asia/Seoul \
-              ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
 
       - name: 애플리케이션 Health Check
         uses: appleboy/ssh-action@v1.0.3
