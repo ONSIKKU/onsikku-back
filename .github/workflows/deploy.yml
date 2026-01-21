@@ -44,7 +44,7 @@ jobs:
           script: |
             mkdir -p ~/app
             echo "DB_URL=${{ secrets.DB_URL }}" > ~/app/.env
-            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" > ~/app/.env
+            echo "DB_USERNAME=${{ secrets.DB_USERNAME }}" >> ~/app/.env
             echo "DB_PASSWORD=${{ secrets.DB_PASSWORD }}" >> ~/app/.env
             echo "REDIS_HOST=${{ secrets.REDIS_HOST }}" >> ~/app/.env
             echo "REDIS_PORT=${{ secrets.REDIS_PORT }}" >> ~/app/.env
