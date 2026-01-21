@@ -2,7 +2,7 @@ version: '3.8'
 
 services:
   # 레디스 서비스
-  ${REDIS_HOST}:
+  redis:
     image: redis:alpine
     container_name: onsikku-redis
     ports:
