@@ -112,10 +112,9 @@ jobs:
             sleep 20
 
             # 가장 안정적인 방법: 서버 내부에서 localhost로 확인
-            HEALTH_URL="http://localhost:${{ secrets.SPRING_PORT }}/${{ secrets.HEALTH_PATH }}"
-            # ↑ HEALTH_PATH 예: "actuator/health" 또는 "health"
+            HEALTH_URL=${{ secrets.HEALTH_CHECK_URL }}
 
-            MAX_ATTEMPTS=8
+            MAX_ATTEMPTS=5
             ATTEMPTS=0
 
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
