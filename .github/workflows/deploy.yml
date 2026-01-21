@@ -1,4 +1,4 @@
-name: deploy.yml
+name: Deploy
 
 on:
   push:
@@ -33,7 +33,6 @@ jobs:
           docker build -t ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
 
-      # docker-compose.yml 파일을 EC2로 전송
       - name: docker-compose.yml 전송
         uses: appleboy/scp-action@v0.1.7
         with:
@@ -52,30 +51,35 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
+            set -e
             mkdir -p ~/app
-            # 첫 줄은 > 로 생성, 나머지는 >> 로 추가 (작은따옴표로 특수문자 보호)
-            echo "DB_URL='${{ secrets.DB_URL }}'" > ~/app/.env
-            echo "DB_USERNAME='${{ secrets.DB_USERNAME }}'" >> ~/app/.env
-            echo "DB_PASSWORD='${{ secrets.DB_PASSWORD }}'" >> ~/app/.env
-            
-            # Redis 관련 시크릿
-            echo "REDIS_HOST='${{ secrets.REDIS_HOST }}'" >> ~/app/.env
-            echo "REDIS_PORT='${{ secrets.REDIS_PORT }}'" >> ~/app/.env
-            echo "REDIS_PASSWORD='${{ secrets.REDIS_PASSWORD }}'" >> ~/app/.env
-            echo "REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES='${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}'" >> ~/app/.env
-            
-            # 기타 인증 및 서비스 설정
-            echo "KAKAO_CLIENT_ID='${{ secrets.KAKAO_CLIENT_ID }}'" >> ~/app/.env
-            echo "KAKAO_REDIRECT_URI='${{ secrets.KAKAO_REDIRECT_URI }}'" >> ~/app/.env
-            echo "JWT_SECRET='${{ secrets.JWT_SECRET }}'" >> ~/app/.env
-            echo "JWT_EXPIRATION_TIME='${{ secrets.JWT_EXPIRATION_TIME }}'" >> ~/app/.env
-            echo "JWT_REFRESH_EXPIRATION_TIME='${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}'" >> ~/app/.env
-            echo "SPRING_PORT='${{ secrets.SPRING_PORT }}'" >> ~/app/.env
-            echo "AI_SERVER_BASE_URL='${{ secrets.AI_SERVER_BASE_URL }}'" >> ~/app/.env
-            
-            # Compose용 추가 변수
-            echo "DOCKER_USERNAME='${{ secrets.DOCKER_USERNAME }}'" >> ~/app/.env
-            
+
+            # .env 재생성 (따옴표 제거: 파서별 호환성 문제 방지)
+            cat > ~/app/.env << 'EOF'
+            # DB 설정
+            DB_URL=${{ secrets.DB_URL }}
+            DB_USERNAME=${{ secrets.DB_USERNAME }}
+            DB_PASSWORD=${{ secrets.DB_PASSWORD }}
+
+            # Redis 설정
+            REDIS_HOST=${{ secrets.REDIS_HOST }}
+            REDIS_PORT=${{ secrets.REDIS_PORT }}
+            REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
+            REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES=${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}
+
+            # 기타 설정
+            KAKAO_CLIENT_ID=${{ secrets.KAKAO_CLIENT_ID }}
+            KAKAO_REDIRECT_URI=${{ secrets.KAKAO_REDIRECT_URI }}
+            JWT_SECRET=${{ secrets.JWT_SECRET }}
+            JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}
+            JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}
+            SPRING_PORT=${{ secrets.SPRING_PORT }}
+            AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}
+
+            # Compose용
+            DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            EOF
+
             chmod 600 ~/app/.env
 
       - name: EC2에서 Docker Compose 배포
@@ -86,11 +90,12 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
+            set -e
             cd ~/app
-            # 최신 이미지를 불러오고 서비스를 갱신합니다.
-            docker compose pull
-            docker compose up -d
-            # 사용하지 않는 옛날 이미지들 삭제
+
+            docker compose -f docker-compose.yml pull
+            docker compose -f docker-compose.yml up -d --remove-orphans
+
             docker image prune -f
 
       - name: 애플리케이션 Health Check
@@ -101,20 +106,30 @@ jobs:
           username: ${{ secrets.SERVER_USER }}
           key: ${{ secrets.SERVER_KEY }}
           script: |
+            set -e
+
             echo "애플리케이션 시작 대기 (20초)..."
             sleep 20
-            HEALTH_URL="${{ secrets.HEALTH_CHECK_URL }}"
-            MAX_ATTEMPTS=5
+
+            # 가장 안정적인 방법: 서버 내부에서 localhost로 확인
+            HEALTH_URL="http://localhost:${{ secrets.SPRING_PORT }}/${{ secrets.HEALTH_PATH }}"
+            # ↑ HEALTH_PATH 예: "actuator/health" 또는 "health"
+
+            MAX_ATTEMPTS=8
             ATTEMPTS=0
+
             while [ $ATTEMPTS -lt $MAX_ATTEMPTS ]; do
               ATTEMPTS=$((ATTEMPTS + 1))
-              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" $HEALTH_URL)
+              STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" "$HEALTH_URL" || true)
+
               if [ "$STATUS_CODE" -eq 200 ]; then
-                echo "Health Check 성공! (HTTP 200)"
+                echo "Health Check 성공! (HTTP 200) - $HEALTH_URL"
                 exit 0
               fi
-              echo "실패 (HTTP $STATUS_CODE). 5초 후 재시도..."
+
+              echo "실패 (HTTP $STATUS_CODE) - $HEALTH_URL. 5초 후 재시도... ($ATTEMPTS/$MAX_ATTEMPTS)"
               sleep 5
             done
-            echo "Health Check 최종 실패!"
+
+            echo "Health Check 최종 실패! - $HEALTH_URL"
             exit 1
