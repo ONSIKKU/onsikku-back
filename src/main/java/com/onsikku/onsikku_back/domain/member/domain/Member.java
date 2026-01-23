@@ -27,27 +27,24 @@ public class Member extends BaseEntity {
     private Family family;
 
     @Column(nullable = false, unique = true)
-    @JsonIgnore
+    @JsonIgnore             // 보안상 카카오 ID는 외부에 노출하지 않음
     private String kakaoId;
 
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private Role role;
-
-    @Enumerated(EnumType.STRING)
-    private Gender gender;
 
     private LocalDate birthDate;
 
     @Enumerated(EnumType.STRING)
     private FamilyRole familyRole;
 
+    @Column(nullable = false, length = 20)
+    private String nickname;
+
     private String profileImageUrl;
 
     private boolean isAlarmEnabled;
-
-    public void changeGender(Gender gender) {
-        this.gender = gender;
-    }
 
     public void changeBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
@@ -55,6 +52,10 @@ public class Member extends BaseEntity {
 
     public void changeFamilyRole(FamilyRole familyRole) {
         this.familyRole = familyRole;
+    }
+
+    public void changeNickname(String nickname) {
+        this.nickname = nickname;
     }
 
     public void changeProfileImageUrl(String url) {
@@ -69,8 +70,8 @@ public class Member extends BaseEntity {
         return Member.builder()
             .kakaoId(memberInfo.kakaoId())
             .familyRole(request.familyRole())
+            .nickname(request.nickname())
             .birthDate(request.birthDate())
-            .gender(request.gender())
             .profileImageUrl(request.profileImageUrl())
             .family(family)
             .role(Role.MEMBER)

@@ -39,7 +39,7 @@ public class MemberController {
     회원 마이페이지 정보를 조회합니다.
     ## 인증(JWT): **필요**
     ## 참고사항
-    - 가족에 속한 회원의 정보(이름, 이메일, 프로필 이미지 등)와 함께 본인 정보를 반환합니다.
+    - 가족에 속한 회원의 정보(닉네임, 역할, 프로필 이미지 등)와 함께 본인 정보를 반환합니다.
     """
   )
   public BaseResponse<MypageResponse> getMyPage(@AuthenticationPrincipal CustomUserDetails customUserDetails) {

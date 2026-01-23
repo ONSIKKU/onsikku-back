@@ -28,9 +28,6 @@ public class Family extends BaseEntity {
     @Column(nullable = true, unique = true, length = 8)
     private String invitationCode;
 
-    @Enumerated(EnumType.STRING)
-    private GrandParentType grandparentType;
-
     @Column(nullable = false)
     private boolean isFamilyInviteEnabled;
 

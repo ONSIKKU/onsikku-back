@@ -52,10 +52,10 @@ public class MemberService {
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
 
         // 부분 업데이트 (JsonNullable 사용 가정)
+        req.nickname().ifPresent(member::changeNickname);
         req.profileImageUrl().ifPresent(member::changeProfileImageUrl);
         req.familyRole().ifPresent(member::changeFamilyRole);
         req.birthDate().ifPresent(member::changeBirthDate);
-        req.gender().ifPresent(member::changeGender);
         req.isAlarmEnabled().ifPresent(member::changeAlarmEnabled);
 
         // 초대코드 재발급

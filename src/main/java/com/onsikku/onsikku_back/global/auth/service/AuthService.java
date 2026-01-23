@@ -174,7 +174,6 @@ public class AuthService {
               .familyName(request.familyName())
               .invitationCode(invitationCodeGenerator.generate())
               .isFamilyInviteEnabled(true)
-              .grandparentType(request.grandParentType())
               .build()
       );
     }
@@ -198,7 +197,7 @@ public class AuthService {
         .familyRole(request.familyRole())
         .family(family)
         .birthDate(request.birthDate())
-        .gender(request.gender())
+        .nickname(UUID.randomUUID().toString())
         .kakaoId(UUID.randomUUID().toString())
         .isAlarmEnabled(true)
         .build();

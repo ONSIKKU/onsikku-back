@@ -111,7 +111,6 @@ jobs:
             echo "애플리케이션 시작 대기 (20초)..."
             sleep 20
 
-            # 가장 안정적인 방법: 서버 내부에서 localhost로 확인
             HEALTH_URL=${{ secrets.HEALTH_CHECK_URL }}
 
             MAX_ATTEMPTS=5

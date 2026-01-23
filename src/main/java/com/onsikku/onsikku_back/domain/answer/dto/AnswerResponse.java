@@ -4,8 +4,6 @@ package com.onsikku.onsikku_back.domain.answer.dto;
 import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
-import com.onsikku.onsikku_back.domain.member.domain.Gender;
-import jakarta.persistence.Column;
 import lombok.*;
 
 import java.time.LocalDateTime;
@@ -18,7 +16,7 @@ import java.util.UUID;
 public class AnswerResponse {
     private UUID memberId;
     private FamilyRole familyRole;
-    private Gender gender;
+    private String nickname;
     private JsonNode content;
     private UUID answerId;
     private int likeReactionCount;
@@ -32,7 +30,6 @@ public class AnswerResponse {
         return AnswerResponse.builder()
             .memberId(answer.getMember().getId())
             .familyRole(answer.getMember().getFamilyRole())
-            .gender(answer.getMember().getGender())
             //TODO : answer jsonnode -> String 변환
             .content(answer.getContent())
             .answerId(answer.getId())
