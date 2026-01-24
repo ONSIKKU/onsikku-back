@@ -2,12 +2,11 @@ package com.onsikku.onsikku_back.domain.ai.dto.request;
 
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonInclude;
-import com.onsikku.onsikku_back.domain.question.domain.Question;
+import com.onsikku.onsikku_back.domain.member.domain.Member;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
 
-import java.util.List;
 import java.util.UUID;
 
 @Getter
@@ -15,12 +14,21 @@ import java.util.UUID;
 @ToString
 @JsonInclude(Include.NON_NULL)
 public class AiQuestionRequest {
+  private UUID familyId;
+  private UUID memberId;
+  private String roleLabel;
+  private String baseQuestion;
+  private String baseAnswer;
+  private String answeredAt;
 
-  private String content;
-  private String language;
-  private String tone;
-  private String category;
-  private List<String> tags;
-  private boolean subjectRequired;
-  private UUID subjectMemberId;
+  public static AiQuestionRequest of(Member member, String baseQuestion, String baseAnswer, String answeredAt) {
+    return AiQuestionRequest.builder()
+        .familyId(member.getFamily().getId())
+        .memberId(member.getId())
+        .roleLabel(member.getFamilyRole().name())
+        .baseQuestion(baseQuestion)
+        .baseAnswer(baseAnswer)
+        .answeredAt(answeredAt)
+        .build();
+  }
 }

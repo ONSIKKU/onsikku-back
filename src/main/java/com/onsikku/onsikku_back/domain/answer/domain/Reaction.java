@@ -1,7 +1,6 @@
 package com.onsikku.onsikku_back.domain.answer.domain;
 
 
-import com.onsikku.onsikku_back.domain.answer.dto.ReactionType;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import jakarta.persistence.*;
 import lombok.*;

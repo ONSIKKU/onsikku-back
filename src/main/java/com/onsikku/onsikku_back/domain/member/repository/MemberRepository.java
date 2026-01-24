@@ -12,8 +12,10 @@ import java.util.UUID;
 
 public interface MemberRepository extends JpaRepository<Member, String> {
     Optional<Member> findByKakaoId(String kakaoId);
+
     @Query("SELECT m FROM Member m JOIN FETCH m.family WHERE m.id = :memberId")
     Optional<Member> findMemberWithFamily(@Param("memberId") UUID memberId);
+
     Optional<Member> findById(UUID memberId);
     boolean existsByKakaoId(String kakaoId);
     void deleteById(UUID memberId);

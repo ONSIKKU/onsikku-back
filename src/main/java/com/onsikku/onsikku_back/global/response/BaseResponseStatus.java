@@ -41,7 +41,7 @@ public enum BaseResponseStatus {
     ACCESS_DENIED_FOR_RESOURCE(HttpStatus.FORBIDDEN, "본인과 관련된 데이터만 관리할 수 있습니다."),
     INVALID_ANSWER(HttpStatus.BAD_REQUEST, "답변을 입력해주세요."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변이 존재하지 않습니다."),
-    MEMBER_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 질문이 존재하지 않습니다."),
+    MEMBER_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "질문이 존재하지 않습니다."),
     ALREADY_ANSWERED_QUESTION(HttpStatus.BAD_REQUEST, "이미 답변한 질문입니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "부모 댓글은 같은 질문 인스턴스에서만 가능합니다."),

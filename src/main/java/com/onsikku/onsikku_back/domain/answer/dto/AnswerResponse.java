@@ -19,10 +19,6 @@ public class AnswerResponse {
     private String nickname;
     private JsonNode content;
     private UUID answerId;
-    private int likeReactionCount;
-    private int angryReactionCount;
-    private int sadReactionCount;
-    private int funnyReactionCount;
     private LocalDateTime createdAt;
     private LocalDateTime updatedAt;
 

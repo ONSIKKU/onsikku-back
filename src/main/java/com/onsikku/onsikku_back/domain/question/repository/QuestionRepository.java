@@ -11,17 +11,6 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface QuestionRepository extends JpaRepository<Question, String> {
-  @Query("SELECT qt FROM Question qt " +
-      "WHERE qt.isActive = true " + // 활성 템플릿만
-      "AND qt.id NOT IN (" +
-      "SELECT qi.template.id FROM QuestionInstance qi " +
-      "WHERE qi.family.id = :familyId AND qi.generatedAt >= :startDate" +
-      ")")
-  List<Question> findUnusedTemplatesRecentlyByFamily(
-      @Param("familyId") UUID familyId,
-      @Param("startDate") LocalDateTime startDate
-  );
-
   // 주인공이 받지 않은 템플릿 중, 오늘 레벨에 맞는 질문을 랜덤으로 하나 가져옴
   @Query(value = """
         SELECT * FROM question q 

@@ -74,6 +74,7 @@ public class MemberService {
     @Transactional
     public void deleteMember(Member member) {
         // TODO : 회원이 생성한 답변 softDelete 처리
+        // TODO : 회원이 생성한 댓글 성능 고려한 쿼리로 수정
         List<Answer> answers = answerRepository.findAllByMember_Id(member.getId());
         log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
         log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));

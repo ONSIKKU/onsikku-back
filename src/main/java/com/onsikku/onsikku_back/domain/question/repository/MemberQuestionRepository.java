@@ -16,29 +16,21 @@ import java.util.UUID;
 
 @Repository
 public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, UUID> {
-  // 특정 가족의 '오늘을 포함한 가장 최신의' MemberQuestion의 ID를 조회합니다.
-  @Query("SELECT qi FROM MemberQuestion qi " +
-      "WHERE qi.family.id = :familyId AND qi.generatedAt <= :currentDate " +
-      "ORDER BY qi.generatedAt DESC")
-  Optional<MemberQuestion> findSent(@Param("familyId") UUID familyId, @Param("currentDate") LocalDateTime currentDate, Pageable pageable);
+  // 주인공의 '오늘을 포함한 가장 최신의' MemberQuestion을 조회합니다.
+  @Query("SELECT mq FROM MemberQuestion mq LEFT JOIN FETCH mq.member " +
+      "WHERE mq.family.id = :familyId AND mq.sentAt <= :currentDate " +
+      "ORDER BY mq.sentAt DESC")
+  List<MemberQuestion> findTodayQuestionForFamily(@Param("familyId") UUID familyId, @Param("currentDate") LocalDateTime currentDate, Pageable pageable);
 
-  // 예시: 질문 조회 Repository 쿼리
-  @Query("SELECT mq FROM MemberQuestion mq WHERE mq.member.id = :memberId " +
-      "AND mq.sentAt <= :now ORDER BY mq.sentAt DESC")
-  Optional<MemberQuestion> findCurrentActiveQuestion(@Param("memberId") UUID memberId,
-                                                     @Param("now") LocalDateTime now);
+  @Query("SELECT mq FROM MemberQuestion mq LEFT JOIN FETCH mq.member WHERE mq.id = :memberQuestionId")
+  Optional<MemberQuestion> findByIdWithMember(@Param("memberQuestionId") UUID memberQuestionId);
 
-  // 주인공에게 할당된 대기 중인(PENDING) 질문 중 레벨과 우선순위에 맞는 가장 적절한 질문 조회
+  // 주인공 질문 할당 : 대기 중인(PENDING) 질문 중, 레벨과 우선순위에 맞는 가장 적절한 질문 조회
   @Query(value = "SELECT * FROM member_question WHERE member_id = :memberId " +
       "AND question_status = :status AND level IN (:levels) " +
       "ORDER BY priority DESC, created_at ASC " +
-      "LIMIT 1",
-      nativeQuery = true)
-  Optional<MemberQuestion> findTopQuestionNative(
-      @Param("memberId") UUID memberId,
-      @Param("status") String status,
-      @Param("levels") List<Integer> levels
-  );
+      "LIMIT 1", nativeQuery = true)
+  Optional<MemberQuestion> findTopQuestionNative(@Param("memberId") UUID memberId, @Param("status") String status, @Param("levels") List<Integer> levels);
 
   /**
    * 특정 가족의 특정 기간 동안의 모든 질문 인스턴스를 조회합니다.
@@ -47,9 +39,9 @@ public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, 
    * @param endDate 종료일
    * @return 질문 인스턴스 목록
    */
-  @Query("SELECT qi FROM MemberQuestion qi " +
-      "WHERE qi.family.id = :familyId AND qi.generatedAt BETWEEN :startDate AND :endDate " +
-      "ORDER BY qi.generatedAt DESC")
+  @Query("SELECT mq FROM MemberQuestion mq LEFT JOIN FETCH mq.member " +
+      "WHERE mq.family.id = :familyId AND mq.sentAt BETWEEN :startDate AND :endDate " +
+      "ORDER BY mq.sentAt DESC")
   List<MemberQuestion> findQuestionsByFamilyIdAndDateTimeRange(@Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
   @Modifying
@@ -57,6 +49,4 @@ public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, 
   void deleteByFamilyIdBulk(@Param("familyId") UUID familyId);
 
   List<MemberQuestion> findAllByFamily(Family family);
-
-  Optional<MemberQuestion> findByMemberIdAndLevelFilterWithPriority(UUID id, Object o);
 }

@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.question.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import jakarta.persistence.*;
@@ -125,6 +126,19 @@ public class MemberQuestion {
         .level(question.getLevel())
         .priority(1)        // 일반 템플릿이므로 우선순위 1
         .questionStatus(QuestionStatus.PENDING)
+        .reminderCount(0)
+        .build();
+  }
+
+  public static MemberQuestion createMemberQuestionFromAiResponse(Member member, AiQuestionResponse response) {
+    return MemberQuestion.builder()
+        .member(member)
+        .family(member.getFamily())
+        .content(response.getContent())
+        .level(response.getLevel())
+        .priority(response.getPriority())
+        .questionStatus(QuestionStatus.PENDING)
+        .metadata(response.getMetadata())
         .reminderCount(0)
         .build();
   }

@@ -4,26 +4,18 @@ import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.fasterxml.jackson.databind.JsonNode;
 import lombok.*;
 
-import java.time.LocalDateTime;
+import java.util.UUID;
 
 @Getter
 @NoArgsConstructor
 @ToString
 @Builder(toBuilder = true)
 @AllArgsConstructor
-@JsonIgnoreProperties(ignoreUnknown = true)
+@JsonIgnoreProperties(ignoreUnknown = true)   // 알 수 없는 속성 무시
 public class AiQuestionResponse {
-
-  @Setter
-  private String usedTemplateId; // 사용된 템플릿 ID, setter로 설정 가능
-
+  private UUID memberId;
   private String content;
-  private String status;
-  private String generatedBy;
-  private String generationModel;
-  private JsonNode generationParameters; // {}는 특정 타입이 없으므로 Object 또는 Map<String, Object>로 받음
-  private String generationPrompt;
-  private JsonNode generationMetadata;
-  private float generationConfidence;
-  private LocalDateTime generatedAt;
+  private int level;
+  private int priority;
+  private JsonNode metadata;
 }

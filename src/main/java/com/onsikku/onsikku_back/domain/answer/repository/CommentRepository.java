@@ -19,8 +19,6 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
   int deleteAllByMember(Member member);
 
-  List<Comment> findByParent(Comment parent);
-
   @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parentComment p JOIN FETCH c.member LEFT JOIN FETCH p.member WHERE c.id = :uuid")
   Optional<Comment> findByIdWithMemberAndParentAndParentMember(@Param("uuid") UUID uuid);
 

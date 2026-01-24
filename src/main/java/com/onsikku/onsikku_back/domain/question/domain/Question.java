@@ -26,7 +26,4 @@ public class Question extends BaseEntity {
   private String category;
 
   private int level;
-
-  @Column(name = "archived_at")
-  private LocalDateTime archivedAt;
 }

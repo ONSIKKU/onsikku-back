@@ -13,8 +13,8 @@ import java.util.List;
 public class QuestionResponse {
   private List<QuestionDetails> questionDetailsList;
   private QuestionDetails questionDetails;
-  private int totalQuestions;
-  private int answeredQuestions;
-  private int totalReactions;
-  private List<Member> familyMembers;
+  private int totalQuestionCount;             // 월별 조회
+  private int answeredQuestionCount;          // 월별 조회
+  private int totalReactionCount;             // 월별 조회
+  private List<Member> familyMembers;         // 메인 화면
 }

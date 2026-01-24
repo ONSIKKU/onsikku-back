@@ -2,7 +2,7 @@ package com.onsikku.onsikku_back.domain.answer.service;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
-import com.onsikku.onsikku_back.domain.answer.dto.ReactionType;
+import com.onsikku.onsikku_back.domain.answer.domain.ReactionType;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;

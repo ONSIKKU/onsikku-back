@@ -33,28 +33,9 @@ public class QuestionCycleService {
 
   @Transactional
   public void getOrGenerateCycleAndAssignQuestionForFamily(Family family) {
-    // 활성화된 사이클 조회, 없으면 새로 생성
-    QuestionCycle cycle = cycleRepository.findByFamily_Id(family.getId())
-        .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findByFamily_Id(family.getId())));
+    QuestionCycle cycle = findOrCreateOrRefreshCycleForFamily(family);
+    Member todayMember = findTodayMemberForFamily(cycle, family);
 
-    // 사이클이 끝났으면 새로 갱신
-    if(cycle.isFinished()) {
-      cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
-    }
-
-    // 오늘 주인공 찾기 (부재 시 다음 사람으로 스킵하는 로직)
-    Member todayMember = null;
-    while (todayMember == null && !cycle.isFinished()) {
-      UUID memberId = cycle.getTodayMemberId();
-      todayMember = memberRepository.findById(memberId).orElse(null);
-
-      if (todayMember == null) {
-        cycle.incrementIndex();     // 존재하지 않는 멤버면 인덱스만 올리고 다음 루프
-        if (cycle.isFinished()) {   // 만약 스킵했는데 사이클이 끝났다면 다시 갱신 시도
-          cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
-        }
-      }
-    }
     // 질문 할당 로직 수행
     MemberQuestion selectedQuestion = assignFinalQuestion(todayMember, family);
 
@@ -88,5 +69,34 @@ public class QuestionCycleService {
       return List.of(3, 4);
     }
     return List.of(1, 2);
+  }
+
+  private Member findTodayMemberForFamily(QuestionCycle cycle, Family family) {
+    // 오늘 주인공 찾기 (부재 시 다음 사람으로 스킵하는 로직)
+    Member todayMember = null;
+    while (todayMember == null && !cycle.isFinished()) {
+      UUID memberId = cycle.getTodayMemberId();
+      todayMember = memberRepository.findById(memberId).orElse(null);
+
+      if (todayMember == null) {
+        cycle.incrementIndex();     // 존재하지 않는 멤버면 인덱스만 올리고 다음 루프
+        if (cycle.isFinished()) {   // 만약 스킵했는데 사이클이 끝났다면 다시 갱신 시도
+          cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
+        }
+      }
+    }
+    return todayMember;
+  }
+
+  private QuestionCycle findOrCreateOrRefreshCycleForFamily(Family family) {
+    // 활성화된 사이클 조회, 없으면 새로 생성
+    QuestionCycle cycle = cycleRepository.findByFamily_Id(family.getId())
+        .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findByFamily_Id(family.getId())));
+
+    // 사이클이 끝났으면 새로 갱신
+    if(cycle.isFinished()) {
+      cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
+    }
+    return cycle;
   }
 }

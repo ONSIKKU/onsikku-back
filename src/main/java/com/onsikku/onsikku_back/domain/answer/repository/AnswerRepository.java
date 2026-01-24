@@ -11,15 +11,13 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.UUID;
 
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
-  List<Answer> findByQuestionAssignmentId(UUID questionAssignmentId);
-
-  @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.memberQuestion.id = :instanceId")
-  List<Answer> findAllByQuestionInstanceId(UUID instanceId);
+  Optional<Answer> findByMemberQuestion_Id(UUID memberQuestionId);
 
   int deleteAllByMember(Member member);
 
@@ -28,4 +26,6 @@ public interface AnswerRepository extends JpaRepository<Answer, UUID> {
   @Modifying
   @Query("DELETE FROM Answer a WHERE a.memberQuestion.family.id = :familyId")
   void deleteByMemberQuestionFamilyId(@Param("familyId") UUID familyId);
+
+  boolean existsByMemberQuestion_Id(UUID memberQuestionId);
 }
