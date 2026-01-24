@@ -11,7 +11,7 @@ import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.answer.dto.ReactionType;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
+import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
@@ -38,7 +38,7 @@ public class AnswerService {
 
     @Transactional
     public AnswerResponse createAnswer(AnswerRequest request, Member member) {
-        QuestionAssignment assignment =questionAssignmentRepository.findById(request.questionAssignmentId())
+        MemberQuestion assignment =questionAssignmentRepository.findById(request.questionAssignmentId())
             .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
         authorizeFamily(assignment.getFamily().getId(), member);
 
@@ -101,9 +101,9 @@ public class AnswerService {
     public void deleteAnswer(AnswerRequest request, Member member) {
         Answer answer = answerRepository.findById(request.answerId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.ANSWER_NOT_FOUND));
-        QuestionAssignment questionAssignment = questionAssignmentRepository.findById(request.questionAssignmentId())
+        MemberQuestion memberQuestion = questionAssignmentRepository.findById(request.questionAssignmentId())
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_ASSIGNMENT_NOT_FOUND));
-        questionAssignment.markAsSent(LocalDateTime.now().plusWeeks(1L));
+        memberQuestion.markAsSent(LocalDateTime.now().plusWeeks(1L));
         answerAnalysisRepository.deleteByAnswer(answer);
         answerRepository.delete(answer);
     }

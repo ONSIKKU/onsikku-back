@@ -2,9 +2,7 @@ package com.onsikku.onsikku_back.domain.ai.dto.request;
 
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
-import com.onsikku.onsikku_back.domain.answer.domain.AnswerType;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionTemplate;
 import lombok.Builder;
 import lombok.Data;
 

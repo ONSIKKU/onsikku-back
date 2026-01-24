@@ -1,13 +1,11 @@
 package com.onsikku.onsikku_back.domain.question.dto;
 
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
 
 import java.util.List;
-import java.util.UUID;
 
 @Getter
 @AllArgsConstructor

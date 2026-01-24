@@ -16,7 +16,6 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -43,21 +42,20 @@ public class CommentService {
     Comment comment = Comment.builder()
         .content(request.content())
         .member(member)
-        .questionInstance(instance)
         .build();
     log.info("Parent Comment ID: {}", request.parentCommentId());
     if (request.parentCommentId() != null) {
       // 부모 댓글 존재 여부 확인
       Comment parentComment = commentRepository.findByIdWithMember(request.parentCommentId())
           .orElseThrow(() -> new BaseException(BaseResponseStatus.COMMENT_NOT_FOUND));
-      if(parentComment.getParent() != null) {
+      if(parentComment.getParentComment() != null) {
         throw new BaseException(BaseResponseStatus.CANNOT_NESTED_COMMENT);
       }
       // 부모 댓글이 같은 질문 인스턴스에 속하는지 확인
       if (!parentComment.getQuestionInstance().getId().equals(request.questionInstanceId())) {
         throw new BaseException(BaseResponseStatus.INVALID_PARENT_COMMENT);
       }
-      comment.setParent(parentComment);
+      comment.setParentComment(parentComment);
     }
     commentRepository.save(comment);
     return CommentResponse.builder()

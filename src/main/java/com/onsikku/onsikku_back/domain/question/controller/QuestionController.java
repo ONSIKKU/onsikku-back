@@ -1,7 +1,6 @@
 package com.onsikku.onsikku_back.domain.question.controller;
 
 
-import com.onsikku.onsikku_back.domain.question.domain.QuestionAssignment;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
@@ -13,7 +12,6 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 import java.util.UUID;
 
 

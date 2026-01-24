@@ -12,7 +12,7 @@ import java.util.Optional;
 import java.util.UUID;
 
 public interface CommentRepository extends JpaRepository<Comment, UUID> {
-  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p JOIN FETCH c.member LEFT JOIN FETCH p.member " +
+  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parentComment p JOIN FETCH c.member LEFT JOIN FETCH p.member " +
       "WHERE c.questionInstance.id = :instanceId " +
       "ORDER BY c.createdAt DESC")
   List<Comment> findAllByQuestionInstanceIdWithParentOrderByCreatedAtDesc(@Param("instanceId") UUID questionInstanceId);
@@ -23,7 +23,7 @@ public interface CommentRepository extends JpaRepository<Comment, UUID> {
 
   List<Comment> findByParent(Comment parent);
 
-  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parent p JOIN FETCH c.member LEFT JOIN FETCH p.member WHERE c.id = :uuid")
+  @Query("SELECT c FROM Comment c LEFT JOIN FETCH c.parentComment p JOIN FETCH c.member LEFT JOIN FETCH p.member WHERE c.id = :uuid")
   Optional<Comment> findByIdWithMemberAndParentAndParentMember(@Param("uuid") UUID uuid);
 
   @Query("SELECT c FROM Comment c JOIN FETCH c.member WHERE c.id = :uuid")

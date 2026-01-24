@@ -17,7 +17,7 @@ import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.service.FamilyService;
 import com.onsikku.onsikku_back.domain.question.domain.*;
-import com.onsikku.onsikku_back.domain.question.domain.enums.AssignmentState;
+import com.onsikku.onsikku_back.domain.question.domain.enums.QuestionStatus;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionDetails;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
@@ -68,10 +68,10 @@ public class QuestionService {
         LocalDateTime remindCutoff = today.minusDays(2);    // 리마인드 기한
         LocalDateTime expireCutoff = today.minusDays(7);    // 파기 기한
         log.info("[Scheduler] 미답변 할당 관리 시작");
-        List<QuestionAssignment> remindTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(remindCutoff);
+        List<MemberQuestion> remindTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(remindCutoff);
         int remindedCount = 0;
 
-        for (QuestionAssignment qa : remindTargets) {
+        for (MemberQuestion qa : remindTargets) {
             if (qa.getReminderCount() < 2) { // TODO : 리마인드는 2회까지만 허용
                 qa.markAsReminded();
                 // TODO: 외부 알림 서비스(Push/SMS) 호출 로직 추가
@@ -79,9 +79,9 @@ public class QuestionService {
             }
         }
         questionAssignmentRepository.saveAll(remindTargets);
-        List<QuestionAssignment> expireTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(expireCutoff);
+        List<MemberQuestion> expireTargets = questionAssignmentRepository.findAssignmentsForSentAtAndSentState(expireCutoff);
         int expiredCount = expireTargets.size();
-        for (QuestionAssignment qa : expireTargets) {
+        for (MemberQuestion qa : expireTargets) {
             qa.markAsExpired();
         }
         questionAssignmentRepository.saveAll(expireTargets);
@@ -148,8 +148,8 @@ public class QuestionService {
         QuestionInstance instance = targetInstance.get();
         UUID instanceId = instance.getId();
         log.info("최종 질문 인스턴스 ID 조회 완료: {}", instanceId);
-        List<QuestionAssignment> assignments = questionAssignmentRepository.findAllByInstanceId(instanceId);
-        for (QuestionAssignment qa : assignments) {
+        List<MemberQuestion> assignments = questionAssignmentRepository.findAllByInstanceId(instanceId);
+        for (MemberQuestion qa : assignments) {
             if(qa.getMember().getId().equals(member.getId())) {
                 log.info("멤버 ID {}의 질문 할당을 읽음 처리합니다. 질문 할당 ID: {}", member.getId(), qa.getId());
                 qa.markAsRead();
@@ -197,9 +197,9 @@ public class QuestionService {
 
         // 인스턴스 ID 리스트 추출 및 해당 ID들로 모든 QuestionAssignment 조회
         List<UUID> instanceIds = questionInstances.stream().map(QuestionInstance::getId).toList();
-        List<QuestionAssignment> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
+        List<MemberQuestion> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
         // 인스턴스 ID 별로 할당 리스트를 매핑한 Map 생성
-        Map<UUID, List<QuestionAssignment>> assignmentsMap = allAssignments.stream()
+        Map<UUID, List<MemberQuestion>> assignmentsMap = allAssignments.stream()
             .collect(Collectors.groupingBy(assignment -> assignment.getQuestionInstance().getId()));
 
         // QuestionInstance 리스트를 DTO로 변환 후 반환
@@ -219,13 +219,13 @@ public class QuestionService {
     // TODO : 질문 필요 유무 판단 로직 개선 필요
     private boolean isNewQuestionNeeded(Family family) {
         // 가장 최신 질문 인스턴스 조회
-        List<QuestionAssignment> assignments = questionAssignmentRepository.findMostRecentUnansweredAssignmentId(family.getId(), LocalDateTime.now());
+        List<MemberQuestion> assignments = questionAssignmentRepository.findMostRecentUnansweredAssignmentId(family.getId(), LocalDateTime.now());
         log.info("가족 ID {}의 최신 질문 할당 조회 완료. 총 {}개", family.getId(), assignments.size());
-        Optional<QuestionAssignment> latestAssignment = assignments.stream().findFirst();
+        Optional<MemberQuestion> latestAssignment = assignments.stream().findFirst();
         if (latestAssignment.isEmpty()) return true;
 
         // 모든 질문이 답변된 경우에만 새 질문이 필요
-        return assignments.stream().allMatch(assignment -> assignment.getState() == AssignmentState.ANSWERED);
+        return assignments.stream().allMatch(assignment -> assignment.getQuestionStatus() == QuestionStatus.ANSWERED);
     }
 
     // 꼬리 질문 생성 시도
@@ -249,7 +249,7 @@ public class QuestionService {
     private void tryGenerateTemplateQuestion(Family family, MemberAssignResponse memberAssignResponse) {
         // 해당 가족이 최근 N일 내에 사용하지 않은 템플릿 중 하나를 무작위로 조회
         // QuestionTemplate을 반환하는 쿼리는 QuestionTemplateRepository에 속한다 : SRP - 책임 분리 원칙
-        List<QuestionTemplate> templates = questionTemplateRepository
+        List<Question> templates = questionTemplateRepository
             .findUnusedTemplatesRecentlyByFamily(family.getId(), LocalDateTime.now().minusMonths(2L));
         if (templates.isEmpty()) {
             log.warn("가족 ID {}에 사용할 수 있는 템플릿 질문이 없습니다. 질문 생성 프로세스를 종료합니다.", family.getId());
@@ -257,7 +257,7 @@ public class QuestionService {
         }
         // DB 부하 없이, 애플리케이션 메모리에서 무작위 선택
         Collections.shuffle(templates);
-        QuestionTemplate template = templates.getFirst();
+        Question template = templates.getFirst();
         log.info("가족 ID {}의 템플릿 질문 생성을 시도합니다. 템플릿 ID: {}", family.getId(), template.getId());
 
         // 템플릿 내용을 기반으로 질문을 생성하도록 AI에 요청
@@ -275,14 +275,14 @@ public class QuestionService {
 
         // 만약 템플릿 질문이었다면, 사용된 템플릿 정보 연결
         if (response.getUsedTemplateId() != null) {
-            questionInstance.setTemplate(entityManager.getReference(QuestionTemplate.class, response.getUsedTemplateId()));
+            questionInstance.setTemplate(entityManager.getReference(Question.class, response.getUsedTemplateId()));
         }
         questionInstanceRepository.save(questionInstance);
 
         // QuestionInstance 기반, QuestionAssignment 생성 및 저장
-        List<QuestionAssignment> assignments = new ArrayList<>();
+        List<MemberQuestion> assignments = new ArrayList<>();
         for (UUID memberId : memberAssignResponse.getMemberIds()) {
-            QuestionAssignment assignment = QuestionAssignment.createAndAssignTo(questionInstance, memberRepository.findById(memberId).orElse(null), family);
+            MemberQuestion assignment = MemberQuestion.createAndAssignTo(questionInstance, memberRepository.findById(memberId).orElse(null), family);
             assignment.markAsSent(LocalDateTime.now().plusWeeks(1L));
             assignments.add(assignment);
         }

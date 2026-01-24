@@ -3,7 +3,7 @@ package com.onsikku.onsikku_back.domain.ai.dto.request;
 import com.fasterxml.jackson.annotation.JsonInclude.Include;
 import com.fasterxml.jackson.annotation.JsonInclude;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionTemplate;
+import com.onsikku.onsikku_back.domain.question.domain.Question;
 import lombok.Builder;
 import lombok.Getter;
 import lombok.ToString;
@@ -39,7 +39,7 @@ public class AiQuestionRequest {
         .build();
   }
 
-  public static AiQuestionRequest fromTemplate(QuestionTemplate template) {
+  public static AiQuestionRequest fromTemplate(Question template) {
     return AiQuestionRequest.builder()
         .content(template.getContent())
         .language(template.getLanguage())
