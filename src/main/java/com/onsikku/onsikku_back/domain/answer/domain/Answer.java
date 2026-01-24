@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.answer.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.databind.JsonNode;
+import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
@@ -36,6 +37,11 @@ public class Answer extends BaseEntity {
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "member_id", nullable = false)
     private Member member;
+
+    @ManyToOne(fetch = FetchType.LAZY, optional = false)
+    @JoinColumn(name = "family_id", nullable = false)
+    @JsonIgnore
+    private Family family;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "answer_type", nullable = false)

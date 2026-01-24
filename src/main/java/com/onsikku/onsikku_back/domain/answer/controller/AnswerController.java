@@ -1,6 +1,5 @@
 package com.onsikku.onsikku_back.domain.answer.controller;
 
-import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerRequest;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
@@ -9,12 +8,10 @@ import com.onsikku.onsikku_back.global.response.BaseResponse;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
-import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
-import java.util.List;
 
 @RestController
 @RequestMapping("/api/questions")
@@ -98,21 +95,5 @@ public class AnswerController {
                                              @AuthenticationPrincipal CustomUserDetails customUserDetails) {
         answerService.deleteAnswer(request, customUserDetails.getMember());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
-    }
-
-    @GetMapping("/test/analysis")
-    @Operation(
-        summary = "테스트용 질문 분석 조회",
-        description = """
-    질문 분석 내용을 조회합니다.
-    ## 인증(JWT): **필요**
-    ## 참고사항
-    - 테스트용입니다.
-    - 본인이 작성한 질문에 대한 분석 결과만 반환됩니다.
-    - 분석 결과는 QuestionAssignment 리스트로 반환됩니다.
-    """
-    )
-    public BaseResponse<List<AnswerAnalysis>> getAnswerAnalysis(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(answerService.getAllAnswerAnalysis(customUserDetails.getMember()));
     }
 }

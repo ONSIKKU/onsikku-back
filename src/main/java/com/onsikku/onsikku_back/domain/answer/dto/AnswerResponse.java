@@ -33,10 +33,6 @@ public class AnswerResponse {
             //TODO : answer jsonnode -> String 변환
             .content(answer.getContent())
             .answerId(answer.getId())
-            .likeReactionCount(answer.getLikeReactionCount())
-            .angryReactionCount(answer.getAngryReactionCount())
-            .sadReactionCount(answer.getSadReactionCount())
-            .funnyReactionCount(answer.getFunnyReactionCount())
             .createdAt(answer.getCreatedAt())
             .updatedAt(answer.getUpdatedAt())
             .build();

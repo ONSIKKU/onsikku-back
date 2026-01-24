@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.domain.question.domain.enums;
+package com.onsikku.onsikku_back.domain.question.domain;
 
 public enum QuestionStatus {
   PENDING,

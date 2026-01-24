@@ -86,8 +86,6 @@ public class AuthService {
     memberRepository.save(member);
     registrationTokenService.delete(request.registrationToken());
 
-    questionService.generateAndAssignQuestionForFamily(family);
-
     // 리프레시 토큰을 생성하고 Redis에 저장합니다.
     String refreshToken = jwtProvider.generateRefreshTokenFromMember(member);
     redisService.set(RT_KEY_PREFIX + member.getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));

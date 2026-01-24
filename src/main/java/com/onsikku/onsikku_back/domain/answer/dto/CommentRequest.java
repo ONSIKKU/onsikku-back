@@ -5,7 +5,7 @@ import jakarta.validation.constraints.NotBlank;
 import java.util.UUID;
 
 public record CommentRequest(
-    UUID questionInstanceId,
+    UUID answerId,
     UUID commentId,
     UUID parentCommentId,
     @NotBlank(message = "내용을 입력해주세요.")

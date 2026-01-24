@@ -31,4 +31,12 @@ public class Reaction {
   @Enumerated(EnumType.STRING)
   @Column(name = "reaction_type", nullable = false)
   private ReactionType reactionType;
+
+  public static Reaction createReaction(Answer answer, Member member, ReactionType reactionType) {
+    return Reaction.builder()
+        .answer(answer)
+        .member(member)
+        .reactionType(reactionType)
+        .build();
+  }
 }

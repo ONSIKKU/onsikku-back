@@ -2,9 +2,9 @@ package com.onsikku.onsikku_back.domain.question.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
-import com.onsikku.onsikku_back.domain.question.domain.enums.QuestionStatus;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
@@ -52,8 +52,9 @@ public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, 
       "ORDER BY qi.generatedAt DESC")
   List<MemberQuestion> findQuestionsByFamilyIdAndDateTimeRange(@Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
 
-  // 가족으로 삭제 (테스트용)
-  int deleteAllByFamilyId(UUID familyId);
+  @Modifying
+  @Query("DELETE FROM MemberQuestion mq WHERE mq.family.id = :familyId")
+  void deleteByFamilyIdBulk(@Param("familyId") UUID familyId);
 
   List<MemberQuestion> findAllByFamily(Family family);
 

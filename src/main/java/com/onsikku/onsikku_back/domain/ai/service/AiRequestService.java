@@ -2,15 +2,10 @@ package com.onsikku.onsikku_back.domain.ai.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
 import com.fasterxml.jackson.databind.ObjectMapper;
-import com.onsikku.onsikku_back.domain.ai.domain.AnswerAnalysis;
 import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
 import com.onsikku.onsikku_back.domain.ai.dto.request.AnswerAnalysisRequest;
-import com.onsikku.onsikku_back.domain.ai.dto.request.MemberAssignRequest;
-import com.onsikku.onsikku_back.domain.ai.dto.request.MemberInfo;
 import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.ai.dto.response.AnswerAnalysisResponse;
-import com.onsikku.onsikku_back.domain.ai.dto.response.MemberAssignResponse;
-import com.onsikku.onsikku_back.domain.ai.repository.AnswerAnalysisRepository;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
@@ -22,13 +17,9 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 import org.springframework.web.client.HttpClientErrorException;
 import org.springframework.web.client.RestClient;
-import org.springframework.web.reactive.function.client.WebClient;
 
 import java.nio.charset.StandardCharsets;
-import java.util.List;
-import java.util.Map;
-import java.util.UUID;
-import java.util.stream.Collectors;
+
 
 @Service
 @Slf4j
@@ -36,7 +27,6 @@ import java.util.stream.Collectors;
 public class AiRequestService {
 
   private final RestClient restClient;
-  private final AnswerAnalysisRepository answerAnalysisRepository;
   private final ObjectMapper objectMapper;
 
   /**
@@ -69,37 +59,6 @@ public class AiRequestService {
   }
 
   /**
-   * AI에게 오늘의 멤버 할당을 요청합니다.
-   */
-  public MemberAssignResponse requestTodayMember(UUID familyId, Map<UUID, Integer> memberAssignedCounts, int pickCount) {
-    List<MemberInfo> members = memberAssignedCounts.entrySet().stream()
-        .map(entry -> new MemberInfo(entry.getKey(), entry.getValue()))
-        .collect(Collectors.toList());
-
-    MemberAssignRequest requestDto = MemberAssignRequest.builder()
-        .familyId(familyId)
-        .members(members)
-        .pickCount(pickCount)
-        .build();
-    log.info("AI 서버에 오늘의 주인공 생성을 요청합니다.");
-    try {
-      return restClient.post()
-          .uri("/api/v1/questions/assign")
-          .contentType(MediaType.APPLICATION_JSON)
-          .body(requestDto)
-          .retrieve()
-          .body(MemberAssignResponse.class);
-    } catch (HttpClientErrorException e) {
-      if (e.getStatusCode().value() == 422) {
-        log.error("AI 서버 Validation Error: {}", e.getResponseBodyAsString());
-        throw new BaseException(BaseResponseStatus.AI_SERVER_VALIDATION_ERROR);
-      }
-      log.error("AI 서버 요청 중 클라이언트 오류가 발생했습니다.", e);
-      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
-    }
-  }
-
-  /**
    * AI 서버에 답변 분석을 요청합니다.
    */
   @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
@@ -123,9 +82,6 @@ public class AiRequestService {
       JsonNode scores = objectMapper.valueToTree(response.getScores());
       JsonNode keywords = objectMapper.valueToTree(response.getKeywords());
 
-      AnswerAnalysis analysis = AnswerAnalysis.createFromAIResponse(answer, response, categories, scores, keywords);
-      answerAnalysisRepository.save(analysis);
-      log.info("답변 분석 결과가 성공적으로 저장되었습니다. AnswerAnalysis entity: {}", analysis.toString());
     } catch (HttpClientErrorException e) {
       log.error("AI 서버 답변 분석 요청 중 클라이언트 오류가 발생했습니다.", e);
       throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);

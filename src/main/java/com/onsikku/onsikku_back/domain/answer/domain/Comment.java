@@ -46,4 +46,12 @@ public class Comment extends BaseEntity {
   public void updateContent(@NotBlank(message = "내용을 입력해주세요.") String content) {
     this.content = content;
   }
+
+  public static Comment createComment(Answer answer, Member member, String content) {
+    return Comment.builder()
+        .answer(answer)
+        .member(member)
+        .content(content)
+        .build();
+  }
 }

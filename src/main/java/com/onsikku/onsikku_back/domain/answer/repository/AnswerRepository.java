@@ -3,26 +3,29 @@ package com.onsikku.onsikku_back.domain.answer.repository;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
+import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import java.util.List;
-import java.util.Optional;
 import java.util.UUID;
 
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
   List<Answer> findByQuestionAssignmentId(UUID questionAssignmentId);
-  Optional<Answer> findTopByMember_Family_IdOrderByCreatedAtDesc(UUID familyId);
-  @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.questionInstance.id = :instanceId")
+
+  @Query("SELECT a FROM Answer a JOIN FETCH a.member WHERE a.memberQuestion.id = :instanceId")
   List<Answer> findAllByQuestionInstanceId(UUID instanceId);
 
   int deleteAllByMember(Member member);
 
-  int deleteAllByQuestionInstanceIn(List<QuestionInstance> questionInstances);
-
   List<Answer> findAllByMember_Id(UUID memberId);
+
+  @Modifying
+  @Query("DELETE FROM Answer a WHERE a.memberQuestion.family.id = :familyId")
+  void deleteByMemberQuestionFamilyId(@Param("familyId") UUID familyId);
 }

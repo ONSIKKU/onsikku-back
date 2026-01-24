@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.question.controller;
 
 
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
+import com.onsikku.onsikku_back.domain.question.service.QuestionCycleService;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
@@ -24,6 +25,7 @@ import java.util.UUID;
 )
 public class QuestionController {
     private final QuestionService questionService;
+    private final QuestionCycleService questionCycleService;
 
     // 가족 별 질문 조회
     @GetMapping
@@ -90,7 +92,7 @@ public class QuestionController {
     """
     )
     public BaseResponse<String> getAllQuestions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        questionService.generateAndAssignQuestionForFamily(customUserDetails.getMember().getFamily());
+        questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(customUserDetails.getMember().getFamily());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 
@@ -105,8 +107,8 @@ public class QuestionController {
     - 특정 가족의 모든 질문 인스턴스, 할당, 답변, 댓글이 사라집니다.
     """
     )
-    public BaseResponse<String> DeleteQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        questionService.deleteQuestionsByFamilyId(customUserDetails.getMember().getFamily());
+    public BaseResponse<String> deleteFamilyData(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        questionService.deleteFamilyData(customUserDetails.getMember().getFamily().getId());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 }

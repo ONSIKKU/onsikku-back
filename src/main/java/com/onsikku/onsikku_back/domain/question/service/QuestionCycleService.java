@@ -7,7 +7,7 @@ import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.domain.question.domain.Question;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionCycle;
-import com.onsikku.onsikku_back.domain.question.domain.enums.QuestionStatus;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionStatus;
 import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionCycleRepository;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionRepository;
@@ -76,7 +76,7 @@ public class QuestionCycleService {
         .orElseGet(() -> {
           // 적절한 기존 질문이 없으면 템플릿에서 새로 생성
           Question question = questionRepository.findRandomTemplateForMember(member.getId(), levels)
-              .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_NOT_FOUND)); // 더 이상 줄 질문이 없음
+              .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND)); // 더 이상 줄 질문이 없음
           MemberQuestion memberQuestion = MemberQuestion.createMemberQuestionFromQuestion(member, family, question);
           return memberQuestionRepository.save(memberQuestion);
         });

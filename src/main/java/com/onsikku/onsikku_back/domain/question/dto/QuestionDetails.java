@@ -4,7 +4,6 @@ package com.onsikku.onsikku_back.domain.question.dto;
 import com.onsikku.onsikku_back.domain.answer.domain.Comment;
 import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
-import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;

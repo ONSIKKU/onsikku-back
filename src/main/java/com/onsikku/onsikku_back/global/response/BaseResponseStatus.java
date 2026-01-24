@@ -38,16 +38,16 @@ public enum BaseResponseStatus {
     INVALID_FAMILY_MEMBER(HttpStatus.UNAUTHORIZED, "해당 가족에 속한 회원이 아닙니다."),
 
     // 질문/답변 관련
-    CANNOT_ANSWER_OTHER_QUESTION(HttpStatus.UNAUTHORIZED, "질문이 할당된 사람만 가능한 권한입니다."),
+    ACCESS_DENIED_FOR_RESOURCE(HttpStatus.FORBIDDEN, "본인과 관련된 데이터만 관리할 수 있습니다."),
     INVALID_ANSWER(HttpStatus.BAD_REQUEST, "답변을 입력해주세요."),
     ANSWER_NOT_FOUND(HttpStatus.NOT_FOUND, "답변이 존재하지 않습니다."),
-    QUESTION_ASSIGNMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "할당된 질문이 존재하지 않습니다."),
-    QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "질문 인스턴스가 존재하지 않습니다."),
+    MEMBER_QUESTION_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 질문이 존재하지 않습니다."),
     ALREADY_ANSWERED_QUESTION(HttpStatus.BAD_REQUEST, "이미 답변한 질문입니다."),
     COMMENT_NOT_FOUND(HttpStatus.NOT_FOUND, "댓글이 존재하지 않습니다."),
     INVALID_PARENT_COMMENT(HttpStatus.BAD_REQUEST, "부모 댓글은 같은 질문 인스턴스에서만 가능합니다."),
-    CANNOT_MODIFY_OTHER_COMMENT(HttpStatus.UNAUTHORIZED, "본인이 작성한 댓글만 관리할 수 있습니다."),
     CANNOT_NESTED_COMMENT(HttpStatus.BAD_REQUEST, "대댓글에는 대댓글을 달 수 없습니다."),
+    REACTION_NOT_FOUND(HttpStatus.NOT_FOUND, "반응이 존재하지 않습니다."),
+    REACTION_ALREADY_EXISTS(HttpStatus.BAD_REQUEST, "이미 해당 답변에 반응을 남겼습니다."),
 
     // 알림
     NOTIFICATION_SEND_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "푸시 알림 발송에 실패했습니다."),
@@ -58,7 +58,7 @@ public enum BaseResponseStatus {
 
     // 서버 오류
     REDIS_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서비스 이용이 불가합니다. Redis 서버에 문제가 발생했습니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버의 문제가 발생했습니다.");
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버의 문제가 발생했습니다."), ;
 
     private final HttpStatus httpStatus;
     private final String message;
