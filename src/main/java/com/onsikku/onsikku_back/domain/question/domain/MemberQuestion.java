@@ -24,13 +24,25 @@ import java.util.UUID;
 @NoArgsConstructor
 @Entity
 @Table(name = "member_question",
+    uniqueConstraints = {
+        @UniqueConstraint(
+            name = "uk_member_question_template",
+            columnNames = {"member_id", "question_id"} // 복합 유니크 제약 조건
+            // TODO : 유저가 셔플한 질문을 다시 줄 수 있어야 한다면, 복합 유니크에 question_status 포함 고려
+        )
+    },
     indexes = {
-        //@Index(name = "idx_qa_family_sent_state", columnList = "family_id, sent_at DESC, state")
+        @Index(name = "idx_member_id", columnList = "member_id")
     })
 public class MemberQuestion {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;
+
+  @ManyToOne(fetch = FetchType.LAZY) // optional = true (템플릿 없는 질문 가능)
+  @JoinColumn(name = "question_id", nullable = true)
+  @JsonIgnore                       // 직렬화에서 제외
+  private Question question;        // 질문 템플릿 참조
 
   @ManyToOne(fetch = FetchType.LAZY, optional = false)
   @JoinColumn(name = "member_id", nullable = false)
@@ -78,8 +90,8 @@ public class MemberQuestion {
   @Column(name = "last_reminded_at")
   private LocalDateTime lastRemindedAt;
 
-  public void markAsSent(LocalDateTime dueAt) {
-    this.sentAt = LocalDateTime.now();
+  public void markAsSent(LocalDateTime scheduledAt, LocalDateTime dueAt) {
+    this.sentAt = scheduledAt;    // 조회 시 sentAt <= now()
     this.dueAt = dueAt;
     this.questionStatus = QuestionStatus.SENT;
   }
@@ -106,12 +118,16 @@ public class MemberQuestion {
     this.questionStatus = QuestionStatus.ANSWERED;
   }
 
-  public static MemberQuestion createAndAssignTo(Member member, Family family) {
+  public static MemberQuestion createMemberQuestionFromQuestion(Member member, Family family, Question question) {
     return MemberQuestion.builder()
-        .family(family)
         .member(member)
-        .reminderCount(0)
+        .family(family)
+        .question(question)
+        .content(question.getContent())
+        .level(question.getLevel())
+        .priority(1)        // 일반 템플릿이므로 우선순위 1
         .questionStatus(QuestionStatus.PENDING)
+        .reminderCount(0)
         .build();
   }
 }

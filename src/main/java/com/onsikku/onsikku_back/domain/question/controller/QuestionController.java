@@ -40,23 +40,23 @@ public class QuestionController {
     """
     )
     public BaseResponse<QuestionResponse> getTodayQuestion(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(questionService.findTodayQuestionInstance(customUserDetails.getMember()));
+        return new BaseResponse<>(questionService.getTodayMemberQuestion(customUserDetails.getMember()));
     }
 
-    @GetMapping("/{questionInstanceId}")
+    @GetMapping("/{memberQuestionId}")
     @Operation(
         summary = "질문 인스턴스 상세 조회",
         description = """
     특정 질문 인스턴스의 상세 정보를 조회합니다.
     ## 인증(JWT): **필요**
     ## 참고사항
-    - questionInstanceId 경로 변수로 특정 질문 인스턴스를 조회합니다.
+    - memberQuestionId 경로 변수로 특정 질문 인스턴스를 조회합니다.
     - 반환은 questionDetails 객체로 이루어집니다.
     """
     )
     public BaseResponse<QuestionResponse> getQuestionInstanceDetails(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                                                     @PathVariable UUID questionInstanceId) {
-        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), questionInstanceId));
+                                                                     @PathVariable UUID memberQuestionId) {
+        return new BaseResponse<>(questionService.findQuestionDetails(customUserDetails.getMember(), memberQuestionId));
     }
 
     // 가족 별 지난 질문 조회

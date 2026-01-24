@@ -22,8 +22,8 @@ import com.onsikku.onsikku_back.domain.question.dto.QuestionDetails;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionTemplateRepository;
+import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
+import com.onsikku.onsikku_back.domain.question.repository.QuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import jakarta.persistence.EntityManager;
@@ -43,9 +43,8 @@ import java.util.stream.Collectors;
 @RequiredArgsConstructor
 @Slf4j
 public class QuestionService {
-    private final QuestionAssignmentRepository questionAssignmentRepository;
-    private final QuestionInstanceRepository questionInstanceRepository;
-    private final QuestionTemplateRepository questionTemplateRepository;
+    private final MemberQuestionRepository memberQuestionRepository;
+    private final QuestionRepository questionRepository;
     private final AnswerRepository answerRepository;
     private final FamilyService familyService;
     private final AiRequestService aiRequestService;
@@ -124,8 +123,9 @@ public class QuestionService {
      * @return 조회된 질문 세트 목록
      */
     @Transactional
-    public QuestionResponse findTodayQuestionInstance(Member member) {
+    public QuestionResponse getTodayMemberQuestion(Member member) {
         Family family = member.getFamily();
+        MemberQuestion memberQuestion = memberQuestionRepository.find(member.getId());
         // 가장 오래된 미답변 질문의 ID를 먼저 찾는다 (LIMIT 1)
         Optional<QuestionInstance> targetInstance = questionAssignmentRepository
             .findOldestUnansweredInstance(family.getId(), PageRequest.of(0, 1))
@@ -135,9 +135,6 @@ public class QuestionService {
         if (targetInstance.isEmpty()) {
             log.info("미답변 질문이 없습니다. 가장 최신 질문을 조회합니다.");
             // 미답변 질문 ID가 없다면, 가장 최신 질문의 ID를 찾는다 (LIMIT 1)
-            targetInstance = questionInstanceRepository
-                .findMostRecentInstance(family.getId(), LocalDateTime.now(), PageRequest.of(0, 1))
-                .stream().findFirst();
         }
         if (targetInstance.isEmpty()) {
             log.info("가족 ID {}의 질문 인스턴스가 없습니다. 빈 목록을 반환합니다.", family.getId());
@@ -167,14 +164,14 @@ public class QuestionService {
     // 특정 질문 인스턴스의 상세 정보를 조회합니다.
     @Transactional(readOnly = true)
     public QuestionResponse findQuestionDetails(Member member, UUID questionInstanceId) {
-        QuestionInstance instance = questionInstanceRepository.findById(questionInstanceId)
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
-        if (!instance.getFamily().getId().equals(member.getFamily().getId())) {
+        MemberQuestion memberQuestion = memberQuestionRepository.findById(questionInstanceId)
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_NOT_FOUND));
+        if (!memberQuestion.getFamily().getId().equals(member.getFamily().getId())) {
             throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
         }
 
         return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.from(instance,
+            .questionDetails(QuestionDetails.from(memberQuestion,
                 // 할당 목록에서 Member 리스트 추출
                 questionAssignmentRepository.findAllByInstanceId(questionInstanceId),
                 answerRepository.findAllByQuestionInstanceId(questionInstanceId).stream().map(AnswerResponse::from).toList(),
@@ -189,18 +186,18 @@ public class QuestionService {
         YearMonth yearMonth = YearMonth.of(year, month);
         // 해당 월의 모든 QuestionInstance 조회
         log.info("가족 ID {}의 {} ~ {} 범위의 질문 인스턴스 조회를 시작합니다.", family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
-        List<QuestionInstance> questionInstances = questionInstanceRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
+        List<MemberQuestion> questionInstances = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
         if (questionInstances.isEmpty()) {
             log.info("해당 월 질문 인스턴스가 없습니다.");
             return QuestionResponse.builder().questionDetailsList(List.of()).build();
         }
 
         // 인스턴스 ID 리스트 추출 및 해당 ID들로 모든 QuestionAssignment 조회
-        List<UUID> instanceIds = questionInstances.stream().map(QuestionInstance::getId).toList();
+        List<UUID> instanceIds = questionInstances.stream().map(MemberQuestion::getId).toList();
         List<MemberQuestion> allAssignments = questionAssignmentRepository.findAllByInstanceIdsWithMembers(instanceIds);
         // 인스턴스 ID 별로 할당 리스트를 매핑한 Map 생성
         Map<UUID, List<MemberQuestion>> assignmentsMap = allAssignments.stream()
-            .collect(Collectors.groupingBy(assignment -> assignment.getQuestionInstance().getId()));
+            .collect(Collectors.groupingBy(assignment -> assignment.getMemberQuestion().getId()));
 
         // QuestionInstance 리스트를 DTO로 변환 후 반환
         return QuestionResponse.builder()
@@ -235,13 +232,13 @@ public class QuestionService {
         log.info("가족 ID {}의 최근 답변 조회 완료. ", family.getId());
 
         Answer recentAnswer = answer.get();
-        QuestionInstance instance = questionInstanceRepository.findByIdWithQuestionTemplate(recentAnswer.getQuestionInstance().getId())
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
+        MemberQuestion instance = memberQuestionRepository.findById(recentAnswer.getQuestionInstance().getId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_NOT_FOUND));
 
         log.info("가족 ID {}의 꼬리 질문 생성을 시도합니다. (이전 답변 ID: {})", family.getId(), recentAnswer.getId());
 
         // AI에게 이전 질문/답변을 알려주며 꼬리 질문을 요청하는 DTO 구성
-        AnswerAnalysis analysis = answerAnalysisRepository.findByAnswer(recentAnswer);
+        // TODO : 파생질문 요청
         AiQuestionResponse response = aiRequestService.requestQuestionGeneration(AiQuestionRequest.forFollowUp(instance, AnswerAnalysisDetails.fromAnswerAnalysis(analysis)));
         saveInstanceAndAssignments(response, family, memberAssignResponse, true);
     }
@@ -249,7 +246,7 @@ public class QuestionService {
     private void tryGenerateTemplateQuestion(Family family, MemberAssignResponse memberAssignResponse) {
         // 해당 가족이 최근 N일 내에 사용하지 않은 템플릿 중 하나를 무작위로 조회
         // QuestionTemplate을 반환하는 쿼리는 QuestionTemplateRepository에 속한다 : SRP - 책임 분리 원칙
-        List<Question> templates = questionTemplateRepository
+        List<Question> templates = questionRepository
             .findUnusedTemplatesRecentlyByFamily(family.getId(), LocalDateTime.now().minusMonths(2L));
         if (templates.isEmpty()) {
             log.warn("가족 ID {}에 사용할 수 있는 템플릿 질문이 없습니다. 질문 생성 프로세스를 종료합니다.", family.getId());
@@ -271,13 +268,13 @@ public class QuestionService {
     // 전달받은 AI 응답과 주인공 정보, 꼬리질문 여부를 바탕으로 QuestionInstance, QuestionAssignment를 생성, 저장
     @Transactional
     public void saveInstanceAndAssignments(AiQuestionResponse response, Family family, MemberAssignResponse memberAssignResponse, boolean isFollowUp) {
-        QuestionInstance questionInstance = QuestionInstance.generateByAI(response, family, isFollowUp);
+        MemberQuestion questionInstance = MemberQuestion.generateByAI(response, family, isFollowUp);
 
         // 만약 템플릿 질문이었다면, 사용된 템플릿 정보 연결
         if (response.getUsedTemplateId() != null) {
             questionInstance.setTemplate(entityManager.getReference(Question.class, response.getUsedTemplateId()));
         }
-        questionInstanceRepository.save(questionInstance);
+        memberQuestionRepository.save(questionInstance);
 
         // QuestionInstance 기반, QuestionAssignment 생성 및 저장
         List<MemberQuestion> assignments = new ArrayList<>();
@@ -292,10 +289,10 @@ public class QuestionService {
     // 질문 삭제
     @Transactional
     public void deleteQuestionsByFamilyId(Family family) {
-        List<QuestionInstance> instances = questionInstanceRepository.findAllByFamily(family);
+        List<MemberQuestion> instances = memberQuestionRepository.findAllByFamily(family);
         log.info("삭제한 answers : {}", answerRepository.deleteAllByQuestionInstanceIn(instances));
         log.info("삭제한 comments : {}", commentRepository.deleteAllByQuestionInstanceIn(instances));
         log.info("삭제한 assignments : {}", questionAssignmentRepository.deleteAllByFamily(family));
-        log.info("삭제한 instances : {}", questionInstanceRepository.deleteAllByFamilyId(family.getId()));
+        log.info("삭제한 instances : {}", memberQuestionRepository.deleteAllByFamilyId(family.getId()));
     }
 }

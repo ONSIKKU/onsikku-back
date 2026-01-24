@@ -14,7 +14,7 @@ import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
+import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -32,7 +32,7 @@ import java.util.UUID;
 public class AnswerService {
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
-    private final QuestionInstanceRepository questionInstanceRepository;
+    private final MemberQuestionRepository memberQuestionRepository;
     private final AiRequestService aiRequestService;
     private final AnswerAnalysisRepository answerAnalysisRepository;
 
@@ -54,8 +54,8 @@ public class AnswerService {
         }
         Answer newAnswer = answerRepository.save(Answer.create(assignment, member, request.answerType(), request.content()));
         assignment.markAsAnswered();
-        QuestionInstance instance = questionInstanceRepository.findByIdWithQuestionTemplate(assignment.getQuestionInstance().getId())
-                .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
+        MemberQuestion instance = memberQuestionRepository.findById(assignment.getQuestionInstance().getId())
+                .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_NOT_FOUND));
         // AI 분석 요청
         aiRequestService.analyzeAnswer(newAnswer, AnswerAnalysisRequest.createFromAnswerAndQuestionInstance(newAnswer, instance));
         return AnswerResponse.from(newAnswer);

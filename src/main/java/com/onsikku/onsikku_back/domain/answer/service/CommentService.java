@@ -8,7 +8,7 @@ import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionInstance;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
+import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -24,13 +24,13 @@ import java.util.UUID;
 public class CommentService {
   private final CommentRepository commentRepository;
   private final AnswerRepository answerRepository;
-  private final QuestionInstanceRepository questionInstanceRepository;
+  private final MemberQuestionRepository memberQuestionRepository;
 
   @Transactional
   public CommentResponse createComment(CommentRequest request, Member member) {
     // 질문 인스턴스 존재 여부 확인
-    QuestionInstance instance = questionInstanceRepository.findById(request.questionInstanceId())
-        .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_INSTANCE_NOT_FOUND));
+    QuestionInstance instance = memberQuestionRepository.findById(request.questionInstanceId())
+        .orElseThrow(() -> new BaseException(BaseResponseStatus.QUESTION_NOT_FOUND));
     // 가족 구성원 확인
     if (!instance.getFamily().getId().equals(member.getFamily().getId())) {
       throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);

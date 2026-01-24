@@ -12,7 +12,7 @@ import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
 import com.onsikku.onsikku_back.domain.question.repository.QuestionAssignmentRepository;
-import com.onsikku.onsikku_back.domain.question.repository.QuestionInstanceRepository;
+import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -33,7 +33,7 @@ public class MemberService {
     private final FamilyRepository familyRepository;
     private final AnswerRepository answerRepository;
     private final QuestionAssignmentRepository questionAssignmentRepository;
-    private final QuestionInstanceRepository questionInstanceRepository;
+    private final MemberQuestionRepository memberQuestionRepository;
     private final CommentRepository commentRepository;
     private final InvitationCodeGenerator invitationCodeGenerator;
     private final AnswerAnalysisRepository answerAnalysisRepository;
@@ -90,7 +90,7 @@ public class MemberService {
         log.info("회원 삭제 완료");
         if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
             log.info("가족에 속한 회원이 없어 가족 데이터 삭제를 진행합니다.");
-            log.info("가족의 질문 인스턴스 삭제 완료 : {} 개", questionInstanceRepository.deleteAllByFamilyId(familyId));
+            log.info("가족의 질문 인스턴스 삭제 완료 : {} 개", memberQuestionRepository.deleteAllByFamilyId(familyId));
             familyRepository.deleteById(familyId);
             log.info("회원의 가족 삭제 완료");
         }

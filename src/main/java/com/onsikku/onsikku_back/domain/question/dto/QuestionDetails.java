@@ -24,20 +24,20 @@ public class QuestionDetails {
   private List<AnswerResponse> answers;
   private List<Comment> comments;
 
-  public static QuestionDetails from(QuestionInstance questionInstance, List<MemberQuestion> memberQuestions, List<AnswerResponse> answers, List<Comment> comments) {
+  public static QuestionDetails from(MemberQuestion memberQuestion, List<MemberQuestion> memberQuestions, List<AnswerResponse> answers, List<Comment> comments) {
     return QuestionDetails.builder()
-        .questionInstanceId(questionInstance.getId())
-        .questionContent(questionInstance.getContent())
+        .questionInstanceId(memberQuestion.getId())
+        .questionContent(memberQuestion.getContent())
         .memberQuestions(memberQuestions)
         .answers(answers)
         .comments(comments)
         .build();
   }
 
-  public static QuestionDetails fromInstanceAndAssignments(QuestionInstance questionInstance, List<MemberQuestion> assignments) {
+  public static QuestionDetails fromInstanceAndAssignments(MemberQuestion memberQuestion, List<MemberQuestion> assignments) {
     return QuestionDetails.builder()
-        .questionInstanceId(questionInstance.getId())
-        .questionContent(questionInstance.getContent())
+        .questionInstanceId(memberQuestion.getId())
+        .questionContent(memberQuestion.getContent())
         .memberQuestions(assignments)
         .build();
   }

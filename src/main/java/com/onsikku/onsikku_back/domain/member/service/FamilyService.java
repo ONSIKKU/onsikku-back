@@ -38,6 +38,8 @@ public class FamilyService {
         );
   }
 
+
+
   private Family validateFamilyMember(UUID familyId, Member member) {
     if (!familyId.equals(member.getFamily().getId())) {
       throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
