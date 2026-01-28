@@ -10,6 +10,7 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 @Entity
@@ -31,6 +32,18 @@ public class Family extends BaseEntity {
     @Column(nullable = false)
     private boolean isFamilyInviteEnabled;
 
+    @Column(nullable = false)
+    private LocalDateTime lastAiQuestionDate;
+
+    public static Family registerNewFamily(String familyName, String invitationCode) {
+        return Family.builder()
+                .familyName(familyName)
+                .invitationCode(invitationCode)
+                .isFamilyInviteEnabled(true)
+                .lastAiQuestionDate(LocalDateTime.now())
+                .build();
+    }
+
     public void changeInvitationCode(String newCode) {
         if (!newCode.matches("^[A-Z0-9]{8}$")) {
             throw new BaseException(BaseResponseStatus.INVALID_GENERATED_INVITATION_CODE);
@@ -44,5 +57,19 @@ public class Family extends BaseEntity {
 
     public void deleteInvitationCode() {
         this.invitationCode = null;
+    }
+
+    /**
+     * AI 질문 생성 가능 여부 확인 (n일 경과 여부)
+     */
+    public boolean isEligibleForAiQuestion(int days) {
+        return lastAiQuestionDate.isBefore(LocalDateTime.now().minusDays(days));
+    }
+
+    /**
+     * AI 질문 생성 시간 업데이트
+     */
+    public void updateLastAiQuestionDate() {
+        this.lastAiQuestionDate = LocalDateTime.now();
     }
 }

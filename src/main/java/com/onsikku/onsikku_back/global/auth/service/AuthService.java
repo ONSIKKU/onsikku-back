@@ -23,6 +23,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDateTime;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -167,18 +168,14 @@ public class AuthService {
   private Family getOrCreateFamily(KakaoSignupRequest request) {
     // 가족 생성 모드인 경우, 새로운 가족을 생성 후 반환합니다.
     if (request.familyMode().equals(FamilyMode.CREATE)) {
-      return familyRepository.save(
-          Family.builder()
-              .familyName(request.familyName())
-              .invitationCode(invitationCodeGenerator.generate())
-              .isFamilyInviteEnabled(true)
-              .build()
-      );
+      return familyRepository.save(Family.registerNewFamily(request.familyName(), invitationCodeGenerator.generate()));
     }
+
     // 가족 초대 모드인 경우, 가족 초대 코드로 가족 조회 후 반환합니다.
     if (request.familyInvitationCode() == null || request.familyInvitationCode().isBlank()) {
       throw new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE);
     }
+
     return familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
   }

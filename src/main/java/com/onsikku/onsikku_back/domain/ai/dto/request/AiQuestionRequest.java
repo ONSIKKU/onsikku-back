@@ -31,4 +31,11 @@ public class AiQuestionRequest {
         .answeredAt(answeredAt)
         .build();
   }
+
+  public static AiQuestionRequest of(Member member) {
+    return AiQuestionRequest.builder()
+        .familyId(member.getFamily().getId())
+        .memberId(member.getId())
+        .build();
+  }
 }

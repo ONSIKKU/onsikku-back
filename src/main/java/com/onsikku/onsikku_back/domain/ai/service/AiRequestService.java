@@ -61,7 +61,7 @@ public class AiRequestService {
    */
   @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
   @Transactional
-  public AiQuestionResponse requestFamilyQuestionGeneratation(AiQuestionRequest requestDto) {
+  public AiQuestionResponse requestFamilyQuestionFromBaseQuestion(AiQuestionRequest requestDto) {
     try {
       com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
       String jsonBody = objectMapper.writeValueAsString(requestDto);
@@ -87,4 +87,34 @@ public class AiRequestService {
     }
   }
 
+  /**
+   * 주에 한번 AI 서버에 가족 파생 질문 생성을 요청하고, 응답을 DTO 객체로 반환합니다.
+   */
+  @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
+  @Transactional
+  public AiQuestionResponse requestFamilyQuestionFromRecentQuestions(AiQuestionRequest requestDto) {
+    try {
+      com.fasterxml.jackson.databind.ObjectMapper objectMapper = new com.fasterxml.jackson.databind.ObjectMapper();
+      String jsonBody = objectMapper.writeValueAsString(requestDto);
+      log.info("AI 서버에 질문 생성을 요청합니다. JSON Body: {}", jsonBody);
+    } catch (Exception e) {
+      log.warn("DTO를 JSON으로 변환하는 데 실패했습니다.", e);
+    }
+    MediaType jsonUtf8 = new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8);
+
+    try {
+      return restClient.post()
+          .uri("/api/v1/questions/generate/family-recent")
+          .contentType(jsonUtf8)
+          .body(objectMapper.writeValueAsString(requestDto))
+          .retrieve()
+          .body(AiQuestionResponse.class);
+    } catch (HttpClientErrorException e) {
+      log.error("AI 서버 요청 중 클라이언트 오류가 발생했습니다. Status: {}, Body: {}", e.getStatusCode(), e.getResponseBodyAsString());
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+    } catch (Exception e) {
+      log.error("AI 서버 요청 중 알 수 없는 오류가 발생했습니다.", e);
+      throw new BaseException(BaseResponseStatus.AI_SERVER_COMMUNICATION_ERROR);
+    }
+  }
 }

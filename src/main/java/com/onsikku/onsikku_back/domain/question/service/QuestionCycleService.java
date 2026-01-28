@@ -1,6 +1,9 @@
 package com.onsikku.onsikku_back.domain.question.service;
 
 
+import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
+import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
+import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
@@ -30,11 +33,15 @@ public class QuestionCycleService {
   private final MemberRepository memberRepository;
   private final MemberQuestionRepository memberQuestionRepository;
   private final QuestionRepository questionRepository;
+  private final AiRequestService aiRequestService;
 
   @Transactional
   public void getOrGenerateCycleAndAssignQuestionForFamily(Family family) {
     QuestionCycle cycle = findOrCreateOrRefreshCycleForFamily(family);
     Member todayMember = findTodayMemberForFamily(cycle, family);
+
+    // 질문 할당 전, 조건이 맞으면 AI 질문을 생성하여 DB에 먼저 넣어둠
+    checkAndPreGenerateAiQuestion(todayMember, family);
 
     // 질문 할당 로직 수행
     MemberQuestion selectedQuestion = assignFinalQuestion(todayMember, family);
@@ -45,6 +52,31 @@ public class QuestionCycleService {
 
     // 사이클 상태 업데이트
     cycle.incrementIndex();
+  }
+
+  /**
+   * 2주 주기 및 주말 여부를 확인하여, 가족의 최근 질문 기반 AI 파생 질문을 미리 생성합니다.
+   */
+  private void checkAndPreGenerateAiQuestion(Member member, Family family) {
+    List<Integer> allowedLevels = getCurrentAllowedLevels();
+
+    // 1. 주말(Level 3 허용)인지 확인
+    // 2. 마지막 AI 질문 생성일로부터 14일이 지났는지 확인
+    if (allowedLevels.contains(3) && family.isEligibleForAiQuestion(14)) {
+      try {
+        AiQuestionResponse response = aiRequestService.requestFamilyQuestionFromRecentQuestions(AiQuestionRequest.of(member));
+        String aiContent = response.getContent();
+
+        if (aiContent != null && !aiContent.isBlank()) {
+          memberQuestionRepository.save(MemberQuestion.createMemberQuestionFromAiResponse(member,response));
+
+          // 가족의 AI 질문 생성일 업데이트
+          family.updateLastAiQuestionDate();
+        }
+      } catch (Exception e) {
+        // 실패해도 배치는 계속되어야 하므로 예외를 던지지 않고 로그만 남김
+      }
+    }
   }
 
   private MemberQuestion assignFinalQuestion(Member member, Family family) {
