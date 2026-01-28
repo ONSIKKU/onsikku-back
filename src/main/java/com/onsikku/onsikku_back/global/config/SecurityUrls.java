@@ -3,7 +3,7 @@ package com.onsikku.onsikku_back.global.config;
 public class SecurityUrls {
   public static final String[] AUTH_WHITELIST = {
       "/api/auth/**",             // 회원가입, 로그인 관련
-      //"/api/auth/refresh",             // 토큰 재발급
+      "/auth/kakao/callback",     // 카카오 로그인 콜백
       "/api/members/login",       // redirect 로그인 페이지
       "/v3/api-docs/**",          // Swagger OpenAPI 문서 JSON
       "/swagger-ui/**",           // Swagger UI
