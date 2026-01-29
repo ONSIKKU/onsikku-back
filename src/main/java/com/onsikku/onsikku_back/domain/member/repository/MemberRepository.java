@@ -22,5 +22,6 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     List<Member> findAllByFamily_Id(UUID familyId);
 
+    @Query("SELECT m.id FROM Member m WHERE m.family.id = :familyId")
     List<UUID> findByFamily_Id(UUID familyId);
 }

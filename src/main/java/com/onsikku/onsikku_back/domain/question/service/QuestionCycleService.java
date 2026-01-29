@@ -17,6 +17,7 @@ import com.onsikku.onsikku_back.domain.question.repository.QuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -25,6 +26,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.UUID;
 
+@Slf4j
 @Service
 @RequiredArgsConstructor
 public class QuestionCycleService {
@@ -36,7 +38,7 @@ public class QuestionCycleService {
   private final AiRequestService aiRequestService;
 
   @Transactional
-  public void getOrGenerateCycleAndAssignQuestionForFamily(Family family) {
+  public void getOrGenerateCycleAndAssignQuestionForFamily(Family family, LocalDateTime sendTime) {
     QuestionCycle cycle = findOrCreateOrRefreshCycleForFamily(family);
     Member todayMember = findTodayMemberForFamily(cycle, family);
 
@@ -47,8 +49,7 @@ public class QuestionCycleService {
     MemberQuestion selectedQuestion = assignFinalQuestion(todayMember, family);
 
     // 상태 업데이트 및 전송 처리
-    LocalDateTime todayTenPm = LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
-    selectedQuestion.markAsSent(todayTenPm, todayTenPm.plusDays(1)); // 24시간 뒤 마감
+    selectedQuestion.markAsSent(sendTime, sendTime.plusDays(1)); // 24시간 뒤 마감
 
     // 사이클 상태 업데이트
     cycle.incrementIndex();
@@ -105,6 +106,7 @@ public class QuestionCycleService {
 
   private Member findTodayMemberForFamily(QuestionCycle cycle, Family family) {
     // 오늘 주인공 찾기 (부재 시 다음 사람으로 스킵하는 로직)
+    log.info("Finding member for family {}", family.getId());
     Member todayMember = null;
     while (todayMember == null && !cycle.isFinished()) {
       UUID memberId = cycle.getTodayMemberId();
@@ -122,6 +124,7 @@ public class QuestionCycleService {
 
   private QuestionCycle findOrCreateOrRefreshCycleForFamily(Family family) {
     // 활성화된 사이클 조회, 없으면 새로 생성
+    log.info("Finding cycle for family {}", family.getId());
     QuestionCycle cycle = cycleRepository.findByFamily_Id(family.getId())
         .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findByFamily_Id(family.getId())));
 

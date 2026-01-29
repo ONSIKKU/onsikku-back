@@ -10,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
+import java.time.LocalDateTime;
+
 @Slf4j
 @Component
 @RequiredArgsConstructor
@@ -31,6 +33,8 @@ public class QuestionScheduler {
 
     int pageNumber = 0;
     Page<Family> familyPage;
+    // 질문 전송 시간을 매일 밤 10시로 설정
+    LocalDateTime questionSendTime = LocalDateTime.now().withHour(22).withMinute(0).withSecond(0).withNano(0);
 
     do {
       Pageable pageable = PageRequest.of(pageNumber, PAGE_SIZE);
@@ -41,7 +45,7 @@ public class QuestionScheduler {
       for (Family family : familyPage.getContent()) {
         try {
           // 각 가족별 사이클 확인 및 질문 할당 실행
-          questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(family);
+          questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(family, questionSendTime);
         } catch (Exception e) {
           // 특정 가족 실패 시 해당 가족만 건너뛰고 계속 진행
           log.error("[BATCH] Error processing family {}: {}", family.getId(), e.getMessage());

@@ -13,6 +13,7 @@ import lombok.RequiredArgsConstructor;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.*;
 
+import java.time.LocalDateTime;
 import java.util.UUID;
 
 
@@ -89,10 +90,12 @@ public class QuestionController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 테스트용으로만 사용됩니다.
+    - 테스트용 질문 생성은 매일 새벽에 진행되는 질문 생성 로직과 달리, 질문을 즉시 할당합니다.
+    - 즉, 기존에는 밤 10시 이전에 오늘의 질문을 조회할 수 없었지만, 이 API를 호출하면 질문을 즉시 조회할 수 있습니다.
     """
     )
     public BaseResponse<String> getAllQuestions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(customUserDetails.getMember().getFamily());
+        questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(customUserDetails.getMember().getFamily(), LocalDateTime.now());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 

@@ -6,6 +6,7 @@ import com.fasterxml.jackson.databind.JsonNode;
 import com.onsikku.onsikku_back.domain.ai.dto.response.AiQuestionResponse;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
@@ -33,7 +34,7 @@ import java.util.UUID;
     indexes = {
         @Index(name = "idx_member_id", columnList = "member_id")
     })
-public class MemberQuestion {
+public class MemberQuestion extends BaseEntity {
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
   private UUID id;

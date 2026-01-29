@@ -8,7 +8,7 @@ import java.util.UUID;
 
 public record AnswerRequest (
     UUID answerId,
-    UUID questionAssignmentId,
+    UUID memberQuestionId,
     AnswerType answerType,
     JsonNode content,
     ReactionType reactionType

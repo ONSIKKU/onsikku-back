@@ -70,10 +70,11 @@ public class Answer extends BaseEntity {
         return null;
     }
 
-    public static Answer create(MemberQuestion memberQuestion, Member member, AnswerType answerType, JsonNode content) {
+    public static Answer create(MemberQuestion memberQuestion, Member member, Family family, AnswerType answerType, JsonNode content) {
         Answer answer = Answer.builder()
             .memberQuestion(memberQuestion)
             .member(member)
+            .family(family)
             .answerType(answerType)
             .content(content)
             .build();
