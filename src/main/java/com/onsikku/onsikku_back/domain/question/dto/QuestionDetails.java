@@ -3,6 +3,8 @@ package com.onsikku.onsikku_back.domain.question.dto;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Comment;
+import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
+import com.onsikku.onsikku_back.domain.answer.domain.ReactionType;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import lombok.AllArgsConstructor;
@@ -22,22 +24,31 @@ public class QuestionDetails {
   private Member member;
   private Answer answer;
   private List<Comment> comments;
+  private ReactionType myReaction;
+  private Long likeCount;
+  private Long angryCount;
+  private Long sadCount;
+  private Long funnyCount;
 
 
-  public static QuestionDetails fromOnlyMemberQuestion(MemberQuestion memberQuestion) {
-    return QuestionDetails.builder()
-        .memberQuestionId(memberQuestion.getId())
-        .content(memberQuestion.getContent())
-        .member(memberQuestion.getMember())
-        .build();
-  }
-  public static QuestionDetails from(MemberQuestion memberQuestion, Answer answer, List<Comment> comments) {
+  public static QuestionDetails from(MemberQuestion memberQuestion, Answer answer, List<Comment> comments, List<Reaction> reactions, UUID currentMemberId) {
+    ReactionType myReaction = reactions.stream()
+        .filter(r -> r.getMember().getId().equals(currentMemberId))
+        .map(Reaction::getReactionType)
+        .findFirst()
+        .orElse(null);
+
     return QuestionDetails.builder()
         .memberQuestionId(memberQuestion.getId())
         .content(memberQuestion.getContent())
         .member(memberQuestion.getMember())
         .answer(answer)
         .comments(comments)
+        .myReaction(myReaction)
+        .likeCount(reactions.stream().filter(r -> r.getReactionType() == ReactionType.LIKE).count())
+        .angryCount(reactions.stream().filter(r -> r.getReactionType() == ReactionType.ANGRY).count())
+        .sadCount(reactions.stream().filter(r -> r.getReactionType() == ReactionType.SAD).count())
+        .funnyCount(reactions.stream().filter(r -> r.getReactionType() == ReactionType.FUNNY).count())
         .build();
   }
 

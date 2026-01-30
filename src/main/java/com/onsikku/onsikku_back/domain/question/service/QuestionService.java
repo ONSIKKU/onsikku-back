@@ -2,8 +2,11 @@ package com.onsikku.onsikku_back.domain.question.service;
 
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.domain.answer.domain.Comment;
+import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
+import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.question.domain.*;
@@ -32,6 +35,7 @@ public class QuestionService {
     private final AnswerRepository answerRepository;
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
+    private final ReactionRepository reactionRepository;
 
     // ----------------------------------------------------------------------
     // Scheduler Methods
@@ -84,20 +88,12 @@ public class QuestionService {
             throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
         }
         MemberQuestion memberQuestion = oneMemberQuestion.get(0);
-        Answer answer = answerRepository.findByMemberQuestion_Id(memberQuestion.getId()).orElse(null);
-        if (answer == null) {
-            return QuestionResponse.builder()
-                .questionDetails(QuestionDetails.fromOnlyMemberQuestion(memberQuestion))
-                .familyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()))
-                .build();
-        }
-        return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.from(memberQuestion, answer, commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(memberQuestion.getId())))
-            .familyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()))
-            .build();
+        QuestionResponse response = assembleQuestionResponse(member, memberQuestion);
+        response.setFamilyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()));
+        return response;
     }
 
-    // 특정 질문 인스턴스의 상세 정보를 조회합니다.
+    // 특정 질문의 상세 정보를 조회합니다.
     @Transactional(readOnly = true)
     public QuestionResponse findQuestionDetails(Member member, UUID memberQuestionId) {
         MemberQuestion memberQuestion = memberQuestionRepository.findByIdWithMember(memberQuestionId)
@@ -105,35 +101,33 @@ public class QuestionService {
         if (!memberQuestion.getFamily().getId().equals(member.getFamily().getId())) {
             throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
         }
-        Answer answer = answerRepository.findByMemberQuestion_Id(memberQuestion.getId()).orElse(null);
-        if (answer == null) {
-            return QuestionResponse.builder()
-                .questionDetails(QuestionDetails.fromOnlyMemberQuestion(memberQuestion))
-                .familyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()))
-                .build();
-        }
-        return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.from(memberQuestion, answer, commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(memberQuestionId)))
-            .build();
+        return assembleQuestionResponse(member, memberQuestion);
     }
 
-    // 특정 월의 모든 질문 인스턴스를 조회합니다.
+    // 특정 월의 할당된 모든 질문을 조회합니다.
     @Transactional(readOnly = true)
     public QuestionResponse findMonthlyQuestions(Family family, int year, int month) {
         YearMonth yearMonth = YearMonth.of(year, month);
-        log.info("가족 ID {}의 {} ~ {} 범위의 질문 조회를 시작합니다.", family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
-        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), yearMonth.atDay(1).atStartOfDay(), yearMonth.atEndOfMonth().atTime(LocalTime.MAX));
-        if (memberQuestions.isEmpty()) {
-            log.info("해당 월에 질문이 없습니다.");
-            return QuestionResponse.builder().questionDetailsList(List.of()).build();
-        }
+        LocalDateTime start = yearMonth.atDay(1).atStartOfDay();
+        LocalDateTime end = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
+        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), start, end);
 
+        if (memberQuestions.isEmpty()) {
+            return QuestionResponse.builder()
+                .questionDetailsList(List.of())
+                .build();
+        }
+        int answeredQuestionCount = (int) memberQuestions.stream()
+            .filter(MemberQuestion::isAnswered)
+            .count();
+
+        int totalReactionCount = reactionRepository.countMonthlyReactions(family.getId(), start, end);
         // 리스트를 DTO로 변환 후 반환
         return QuestionResponse.builder()
             .questionDetailsList(memberQuestions.stream().map(memberQuestion -> QuestionDetails.fromMemberQuestion(memberQuestion)).toList())
             .totalQuestionCount(memberQuestions.size())
-            .answeredQuestionCount(123)     // TODO: 답변된 질문 수 계산 로직 추가
-            .totalReactionCount(123)
+            .answeredQuestionCount(answeredQuestionCount)
+            .totalReactionCount(totalReactionCount)
             .build();
     }
 
@@ -148,5 +142,23 @@ public class QuestionService {
         answerRepository.deleteByMemberQuestionFamilyId(familyId);
         memberQuestionRepository.deleteByFamilyIdBulk(familyId);
         log.info("가족 ID {} 관련 모든 데이터(댓글, 답변, 질문) 삭제 완료", familyId);
+    }
+
+    private QuestionResponse assembleQuestionResponse(Member member, MemberQuestion memberQuestion) {
+        UUID memberQuestionId = memberQuestion.getId();
+        Answer answer = answerRepository.findByMemberQuestion_Id(memberQuestionId).orElse(null);
+        if (answer == null) {
+            return QuestionResponse.builder()
+                .questionDetails(QuestionDetails.fromMemberQuestion(memberQuestion))
+                .familyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()))
+                .build();
+        }
+        // 리액션 리스트 조회
+        List<Reaction> reactions = reactionRepository.findAllByAnswer_Id(answer.getId());   // TODO : 성능 개선 가능
+        List<Comment> comments = commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(memberQuestionId);
+
+        return QuestionResponse.builder()
+            .questionDetails(QuestionDetails.from(memberQuestion, answer, comments, reactions, member.getId()))
+            .build();
     }
 }

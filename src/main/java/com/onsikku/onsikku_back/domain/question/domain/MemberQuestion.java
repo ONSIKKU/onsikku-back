@@ -113,6 +113,13 @@ public class MemberQuestion extends BaseEntity {
     }
   }
 
+  public boolean isAnswered() {
+    if(this.questionStatus == QuestionStatus.ANSWERED) {
+      return true;
+    }
+    return false;
+  }
+
   public void markAsAnswered() {
     this.answeredAt = LocalDateTime.now();
     this.questionStatus = QuestionStatus.ANSWERED;

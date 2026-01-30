@@ -4,12 +4,14 @@ import com.onsikku.onsikku_back.domain.member.domain.Member;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
+import lombok.Setter;
 
 import java.util.List;
 
 @Getter
 @AllArgsConstructor
 @Builder
+@Setter
 public class QuestionResponse {
   private List<QuestionDetails> questionDetailsList;
   private QuestionDetails questionDetails;
