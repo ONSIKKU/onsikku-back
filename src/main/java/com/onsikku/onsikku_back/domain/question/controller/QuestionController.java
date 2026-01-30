@@ -1,10 +1,13 @@
 package com.onsikku.onsikku_back.domain.question.controller;
 
 
+import com.onsikku.onsikku_back.domain.member.domain.Family;
+import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
 import com.onsikku.onsikku_back.domain.question.service.QuestionCycleService;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import io.swagger.v3.oas.annotations.Operation;
@@ -27,6 +30,7 @@ import java.util.UUID;
 public class QuestionController {
     private final QuestionService questionService;
     private final QuestionCycleService questionCycleService;
+    private final FamilyRepository familyRepository;
 
     // 가족 별 질문 조회
     @GetMapping
@@ -93,8 +97,10 @@ public class QuestionController {
     - 즉, 기존에는 밤 10시 이전에 오늘의 질문을 조회할 수 없었지만, 이 API를 호출하면 질문을 즉시 조회할 수 있습니다.
     """
     )
-    public BaseResponse<String> getAllQuestions(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(customUserDetails.getMember().getFamily(), LocalDateTime.now());
+    public BaseResponse<String> getTestQuestionGeneratation(@AuthenticationPrincipal CustomUserDetails customUserDetails) {
+        Family family = familyRepository.findById(customUserDetails.getMember().getFamily().getId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.FAMILY_NOT_FOUND));
+        questionCycleService.getOrGenerateCycleAndAssignQuestionForFamily(family, LocalDateTime.now());
         return new BaseResponse<>(BaseResponseStatus.SUCCESS);
     }
 

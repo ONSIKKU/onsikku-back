@@ -63,7 +63,7 @@ public class QuestionCycleService {
 
     // 1. 주말(Level 3 허용)인지 확인
     // 2. 마지막 AI 질문 생성일로부터 14일이 지났는지 확인
-    if (allowedLevels.contains(3) && family.isEligibleForAiQuestion(14)) {
+    if (allowedLevels.contains(3) && family.isEligibleForAiQuestion(14)) {  // TODO : isEligibleForAiQuestion 시 프록시 문제 조심
       try {
         AiQuestionResponse response = aiRequestService.requestFamilyQuestionFromRecentQuestions(AiQuestionRequest.of(member));
         String aiContent = response.getContent();
