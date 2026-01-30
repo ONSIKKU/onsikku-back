@@ -40,7 +40,6 @@ public class AuthService {
   private final FamilyRepository familyRepository;
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
-  private final QuestionService questionService;
 
   @Transactional
   public AuthResponse kakaoLoginWithCode(String code) {
