@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.answer.service;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
 import com.onsikku.onsikku_back.domain.answer.domain.ReactionType;
+import com.onsikku.onsikku_back.domain.answer.dto.ReactionRequest;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
@@ -41,8 +42,8 @@ public class ReactionService {
     }
 
     @Transactional
-    public void deleteReaction(UUID reactionId, Member member) {
-        Reaction reaction = reactionRepository.findById(reactionId)
+    public void deleteReaction(UUID answerId, Member member) {
+        Reaction reaction = reactionRepository.findByAnswer_Id(answerId)
             .orElseThrow(() -> new BaseException(BaseResponseStatus.REACTION_NOT_FOUND));
 
         // 본인 확인

@@ -1,13 +1,14 @@
 package com.onsikku.onsikku_back.domain.answer.repository;
 
-import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
-import com.onsikku.onsikku_back.domain.member.domain.Member;
+import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
+import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -19,5 +20,15 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
     @Modifying
     @Query("DELETE FROM Reaction r WHERE r.answer.id IN " +
            "(SELECT a.id FROM Answer a WHERE a.memberQuestion.family.id = :familyId)")
-    void deleteByFamilyId(@Param("familyId") Long familyId);
+    void deleteByFamilyId(@Param("familyId") UUID familyId);
+
+    List<Reaction> findAllByAnswer_Id(UUID id);
+
+    @Query("SELECT COUNT(r) FROM Reaction r WHERE r.answer.memberQuestion.family.id = :familyId " +
+        "AND r.answer.memberQuestion.createdAt BETWEEN :start AND :end")
+    int countMonthlyReactions(@Param("familyId") UUID familyId,
+                               @Param("start") LocalDateTime start,
+                               @Param("end") LocalDateTime end);
+
+    Optional<Reaction> findByAnswer_Id(UUID answerId);
 }

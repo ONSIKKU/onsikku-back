@@ -41,7 +41,7 @@ public class ReactionController {
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 
-  @DeleteMapping("/{reactionId}")
+  @DeleteMapping("/{answerId}")
   @Operation(
       summary = "리액션 삭제",
       description = """
@@ -49,11 +49,12 @@ public class ReactionController {
     ## 인증(JWT): **필요**
     ## 참고사항
     - 본인이 작성한 리액션만 삭제할 수 있습니다.
+    - answerId를 받고, 해당 답변에 본인이 남긴 리액션이 삭제됩니다.
     """
   )
   public BaseResponse<Void> deleteReaction(@AuthenticationPrincipal CustomUserDetails customUserDetails,
-                                           @PathVariable UUID reactionId) {
-    reactionService.deleteReaction(reactionId, customUserDetails.getMember());
+                                           @PathVariable UUID answerId) {
+    reactionService.deleteReaction(answerId, customUserDetails.getMember());
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 }
