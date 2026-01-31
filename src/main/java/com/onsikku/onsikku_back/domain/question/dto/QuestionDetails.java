@@ -13,6 +13,7 @@ import lombok.Builder;
 import lombok.Getter;
 
 
+import java.time.LocalDate;
 import java.util.List;
 import java.util.UUID;
 
@@ -23,6 +24,7 @@ public class QuestionDetails {
   private UUID memberQuestionId;
   private String content;
   private QuestionStatus questionStatus;
+  private LocalDate sentDate;
   private Member member;
   private Answer answer;
   private List<Comment> comments;
@@ -44,6 +46,7 @@ public class QuestionDetails {
         .memberQuestionId(memberQuestion.getId())
         .content(memberQuestion.getContent())
         .questionStatus(memberQuestion.getQuestionStatus())
+        .sentDate(memberQuestion.getSentAt().toLocalDate())
         .member(memberQuestion.getMember())
         .answer(answer)
         .comments(comments)
@@ -60,6 +63,7 @@ public class QuestionDetails {
         .memberQuestionId(memberQuestion.getId())
         .content(memberQuestion.getContent())
         .questionStatus(memberQuestion.getQuestionStatus())
+        .sentDate(memberQuestion.getSentAt().toLocalDate())
         .member(memberQuestion.getMember())
         .build();
   }
