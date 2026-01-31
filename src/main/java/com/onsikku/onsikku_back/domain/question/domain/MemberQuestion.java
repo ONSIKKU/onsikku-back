@@ -90,9 +90,9 @@ public class MemberQuestion extends BaseEntity {
   @Column(name = "last_reminded_at")
   private LocalDateTime lastRemindedAt;
 
-  public void markAsSent(LocalDateTime scheduledAt, LocalDateTime dueAt) {
-    this.sentAt = scheduledAt;    // 조회 시 sentAt <= now()
-    this.dueAt = dueAt;
+  public void markAsSent(LocalDateTime scheduledAt) {
+    this.sentAt = scheduledAt;              // 전송 시간은 밤 10시
+    this.dueAt = scheduledAt.plusDays(1);   // 24시간 후 만료
     this.questionStatus = QuestionStatus.SENT;
   }
 

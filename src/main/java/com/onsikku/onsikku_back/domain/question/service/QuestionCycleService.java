@@ -49,7 +49,7 @@ public class QuestionCycleService {
     MemberQuestion selectedQuestion = assignFinalQuestion(todayMember, family);
 
     // 상태 업데이트 및 전송 처리
-    selectedQuestion.markAsSent(sendTime, sendTime.plusDays(1)); // 24시간 뒤 마감
+    selectedQuestion.markAsSent(sendTime);
 
     // 사이클 상태 업데이트
     cycle.incrementIndex();

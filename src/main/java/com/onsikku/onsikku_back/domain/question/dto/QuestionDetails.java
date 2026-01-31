@@ -7,6 +7,7 @@ import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
 import com.onsikku.onsikku_back.domain.answer.domain.ReactionType;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
+import com.onsikku.onsikku_back.domain.question.domain.QuestionStatus;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -21,6 +22,7 @@ import java.util.UUID;
 public class QuestionDetails {
   private UUID memberQuestionId;
   private String content;
+  private QuestionStatus questionStatus;
   private Member member;
   private Answer answer;
   private List<Comment> comments;
@@ -41,6 +43,7 @@ public class QuestionDetails {
     return QuestionDetails.builder()
         .memberQuestionId(memberQuestion.getId())
         .content(memberQuestion.getContent())
+        .questionStatus(memberQuestion.getQuestionStatus())
         .member(memberQuestion.getMember())
         .answer(answer)
         .comments(comments)
@@ -56,6 +59,7 @@ public class QuestionDetails {
     return QuestionDetails.builder()
         .memberQuestionId(memberQuestion.getId())
         .content(memberQuestion.getContent())
+        .questionStatus(memberQuestion.getQuestionStatus())
         .member(memberQuestion.getMember())
         .build();
   }

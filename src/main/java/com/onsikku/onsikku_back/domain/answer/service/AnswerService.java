@@ -80,7 +80,7 @@ public class AnswerService {
             .orElseThrow(() -> new BaseException(BaseResponseStatus.ANSWER_NOT_FOUND));
         MemberQuestion memberQuestion = memberQuestionRepository.findById(request.memberQuestionId())
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND));
-        memberQuestion.markAsSent(LocalDateTime.now(), LocalDateTime.now().plusWeeks(1));
+        memberQuestion.markAsSent(LocalDateTime.now());
         answerRepository.delete(answer);
     }
 }
