@@ -75,7 +75,7 @@ public class GlobalExceptionHandler {
             return ResponseEntity
                 .status(HttpStatus.INTERNAL_SERVER_ERROR)
                 .body(new BaseResponse<>(
-                    BaseResponseStatus.INTERNAL_SERVER_ERROR
+                    BaseResponseStatus.SERIALIZATION_ERROR
                 ));
         }
 
@@ -109,5 +109,30 @@ public class GlobalExceptionHandler {
         return ResponseEntity
             .status(HttpStatus.INTERNAL_SERVER_ERROR)
             .body(new BaseResponse<>(500, userMessage));
+    }
+
+    /**
+     * 예측하지 못한 모든 예외를 잡아서
+     * 발생한 메시지를 그대로 사용자에게 전달합니다.
+     */
+    @ExceptionHandler(Exception.class)
+    protected ResponseEntity<BaseResponse<String>> handleAllException(Exception ex) {
+        // 로그에는 전체 스택 트레이스를 남겨서 디버깅을 돕습니다.
+        log.error("[Unhandled Exception] ", ex);
+
+        // 원인(Cause)이 있다면 더 구체적인 원인 메시지를 가져오고, 없으면 기본 메시지를 사용합니다.
+        String errorMessage = ex.getMessage();
+
+        // 만약 메시지조차 null이라면 예외 클래스 이름을 보냅니다.
+        if (errorMessage == null) {
+            errorMessage = ex.getClass().getSimpleName();
+        }
+
+        return ResponseEntity
+            .status(HttpStatus.INTERNAL_SERVER_ERROR)
+            .body(new BaseResponse<>(
+                500,
+                "예상치 못한 에러가 발생했습니다. : " + errorMessage
+            ));
     }
 }
