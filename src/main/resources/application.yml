@@ -8,14 +8,15 @@ spring:
     password: ${DB_PASSWORD}
 
   jpa:
+    show-sql: false
     hibernate:
-      ddl-auto: create
+      ddl-auto: update
       naming:
         physical-strategy: org.hibernate.boot.model.naming.PhysicalNamingStrategyStandardImpl
-    show-sql: true
     properties:
       hibernate:
-        format_sql: true
+        format_sql: false
+        generate_statistics: false
   data:
     redis:
       host: ${REDIS_HOST}
@@ -28,7 +29,9 @@ logging:
     root: INFO
     io.lettuce.core: INFO
     org.springframework.data.redis: INFO
-
+    org.hibernate.SQL: OFF              # Hibernate SQL 쿼리 로깅
+    org.hibernate.stat: DEBUG           # Hibernate 통계 로깅
+    org.hibernate.orm.jdbc.bind: TRACE  # 바인딩된 값 로깅
 
 oauth2:
   kakao:

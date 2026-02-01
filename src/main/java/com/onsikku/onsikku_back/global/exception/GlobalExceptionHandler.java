@@ -58,7 +58,7 @@ public class GlobalExceptionHandler {
         return new BaseResponse<>(400,"요청 본문을 읽을 수 없습니다. JSON 형식과 필드 값을 확인해 주세요.");
     }
     @ExceptionHandler(HttpMessageConversionException.class)
-    public ResponseEntity<BaseResponse<String>> handleLazyLoadingSerializationError(HttpMessageConversionException e) {
+    public BaseResponse<String> handleLazyLoadingSerializationError(HttpMessageConversionException e) {
 
         // 1. root cause가 InvalidDefinitionException인지 확인
         Throwable rootCause = e.getRootCause();
@@ -72,25 +72,19 @@ public class GlobalExceptionHandler {
             log.error("[Hibernate Lazy Loading Error] {} - {}", errorMessage, referenceChain, ide);
 
             // 사용자에게는 상세한 내부 스택 트레이스 대신 깔끔한 오류 응답 반환
-            return ResponseEntity
-                .status(HttpStatus.INTERNAL_SERVER_ERROR)
-                .body(new BaseResponse<>(
-                    BaseResponseStatus.SERIALIZATION_ERROR
-                ));
+            return new BaseResponse<>(BaseResponseStatus.SERIALIZATION_ERROR);
         }
 
         // 해당되는 다른 HttpMessageConversionException이 아닌 경우, 일반적인 500 에러 처리
         log.error("[HTTP Conversion Error] ", e);
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR));
+        return new BaseResponse<>(BaseResponseStatus.INTERNAL_SERVER_ERROR);
     }
 
     /**
      * DB 제약 조건 위반 처리 (NOT NULL, UNIQUE, CHECK constraint 위반)
      */
     @ExceptionHandler(DataIntegrityViolationException.class)
-    protected ResponseEntity<BaseResponse<String>> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
+    protected BaseResponse<String> handleDataIntegrityViolation(DataIntegrityViolationException ex) {
         String message = ex.getMostSpecificCause().getMessage();
 
         // 내부 로그 기록
@@ -106,9 +100,7 @@ public class GlobalExceptionHandler {
             userMessage = "데이터 무결성 제약 조건을 위반했습니다. 요청 데이터를 확인해주세요.";
         }
 
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new BaseResponse<>(500, userMessage));
+        return new BaseResponse<>(500, userMessage);
     }
 
     /**
@@ -116,7 +108,7 @@ public class GlobalExceptionHandler {
      * 발생한 메시지를 그대로 사용자에게 전달합니다.
      */
     @ExceptionHandler(Exception.class)
-    protected ResponseEntity<BaseResponse<String>> handleAllException(Exception ex) {
+    protected BaseResponse<String> handleAllException(Exception ex) {
         // 로그에는 전체 스택 트레이스를 남겨서 디버깅을 돕습니다.
         log.error("[Unhandled Exception] ", ex);
 
@@ -128,11 +120,6 @@ public class GlobalExceptionHandler {
             errorMessage = ex.getClass().getSimpleName();
         }
 
-        return ResponseEntity
-            .status(HttpStatus.INTERNAL_SERVER_ERROR)
-            .body(new BaseResponse<>(
-                500,
-                "예상치 못한 에러가 발생했습니다. : " + errorMessage
-            ));
+        return new BaseResponse<>(500, "예상치 못한 에러가 발생했습니다. : " + errorMessage);
     }
 }
