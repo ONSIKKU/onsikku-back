@@ -110,7 +110,7 @@ public class QuestionService {
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDateTime start = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime end = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
-        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), start, end);
+        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), start, end, LocalDateTime.now());
 
         if (memberQuestions.isEmpty()) {
             return QuestionResponse.builder()

@@ -41,8 +41,10 @@ public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, 
    */
   @Query("SELECT mq FROM MemberQuestion mq LEFT JOIN FETCH mq.member " +
       "WHERE mq.family.id = :familyId AND mq.sentAt BETWEEN :startDate AND :endDate " +
+      "AND mq.sentAt <= :now " +
       "ORDER BY mq.sentAt DESC")
-  List<MemberQuestion> findQuestionsByFamilyIdAndDateTimeRange(@Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate);
+  List<MemberQuestion> findQuestionsByFamilyIdAndDateTimeRange(
+      @Param("familyId") UUID familyId, @Param("startDate") LocalDateTime startDate, @Param("endDate") LocalDateTime endDate, @Param("now") LocalDateTime now);
 
   @Modifying
   @Query("DELETE FROM MemberQuestion mq WHERE mq.family.id = :familyId")
