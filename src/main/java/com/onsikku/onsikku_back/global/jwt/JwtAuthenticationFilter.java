@@ -103,7 +103,7 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
         response.setStatus(baseResponseStatus.getCode());
         response.setCharacterEncoding("UTF-8");
 
-        ErrorResponse errorResponse = new ErrorResponse(baseResponseStatus, baseResponseStatus.getMessage());
+        ErrorResponse errorResponse = new ErrorResponse(baseResponseStatus);
 
         ObjectMapper mapper = new ObjectMapper();
         mapper.writeValue(response.getWriter(), errorResponse);

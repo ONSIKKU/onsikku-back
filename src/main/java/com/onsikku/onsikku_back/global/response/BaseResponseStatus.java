@@ -12,6 +12,9 @@ public enum BaseResponseStatus {
     // 직렬화 오류
     SERIALIZATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 데이터 직렬화에 실패했습니다. 관리자에게 문의해주세요."),
 
+    // 요청값 오류
+    INVALID_JSON_VALUE(HttpStatus.BAD_REQUEST, "요청 본문을 읽을 수 없습니다. JSON 형식과 필드 값을 확인해 주세요."),
+
     // 카카오 OAUTH2 관련
     KAKAO_INVALID_GRANT(HttpStatus.BAD_REQUEST, "알 수 없는 이유로 카카오 인증에 실패하였습니다."),
     KAKAO_REDIRECT_URI_MISMATCH(HttpStatus.BAD_REQUEST, "카카오 redirect_uri가 등록된 값과 일치하지 않습니다."),

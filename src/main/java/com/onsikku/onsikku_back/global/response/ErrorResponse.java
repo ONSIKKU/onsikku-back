@@ -10,5 +10,12 @@ import lombok.Getter;
 public class ErrorResponse {
 
   private BaseResponseStatus baseResponseStatus;
+  private int code;
   private String errorMessage;
+
+  public ErrorResponse(BaseResponseStatus baseResponseStatus) {
+    this.baseResponseStatus = baseResponseStatus;
+    this.code = baseResponseStatus.getCode();
+    this.errorMessage = baseResponseStatus.getMessage();
+  }
 }
