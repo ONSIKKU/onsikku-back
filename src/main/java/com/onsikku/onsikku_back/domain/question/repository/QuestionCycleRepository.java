@@ -1,6 +1,5 @@
 package com.onsikku.onsikku_back.domain.question.repository;
 
-import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.question.domain.QuestionCycle;
 import org.springframework.data.jpa.repository.JpaRepository;
 

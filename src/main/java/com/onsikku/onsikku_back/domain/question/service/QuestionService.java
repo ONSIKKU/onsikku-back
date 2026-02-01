@@ -155,8 +155,7 @@ public class QuestionService {
         }
         // 리액션 리스트 조회
         List<Reaction> reactions = reactionRepository.findAllByAnswer_Id(answer.getId());   // TODO : 성능 개선 가능
-        List<Comment> comments = commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(memberQuestionId);
-
+        List<Comment> comments = commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(answer.getId());
         return QuestionResponse.builder()
             .questionDetails(QuestionDetails.from(memberQuestion, answer, comments, reactions, member.getId()))
             .build();

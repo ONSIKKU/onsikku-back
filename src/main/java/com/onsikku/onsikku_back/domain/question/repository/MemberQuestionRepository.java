@@ -28,7 +28,7 @@ public interface MemberQuestionRepository extends JpaRepository<MemberQuestion, 
   // 주인공 질문 할당 : 대기 중인(PENDING) 질문 중, 레벨과 우선순위에 맞는 가장 적절한 질문 조회
   @Query(value = "SELECT * FROM member_question WHERE member_id = :memberId " +
       "AND question_status = :status AND level IN (:levels) " +
-      "ORDER BY priority DESC, createdAt ASC " +
+      "ORDER BY priority DESC, created_at ASC " +
       "LIMIT 1", nativeQuery = true)
   Optional<MemberQuestion> findTopQuestionNative(@Param("memberId") UUID memberId, @Param("status") String status, @Param("levels") List<Integer> levels);
 
