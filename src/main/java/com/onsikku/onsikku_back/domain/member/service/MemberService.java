@@ -3,6 +3,7 @@ package com.onsikku.onsikku_back.domain.member.service;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
+import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
@@ -33,6 +34,7 @@ public class MemberService {
     private final CommentRepository commentRepository;
     private final InvitationCodeGenerator invitationCodeGenerator;
     private final QuestionService questionService;
+    private final ReactionRepository reactionRepository;
 
     public MypageResponse getMemberByMember(Member member) {
         return MypageResponse.from(
@@ -77,8 +79,9 @@ public class MemberService {
         // TODO : 회원이 생성한 댓글 성능 고려한 쿼리로 수정
         List<Answer> answers = answerRepository.findAllByMember_Id(member.getId());
         log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
-        log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));
         log.info("회원이 생성한 댓글 삭제 완료 : {} 개", commentRepository.deleteAllByMember(member));
+        log.info("회원이 생성한 반응 삭제 완료 : {} 개", reactionRepository.deleteAllByMember(member));
+        log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));
         // TODO : 회원 삭제 softDelete 처리
         UUID familyId = member.getFamily().getId();
         memberRepository.deleteById(member.getId());

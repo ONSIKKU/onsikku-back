@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.domain.answer.repository;
 
 import com.onsikku.onsikku_back.domain.answer.domain.Reaction;
+import com.onsikku.onsikku_back.domain.member.domain.Member;
 import jakarta.validation.constraints.NotNull;
 import org.springframework.data.jpa.repository.JpaRepository;
 import org.springframework.data.jpa.repository.Modifying;
@@ -31,4 +32,6 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
                                @Param("end") LocalDateTime end);
 
     Optional<Reaction> findByAnswer_Id(UUID answerId);
+
+    int deleteAllByMember(Member member);
 }
