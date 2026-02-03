@@ -16,5 +16,7 @@ public class TokenConstants {
     /** Access Token 블랙리스트 키 접두사 (AT_BL:accessTokenString) */
     public static final String AT_BLACKLIST_PREFIX = "AT_BL:";
 
+    /** 티켓 접두사 (ticket:ticketuuidstring) */
+    public static final String TICKET_PREFIX = "ticket:";
     // ----------------------------------------------------------
 }

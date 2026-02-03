@@ -6,6 +6,7 @@ import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import lombok.RequiredArgsConstructor;
+import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 @RestController
@@ -20,19 +21,29 @@ public class AuthController {
 
     @PostMapping("/kakao")
     @Operation(
-        summary = "카카오 로그인",
+        summary = "카카오 로그인 (티켓 발급)",
         description = """
     code를 통해 카카오 로그인을 수행합니다.
+    이후, 인가 코드를 통해 임시 티켓을 발급합니다.
     ## 인증(JWT): **불필요**
-    ## 참고사항
-    - 회원가입이 되어 있지 않은 경우, registrationToken을 반환합니다.
-    - 회원가입이 되어 있는 경우, JWT 토큰을 포함한 `KakaoLoginResponse`를 반환합니다.
     """
     )
     public BaseResponse<AuthResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
         return new BaseResponse<>(authService.kakaoLoginWithCode(request.code()));
     }
 
+    @GetMapping("/exchange")
+    @Operation(summary = "티켓 교환", description = """
+    티켓을 확인하고, 저장된 유저의 AuthResponse를 반환합니다.
+    ## 인증(JWT): **불필요**
+    ## 참고사항
+    - 회원가입이 되어 있지 않은 경우, registrationToken을 반환합니다.
+    - 회원가입이 되어 있는 경우, JWT 토큰을 포함한 `KakaoLoginResponse`를 반환합니다.
+    """
+    )
+    public BaseResponse<AuthResponse> exchangeTicket(@RequestParam String ticket) {
+        return new BaseResponse<>(authService.exchangeTicket(ticket));
+    }
 
     @PostMapping("/signup")
     @Operation(

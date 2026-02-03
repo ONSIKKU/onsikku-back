@@ -41,6 +41,24 @@ public class AuthService {
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
 
+  /**
+   * 티켓을 실제 AuthResponse로 교환
+   */
+  @Transactional
+  public AuthResponse exchangeTicket(String ticket) {
+    String key = TICKET_PREFIX + ticket;
+    // Redis 에서 티켓 조회
+    AuthResponse authResponse = redisService.get(key, AuthResponse.class);
+
+    // 티켓이 없거나 만료된 경우
+    if (authResponse == null) {
+      throw new BaseException(BaseResponseStatus.INVALID_TICKET);
+    }
+    // 사용한 티켓 즉시 삭제 (일회용)
+    redisService.delete(key);
+    return authResponse;
+  }
+
   @Transactional
   public AuthResponse kakaoLoginWithCode(String code) {
     // 카카오 OAuth2 인증 코드로부터 사용자 정보를 가져옵니다.
@@ -48,21 +66,28 @@ public class AuthService {
 
     // 사용자 정보를 기반으로 회원 정보를 조회합니다.
     Optional<Member> existingMember = memberRepository.findByKakaoId(memberInfo.kakaoId());
-
-    // 이미 등록된 회원인 경우 JWT 토큰을 생성하여 반환합니다.
-    if (existingMember.isPresent()) {
+    AuthResponse authResponse;
+    if (existingMember.isPresent()) {   // 이미 등록된 회원인 경우 JWT 토큰을 생성
       String refreshToken = jwtProvider.generateRefreshTokenFromMember(existingMember.get());
       redisService.set(RT_KEY_PREFIX + existingMember.get().getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
-      return AuthResponse.builder()
+      authResponse =  AuthResponse.builder()
           .accessToken(jwtProvider.generateAccessTokenFromMember(existingMember.get()))
           .refreshToken(refreshToken)
           .isRegistered(true)
           .build();
     }
-    // 등록되지 않은 회원인 경우, 등록 토큰을 생성하여 반환합니다.
+    else {                              // 등록되지 않은 회원인 경우, 등록 토큰을 생성
+      authResponse = AuthResponse.builder()
+          .registrationToken(registrationTokenService.save(memberInfo))
+          .isRegistered(false)
+          .build();
+    }
+    // AuthResponse를 Ticket(UUID)과 함께 Redis에 임시 저장 (수명 1분)
+    String ticket = UUID.randomUUID().toString();
+    redisService.set(TICKET_PREFIX + ticket, authResponse, Duration.ofMinutes(1));
+
     return AuthResponse.builder()
-        .registrationToken(registrationTokenService.save(memberInfo))
-        .isRegistered(false)
+        .ticket(ticket)
         .build();
   }
 

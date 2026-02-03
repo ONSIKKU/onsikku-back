@@ -1,7 +1,6 @@
 package com.onsikku.onsikku_back.domain.question.domain;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
-import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;

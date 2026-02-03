@@ -108,9 +108,7 @@ public class MemberQuestion extends BaseEntity {
 
   public void markAsRead() {
     this.readAt = LocalDateTime.now();
-    if (this.questionStatus == QuestionStatus.SENT) {
-      this.questionStatus = QuestionStatus.READ;
-    }
+    this.questionStatus = QuestionStatus.READ;
   }
 
   public boolean isAnswered() {

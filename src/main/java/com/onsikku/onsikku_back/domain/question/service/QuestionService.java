@@ -88,6 +88,10 @@ public class QuestionService {
             throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
         }
         MemberQuestion memberQuestion = oneMemberQuestion.get(0);
+        // 본인이 주인공이고, 질문 상태가 SENT면 markAsRead
+        if(memberQuestion.getMember().getId().equals(member.getId()) && memberQuestion.getQuestionStatus() == QuestionStatus.SENT) {
+            memberQuestion.markAsRead();
+        }
         QuestionResponse response = assembleQuestionResponse(member, memberQuestion);
         response.setFamilyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()));
         return response;
@@ -150,7 +154,6 @@ public class QuestionService {
         if (answer == null) {
             return QuestionResponse.builder()
                 .questionDetails(QuestionDetails.fromMemberQuestion(memberQuestion))
-                .familyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()))
                 .build();
         }
         // 리액션 리스트 조회
