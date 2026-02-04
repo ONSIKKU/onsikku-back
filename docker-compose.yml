@@ -1,4 +1,18 @@
 services:
+  npm:        # nginx proxy manager
+    image: 'jc21/nginx-proxy-manager:latest'
+    container_name: onsikku-npm
+    restart: unless-stopped
+    ports:
+      - '80:80'   # HTTP 접속용
+      - '443:443' # HTTPS 접속용
+      - '81:81'   # NPM 관리 UI 포트
+    volumes:
+      - ./npm-data:/data
+      - ./npm-letsencrypt:/etc/letsencrypt
+    networks:
+      - onsikku-net
+
   redis:
     image: redis:7-alpine
     container_name: onsikku-redis
