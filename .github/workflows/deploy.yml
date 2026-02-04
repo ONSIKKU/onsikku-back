@@ -82,7 +82,6 @@ jobs:
 
             # Compose용
             DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
-            HOME=$HOME
             EOF
 
             chmod 600 .env

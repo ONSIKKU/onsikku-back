@@ -6,7 +6,7 @@ services:
     ports:
       - '80:80'   # HTTP 접속용
       - '443:443' # HTTPS 접속용
-      #- '81:81'   # NPM 관리 UI 포트
+      - '81:81'   # NPM 관리 UI 포트
     volumes:
       - ./npm-data:/data
       - ./npm-letsencrypt:/etc/letsencrypt
@@ -29,7 +29,7 @@ services:
     ports:
       - "127.0.0.1:8080:8080"
     env_file:
-      - ${HOME}/app/.env
+      - ./.env      # 현재 폴더의 .env 사용
     environment:
       - REDIS_HOST=onsikku-redis    # application.yml redis 설정
       - REDIS_PASSWORD=${REDIS_PASSWORD}
@@ -50,7 +50,7 @@ services:
       POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD} # 환경변수 사용 권장
     volumes:
-      - ./postgres-data:/var/lib/postgresql/data # 데이터 영속성 추가
+      - ./postgres-data:/var/lib/postgresql/data # 현재 폴더에 데이터 저장
     networks:
       - onsikku-net # 네트워크 참여 필수
     restart: unless-stopped

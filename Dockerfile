@@ -13,7 +13,7 @@ USER appuser
 
 # 외부(GitHub Actions 등)에서 빌드된 jar 파일을 이미지 내부로 복사
 # 빌드 결과물 경로가 build/libs/*.jar 인지 확인이 필요합니다.
-COPY build/libs/*.jar app.jar
+COPY build/libs/app.jar app.jar
 
 EXPOSE 8080
 
