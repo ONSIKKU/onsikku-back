@@ -47,7 +47,7 @@ services:
     container_name: onsikku-db
     environment:
       POSTGRES_DB: onsikku_prod # DB 이름 명시
-      POSTGRES_USER: ${DB_USER}
+      POSTGRES_USER: ${DB_USERNAME}
       POSTGRES_PASSWORD: ${DB_PASSWORD} # 환경변수 사용 권장
     volumes:
       - ./postgres-data:/var/lib/postgresql/data # 데이터 영속성 추가
