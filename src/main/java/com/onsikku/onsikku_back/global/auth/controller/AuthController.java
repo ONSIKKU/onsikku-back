@@ -5,9 +5,12 @@ import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
+import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+
+import java.io.IOException;
 
 @RestController
 @RequestMapping("/api/auth")
@@ -19,17 +22,21 @@ import org.springframework.web.bind.annotation.*;
 public class AuthController {
     private final AuthService authService;
 
-    @PostMapping("/kakao")
+    @GetMapping("/kakao/redirect")
     @Operation(
         summary = "카카오 로그인 (티켓 발급)",
         description = """
+    **리다이렉트용 입니다.**
     code를 통해 카카오 로그인을 수행합니다.
-    이후, 인가 코드를 통해 임시 티켓을 발급합니다.
+    이후 임시 티켓을 발급하여, 리다이렉트합니다.
     ## 인증(JWT): **불필요**
     """
     )
-    public BaseResponse<AuthResponse> kakaoLogin(@RequestBody KakaoLoginRequest request) {
-        return new BaseResponse<>(authService.kakaoLoginWithCode(request.code()));
+    public void kakaoLogin(@RequestParam String code, HttpServletResponse response) throws IOException {
+        // 코드를 이용한 로그인 로직 처리
+        String ticket = authService.kakaoLoginWithCode(code).getTicket();
+        // 앱의 딥링크 주소로 리다이렉트
+        response.sendRedirect("onsikku://auth?ticket=" + ticket);
     }
 
     @GetMapping("/exchange")

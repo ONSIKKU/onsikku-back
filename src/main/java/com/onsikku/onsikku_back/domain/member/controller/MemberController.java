@@ -27,11 +27,6 @@ public class MemberController {
   private final MemberService memberService;
   private final AuthService authService;
 
-  @GetMapping("/login")
-  public String login() {
-    return "로그인 페이지";
-  }
-
   @GetMapping("/mypage")
   @Operation(
       summary = "마이페이지 조회",

@@ -82,9 +82,9 @@ public class AuthService {
           .isRegistered(false)
           .build();
     }
-    // AuthResponse를 Ticket(UUID)과 함께 Redis에 임시 저장 (수명 1분)
+    // AuthResponse를 Ticket(UUID)과 함께 Redis에 임시 저장 (수명 20초)
     String ticket = UUID.randomUUID().toString();
-    redisService.set(TICKET_PREFIX + ticket, authResponse, Duration.ofMinutes(1));
+    redisService.set(TICKET_PREFIX + ticket, authResponse, Duration.ofSeconds(20));
 
     return AuthResponse.builder()
         .ticket(ticket)
