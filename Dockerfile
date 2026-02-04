@@ -5,9 +5,11 @@ FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
 # 보안을 위해 비루트(non-root) 사용자 생성 및 전환
-RUN addgroup -g 1001 -S appgroup && \
-    adduser -u 1001 -S appuser -G appgroup
+# 기존의 짧은 옵션(-S, -g, -G) 대신 풀네임 옵션을 사용합니다.
+RUN addgroup --system --gid 1001 appgroup && \
+    adduser --system --uid 1001 --ingroup appgroup --disabled-password appuser
 
+USER appuser
 USER appuser
 
 # 외부(GitHub Actions 등)에서 빌드된 jar 파일을 이미지 내부로 복사
