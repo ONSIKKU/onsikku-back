@@ -13,6 +13,11 @@ java {
 	}
 }
 
+// 파일 이름 고정
+bootJar {
+	archiveFileName = 'app.jar'
+}
+
 repositories {
 	mavenCentral()
 }

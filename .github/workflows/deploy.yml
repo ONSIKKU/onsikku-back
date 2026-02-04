@@ -18,9 +18,13 @@ jobs:
         with:
           java-version: '21'
           distribution: 'temurin'
+          cache: 'gradle' # Gradle 캐시 활성화 (빌드 속도 향상)
 
-      - name: Gradle 빌드
-        run: ./gradlew build -x test
+      - name: Gradle 빌드 (jar 생성)
+        # 빌드 결과물 이름을 app.jar로 고정하여 Dockerfile과 연동
+        # build : Javadoc 생성, 소스 코드 패키징 등 모든 태스크를 다 수행
+        # ootJar: 실행 가능한 JAR 파일 하나만 만듬
+        run: ./gradlew clean bootJar -PjarName=app    # 이전 빌드 잔여물 삭제
 
       - name: 도커 허브 로그인
         uses: docker/login-action@v3
@@ -30,10 +34,11 @@ jobs:
 
       - name: 도커 이미지 빌드 및 푸시
         run: |
+          # 밖에서 빌드된 jar를 사용하므로 build-arg는 필요 없음
           docker build -t ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest .
           docker push ${{ secrets.DOCKER_USERNAME }}/onsikku-back:latest
 
-      - name: docker-compose.yml 전송
+      - name: 파일 전송 (Compose & .env 환경변수)
         uses: appleboy/scp-action@v0.1.7
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -43,7 +48,7 @@ jobs:
           source: "docker-compose.yml"
           target: "~/app/"
 
-      - name: EC2에 .env 생성
+      - name: 서버에 .env 생성 및 실행
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -53,17 +58,17 @@ jobs:
           script: |
             set -e
             mkdir -p ~/app
+            cd ~/app
 
-            # .env 재생성 (따옴표 제거: 파서별 호환성 문제 방지)
-            cat > ~/app/.env << 'EOF'
+            # .env 파일 생성 (Secrets를 안전하게 서버로 전달)
+            cat > .env << EOF
+
             # DB 설정
             DB_URL=${{ secrets.DB_URL }}
             DB_USERNAME=${{ secrets.DB_USERNAME }}
             DB_PASSWORD=${{ secrets.DB_PASSWORD }}
 
             # Redis 설정
-            REDIS_HOST=${{ secrets.REDIS_HOST }}
-            REDIS_PORT=${{ secrets.REDIS_PORT }}
             REDIS_PASSWORD=${{ secrets.REDIS_PASSWORD }}
             REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES=${{ secrets.REDIS_REGISTRATION_TOKEN_EXPIRATION_MINUTES }}
 
@@ -73,29 +78,19 @@ jobs:
             JWT_SECRET=${{ secrets.JWT_SECRET }}
             JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}
             JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}
-            SPRING_PORT=${{ secrets.SPRING_PORT }}
             AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}
 
             # Compose용
             DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}
+            HOME=$HOME
             EOF
 
-            chmod 600 ~/app/.env
+            chmod 600 .env
+            # 배포 실행
+            docker compose pull
+            docker compose up -d --remove-orphans
 
-      - name: EC2에서 Docker Compose 배포
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: ${{ secrets.SERVER_PORT }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          script: |
-            set -e
-            cd ~/app
-
-            docker compose -f docker-compose.yml pull
-            docker compose -f docker-compose.yml up -d --remove-orphans
-
+            # 안 쓰는 구형 이미지 정리 (용량 확보)
             docker image prune -f
 
       - name: 애플리케이션 Health Check
