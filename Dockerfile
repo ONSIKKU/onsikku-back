@@ -5,8 +5,9 @@ FROM eclipse-temurin:21-jdk AS builder
 WORKDIR /app
 
 # 보안을 위해 비루트(non-root) 사용자 생성 및 전환
-RUN getent group appgroup || addgroup -S appgroup && \
-    getent passwd appuser || adduser -S appuser -G appgroup
+RUN addgroup -g 1001 -S appgroup && \
+    adduser -u 1001 -S appuser -G appgroup
+
 USER appuser
 
 # 외부(GitHub Actions 등)에서 빌드된 jar 파일을 이미지 내부로 복사
