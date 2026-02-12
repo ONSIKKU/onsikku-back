@@ -8,7 +8,8 @@ on:
 jobs:
   deploy:
     runs-on: ubuntu-latest
-
+  environment:
+    name: production    # github action 탭에 실시간 진행도 바 생성됨
     steps:
       - name: 코드 체크아웃
         uses: actions/checkout@v4
