@@ -34,8 +34,11 @@ services:
       - REDIS_HOST=onsikku-redis    # application.yml redis 설정
       - REDIS_PASSWORD=${REDIS_PASSWORD}
       - TZ=Asia/Seoul
-      #- JAVA_OPTS=-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=25.0
-    depends_on:
+      - FCM_CONFIG_PATH=file:/app/firebase/firebase-admin-sdk.json    # application.yml의 fcm.config.path 값을 덮어씌움
+    volumes:
+      - ./firebase:/app/firebase:ro  # 호스트의 키 파일 폴더를 컨테이너 내부로 연결(마운트), :ro = Read Only (보안 강화)
+    #- JAVA_OPTS=-XX:MaxRAMPercentage=75.0 -XX:InitialRAMPercentage=25.0
+    depends_on:     # redis, db 컨테이너가 켜진 후에 app 실행됨
       - redis
       - db # db 의존성 추가
     networks:

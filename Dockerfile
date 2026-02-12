@@ -4,8 +4,8 @@ FROM eclipse-temurin:21-jdk AS builder
 # 작업 디렉토리 생성
 WORKDIR /app
 
-# 보안을 위해 비루트(non-root) 사용자 생성 및 전환
-# 기존의 짧은 옵션(-S, -g, -G) 대신 풀네임 옵션을 사용합니다.
+# 보안을 위해 non-root 사용자 생성 및 전환
+# 기존의 짧은 옵션(-S, -g, -G) 대신 풀네임 옵션 사용
 RUN addgroup --system --gid 1001 appgroup && \
     adduser --system --uid 1001 --ingroup appgroup --disabled-password appuser
 

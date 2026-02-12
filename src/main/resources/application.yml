@@ -60,4 +60,5 @@ management:
       enabled: true         # Redis Health Indicator 활성화 (기본값)
 
 fcm:
-  credentials-json: ${FCM_CREDENTIALS_JSON:asdf}
+  config:
+    path: classpath:firebase-admin-sdk.json   # resources 폴더 기준
