@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.global.auth.controller;
 
+import com.onsikku.onsikku_back.domain.member.domain.SocialType;
 import com.onsikku.onsikku_back.global.auth.dto.*;
 import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
@@ -7,7 +8,6 @@ import io.swagger.v3.oas.annotations.Operation;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.servlet.http.HttpServletResponse;
 import lombok.RequiredArgsConstructor;
-import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.io.IOException;
@@ -34,14 +34,31 @@ public class AuthController {
     )
     public void kakaoLogin(@RequestParam String code, HttpServletResponse response) throws IOException {
         // 코드를 이용한 로그인 로직 처리
-        String ticket = authService.kakaoLoginWithCode(code).getTicket();
+        String ticket = authService.socialLogin(code, SocialType.KAKAO).getTicket();
         // 앱의 딥링크 주소로 리다이렉트
         response.sendRedirect("onsikku://auth?ticket=" + ticket);
     }
+    // ---------------- [APPLE] POST 방식 ----------------
+    @PostMapping("/apple")
+    @Operation(
+        summary = "애플 로그인 (iOS Native)",
+        description = """
+        **iOS 앱 내장 로그인 방식입니다.**
+        Client가 Apple SDK로 받은 `identityToken`을 전송합니다.
+        서버는 토큰을 검증하고, **티켓(ticket)**이 담긴 AuthResponse를 반환합니다.
+        """
+    )
+    public BaseResponse<AuthResponse> appleLogin(@RequestBody AppleLoginRequest request) {
+        // 애플은 code 대신 identityToken을 넘겨줍니다.
+        AuthResponse authResponse = authService.socialLogin(request.identityToken(), SocialType.APPLE);
 
+        return new BaseResponse<>(authResponse);
+    }
+
+    // ---------------- [공통] 티켓 교환 ----------------
     @GetMapping("/exchange")
-    @Operation(summary = "티켓 교환", description = """
-    티켓을 확인하고, 저장된 유저의 AuthResponse를 반환합니다.
+    @Operation(summary = "티켓 교환 (공통)", description = """
+    카카오/애플 로그인 후 발급받은 티켓을 확인하고, 저장된 유저의 AuthResponse를 반환합니다.
     ## 인증(JWT): **불필요**
     ## 참고사항
     - 회원가입이 되어 있지 않은 경우, registrationToken을 반환합니다.
@@ -59,11 +76,11 @@ public class AuthController {
     registrationToken을 통해 회원가입을 수행합니다.
     ## 인증(JWT): **불필요**
     ## 참고사항
-    - `registrationToken`은 카카오 로그인 시 반환된 회원가입 토큰입니다.
-    - 회원가입 후, JWT 토큰을 포함한 `KakaoLoginResponse`를 반환합니다.
+    - `registrationToken`은 소셜 로그인 시 반환된 회원가입 토큰입니다.
+    - 회원가입 후, JWT 토큰을 포함한 `AuthResponse`를 반환합니다.
     """
     )
-    public BaseResponse<AuthResponse> signup(@RequestBody KakaoSignupRequest request) {
+    public BaseResponse<AuthResponse> signup(@RequestBody SocialSignupRequest request) {
         return new BaseResponse<>(authService.register(request));
     }
 

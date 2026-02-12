@@ -1,8 +1,8 @@
 package com.onsikku.onsikku_back.domain.member.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.SocialSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.SocialMemberInfo;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;
 import lombok.*;
@@ -27,8 +27,13 @@ public class Member extends BaseEntity {
     private Family family;
 
     @Column(nullable = false, unique = true)
-    @JsonIgnore             // 보안상 카카오 ID는 외부에 노출하지 않음
-    private String kakaoId;
+    @JsonIgnore             // 보안상 소셜 ID는 외부에 노출하지 않음
+    private String socialId;
+
+    @Enumerated(EnumType.STRING)
+    @Column(nullable = false)
+    @JsonIgnore
+    private SocialType socialType;
 
     @Enumerated(EnumType.STRING)
     @JsonIgnore
@@ -66,9 +71,10 @@ public class Member extends BaseEntity {
         this.isAlarmEnabled = enabled;
     }
 
-    public static Member from(KakaoMemberInfo memberInfo, KakaoSignupRequest request, Family family) {
+    public static Member from(SocialMemberInfo memberInfo, SocialSignupRequest request, Family family) {
         return Member.builder()
-            .kakaoId(memberInfo.kakaoId())
+            .socialId(memberInfo.socialId())
+            .socialType(memberInfo.socialType())
             .familyRole(request.familyRole())
             .nickname(request.nickname())
             .birthDate(request.birthDate())

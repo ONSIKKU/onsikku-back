@@ -1,17 +1,16 @@
 package com.onsikku.onsikku_back.global.auth.service;
 
+import com.onsikku.onsikku_back.domain.member.domain.SocialType;
 import com.onsikku.onsikku_back.domain.notification.event.MemberJoinedEvent;
-import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
-import com.onsikku.onsikku_back.global.auth.dto.AuthTestRequest;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.SocialSignupRequest;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
+import com.onsikku.onsikku_back.global.auth.dto.SocialMemberInfo;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.jwt.JwtProvider;
 import com.onsikku.onsikku_back.global.redis.RedisService;
@@ -25,8 +24,6 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
-import java.time.LocalDateTime;
-import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -44,6 +41,7 @@ public class AuthService {
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
   private final ApplicationEventPublisher eventPublisher;
+  private final AppleOAuth2Service appleOAuth2Service;
 
   /**
    * 티켓을 실제 AuthResponse로 교환
@@ -64,16 +62,25 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResponse kakaoLoginWithCode(String code) {
-    // 카카오 OAuth2 인증 코드로부터 사용자 정보를 가져옵니다.
-    KakaoMemberInfo memberInfo = kakaoOAuth2Service.getKakaoMemberInfoFromCode(code);
+  public AuthResponse socialLogin(String tokenOrCode, SocialType socialType) {
+    SocialMemberInfo memberInfo;
+
+    // 소셜 타입에 따라 정보 조회
+    if (socialType == SocialType.KAKAO) {           // 카카오 OAuth2 인증 코드로부터 사용자 정보를 가져옵니다.
+      memberInfo = kakaoOAuth2Service.getKakaoMemberInfoFromCode(tokenOrCode);
+    } else if (socialType == SocialType.APPLE) {    // Apple 로직: Identity Token 으로 정보 검증 및 가져오기
+      memberInfo = appleOAuth2Service.getAppleMemberInfo(tokenOrCode);
+    } else {
+      throw new BaseException(BaseResponseStatus.INVALID_SOCIAL_TYPE); // 에러 정의 필요
+    }
 
     // 사용자 정보를 기반으로 회원 정보를 조회합니다.
-    Optional<Member> existingMember = memberRepository.findByKakaoId(memberInfo.kakaoId());
+    Optional<Member> existingMember = memberRepository.findBySocialIdAndSocialType(memberInfo.socialId(), socialType);
     AuthResponse authResponse;
     if (existingMember.isPresent()) {   // 이미 등록된 회원인 경우 JWT 토큰을 생성
       String refreshToken = jwtProvider.generateRefreshTokenFromMember(existingMember.get());
       redisService.set(RT_KEY_PREFIX + existingMember.get().getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
+
       authResponse =  AuthResponse.builder()
           .accessToken(jwtProvider.generateAccessTokenFromMember(existingMember.get()))
           .refreshToken(refreshToken)
@@ -96,12 +103,12 @@ public class AuthService {
   }
 
   @Transactional
-  public AuthResponse register(KakaoSignupRequest request) {
+  public AuthResponse register(SocialSignupRequest request) {
     // 요청에서 등록 토큰을 사용하여 카카오 회원 정보를 가져옵니다.
-    KakaoMemberInfo memberInfo = registrationTokenService.get(request.registrationToken());
+    SocialMemberInfo memberInfo = registrationTokenService.get(request.registrationToken());
 
     // 카카오 ID로 이미 등록된 회원이 있는지 확인합니다.
-    if (memberRepository.existsByKakaoId(memberInfo.kakaoId())) {
+    if (memberRepository.existsBySocialId(memberInfo.socialId())) {
       throw new BaseException(BaseResponseStatus.ALREADY_REGISTERED);
     }
 
@@ -199,7 +206,7 @@ public class AuthService {
 
   // ------------------------- private 메소드 -------------------------
 
-  private Family getOrCreateFamily(KakaoSignupRequest request) {
+  private Family getOrCreateFamily(SocialSignupRequest request) {
     // 가족 생성 모드인 경우, 새로운 가족을 생성 후 반환합니다.
     if (request.familyMode().equals(FamilyMode.CREATE)) {
       return familyRepository.save(Family.registerNewFamily(request.familyName(), invitationCodeGenerator.generate()));
@@ -213,6 +220,7 @@ public class AuthService {
     return familyRepository.findByInvitationCode(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
   }
+  /*
  @Transactional
   public AuthResponse testRegister(AuthTestRequest request) {
    if (request.familyInvitationCode() == null || request.familyInvitationCode().isBlank()) {
@@ -227,7 +235,7 @@ public class AuthService {
         .family(family)
         .birthDate(request.birthDate())
         .nickname(UUID.randomUUID().toString())
-        .kakaoId(UUID.randomUUID().toString())
+        .socialId(UUID.randomUUID().toString())
         .isAlarmEnabled(true)
         .build();
     // 회원 정보 저장
@@ -241,4 +249,5 @@ public class AuthService {
         .refreshToken(refreshToken)
         .build();
   }
+  */
 }

@@ -1,7 +1,8 @@
 package com.onsikku.onsikku_back.global.auth.service;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import com.onsikku.onsikku_back.global.auth.dto.KakaoMemberInfo;
+import com.onsikku.onsikku_back.domain.member.domain.SocialType;
+import com.onsikku.onsikku_back.global.auth.dto.SocialMemberInfo;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -30,7 +31,7 @@ public class KakaoOAuth2Service {
   @Value("${oauth2.kakao.authorization-grant-type}")
   private String grantType;
 
-  public KakaoMemberInfo getKakaoMemberInfoFromCode(String code) {
+  public SocialMemberInfo getKakaoMemberInfoFromCode(String code) {
     String accessToken = getAccessToken(code);
 
     try {
@@ -46,7 +47,7 @@ public class KakaoOAuth2Service {
       );
 
       String kakaoId = response.getBody().get("id").asText();
-      return new KakaoMemberInfo(kakaoId);
+      return new SocialMemberInfo(kakaoId, SocialType.KAKAO);
 
     } catch (HttpClientErrorException e) {
       log.warn("Failed to fetch user info from Kakao: status={}, body={}",

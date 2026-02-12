@@ -20,6 +20,8 @@ public enum BaseResponseStatus {
     KAKAO_REDIRECT_URI_MISMATCH(HttpStatus.BAD_REQUEST, "카카오 redirect_uri가 등록된 값과 일치하지 않습니다."),
 
     // 인증 및 토큰 관련
+    INVALID_SOCIAL_TYPE(HttpStatus.BAD_REQUEST, "올바르지 않은 소셜 로그인 타입입니다."),
+    APPLE_SOCIAL_LOGIN_FAILED(HttpStatus.UNAUTHORIZED, "애플 로그인에 실패하였습니다."),
     INVALID_TICKET(HttpStatus.BAD_REQUEST, "잘못된 티켓입니다."),
     FAIL_TOKEN_AUTHORIZATION(HttpStatus.INTERNAL_SERVER_ERROR, "예상치 못한 이유로 토큰 인증에 실패하였습니다."),
     INVALID_TOKEN_TYPE(HttpStatus.UNAUTHORIZED, "올바른 종류의 토큰이 아닙니다."),

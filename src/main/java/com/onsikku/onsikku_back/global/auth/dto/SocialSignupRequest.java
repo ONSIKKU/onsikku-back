@@ -6,8 +6,8 @@ import io.swagger.v3.oas.annotations.media.Schema;
 
 import java.time.LocalDate;
 
-@Schema(description = "카카오 회원가입 요청 DTO")
-public record KakaoSignupRequest(
+@Schema(description = "소셜 회원가입 요청 DTO")
+public record SocialSignupRequest(
 
     @Schema(description = "회원가입 인증 토큰", example = "asbsdvd-9515-4661-a26e-990e411e7104")
     String registrationToken,
