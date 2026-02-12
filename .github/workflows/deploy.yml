@@ -26,7 +26,7 @@ jobs:
         # bootJar: 실행 가능한 JAR 파일 하나만 만듬
         # --no-daemon: CI 환경에 적합
         # -x test: 테스트를 배포 단계에서 제외한다면 추가 (테스트가 오래 걸릴 경우)
-        run: ./gradlew bootJar -PjarName=app --no-daemon --stacktrace
+        run: ./gradlew clean bootJar -PjarName=app --no-daemon --stacktrace
 
       - name: 도커 허브 로그인
         uses: docker/login-action@v3
