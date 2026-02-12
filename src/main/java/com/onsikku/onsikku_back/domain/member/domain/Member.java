@@ -1,7 +1,7 @@
 package com.onsikku.onsikku_back.domain.member.domain;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.onsikku.onsikku_back.global.auth.dto.SocialSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.request.SocialSignupRequest;
 import com.onsikku.onsikku_back.global.auth.dto.SocialMemberInfo;
 import com.onsikku.onsikku_back.global.entity.BaseEntity;
 import jakarta.persistence.*;

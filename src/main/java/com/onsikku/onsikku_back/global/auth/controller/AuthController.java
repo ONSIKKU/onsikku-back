@@ -2,6 +2,9 @@ package com.onsikku.onsikku_back.global.auth.controller;
 
 import com.onsikku.onsikku_back.domain.member.domain.SocialType;
 import com.onsikku.onsikku_back.global.auth.dto.*;
+import com.onsikku.onsikku_back.global.auth.dto.request.AppleLoginRequest;
+import com.onsikku.onsikku_back.global.auth.dto.request.SocialSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.request.TokenRefreshRequest;
 import com.onsikku.onsikku_back.global.auth.service.AuthService;
 import com.onsikku.onsikku_back.global.response.BaseResponse;
 import io.swagger.v3.oas.annotations.Operation;

@@ -1,4 +1,4 @@
-package com.onsikku.onsikku_back.global.auth.dto;
+package com.onsikku.onsikku_back.global.auth.dto.request;
 
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.domain.member.domain.FamilyRole;

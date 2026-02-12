@@ -4,7 +4,7 @@ import com.onsikku.onsikku_back.domain.member.domain.SocialType;
 import com.onsikku.onsikku_back.domain.notification.event.MemberJoinedEvent;
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
-import com.onsikku.onsikku_back.global.auth.dto.SocialSignupRequest;
+import com.onsikku.onsikku_back.global.auth.dto.request.SocialSignupRequest;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
