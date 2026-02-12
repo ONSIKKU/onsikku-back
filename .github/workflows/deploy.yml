@@ -23,8 +23,10 @@ jobs:
       - name: Gradle 빌드 (jar 생성)
         # 빌드 결과물 이름을 app.jar로 고정하여 Dockerfile과 연동
         # build : Javadoc 생성, 소스 코드 패키징 등 모든 태스크를 다 수행
-        # ootJar: 실행 가능한 JAR 파일 하나만 만듬
-        run: ./gradlew clean bootJar -PjarName=app    # 이전 빌드 잔여물 삭제
+        # bootJar: 실행 가능한 JAR 파일 하나만 만듬
+        # --no-daemon: CI 환경에 적합
+        # -x test: 테스트를 배포 단계에서 제외한다면 추가 (테스트가 오래 걸릴 경우)
+        run: ./gradlew bootJar -PjarName=app --no-daemon --stacktrace
 
       - name: 도커 허브 로그인
         uses: docker/login-action@v3
@@ -48,7 +50,7 @@ jobs:
           source: "docker-compose.yml"
           target: "~/app/"
 
-      - name: 서버에 .env 생성 및 실행
+      - name: 서버에 .env 생성 및 실행 후 Health Check
         uses: appleboy/ssh-action@v1.0.3
         with:
           host: ${{ secrets.SERVER_HOST }}
@@ -86,23 +88,14 @@ jobs:
 
             chmod 600 .env
             # 배포 실행
-            docker compose pull
+            docker compose pull -q
             docker compose up -d --remove-orphans
-
             # 안 쓰는 구형 이미지 정리 (용량 확보)
             docker image prune -f
 
-      - name: 애플리케이션 Health Check
-        uses: appleboy/ssh-action@v1.0.3
-        with:
-          host: ${{ secrets.SERVER_HOST }}
-          port: ${{ secrets.SERVER_PORT }}
-          username: ${{ secrets.SERVER_USER }}
-          key: ${{ secrets.SERVER_KEY }}
-          script: |
             set -e
 
-            echo "애플리케이션 시작 대기 (20초)..."
+            echo "애플리케이션 시작 대기"
             sleep 20
 
             HEALTH_URL=${{ secrets.HEALTH_CHECK_URL }}

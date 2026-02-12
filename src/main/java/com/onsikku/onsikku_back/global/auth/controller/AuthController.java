@@ -83,6 +83,7 @@ public class AuthController {
         return new BaseResponse<>(authService.reissueToken(request.getRefreshToken()));
     }
 
+    /*
     @PostMapping("/test/signup")
     @Operation(
         summary = "테스트용 회원가입",
@@ -97,4 +98,5 @@ public class AuthController {
     public BaseResponse<AuthResponse> testSignup(@RequestBody AuthTestRequest request) {
         return new BaseResponse<>(authService.testRegister(request));
     }
+     */
 }
