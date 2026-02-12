@@ -11,6 +11,7 @@ import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
+import com.onsikku.onsikku_back.domain.notification.repository.FcmTokenRepository;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
@@ -35,6 +36,7 @@ public class MemberService {
     private final InvitationCodeGenerator invitationCodeGenerator;
     private final QuestionService questionService;
     private final ReactionRepository reactionRepository;
+    private final FcmTokenRepository fcmTokenRepository;
 
     public MypageResponse getMemberByMember(Member member) {
         return MypageResponse.from(
@@ -54,7 +56,6 @@ public class MemberService {
         req.profileImageUrl().ifPresent(member::changeProfileImageUrl);
         req.familyRole().ifPresent(member::changeFamilyRole);
         req.birthDate().ifPresent(member::changeBirthDate);
-        req.isAlarmEnabled().ifPresent(member::changeAlarmEnabled);
 
         // 초대코드 재발급
         // false -> true 로 변경되는 경우에만 재발급 (true -> true 인 경우는 자동 무시)
@@ -84,6 +85,7 @@ public class MemberService {
         log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));
         // TODO : 회원 삭제 softDelete 처리
         UUID familyId = member.getFamily().getId();
+        log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(member.getId()));
         memberRepository.deleteById(member.getId());
         log.info("회원 삭제 완료");
         if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {

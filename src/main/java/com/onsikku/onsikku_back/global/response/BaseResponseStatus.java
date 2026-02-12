@@ -58,6 +58,10 @@ public enum BaseResponseStatus {
 
     // 알림
     NOTIFICATION_SEND_FAILURE(HttpStatus.INTERNAL_SERVER_ERROR, "푸시 알림 발송에 실패했습니다."),
+    NOTIFICATION_HISTORY_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 푸시 알림을 찾을 수 없습니다."),
+    INVALID_NOTIFICATION_HISTORY_OWNER(HttpStatus.BAD_REQUEST, "푸시 알림의 당사자가 아닙니다."),
+    FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 디바이스에 로그인된 회원의 FCM 토큰이 존재하지 않습니다."),
+    INVALID_FCM_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 FCM 토큰입니다."),
 
     // AI 서버 관련 (추가된 부분)
     AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),
@@ -65,8 +69,9 @@ public enum BaseResponseStatus {
 
     // 서버 오류
     REDIS_OPERATION_FAILED(HttpStatus.INTERNAL_SERVER_ERROR, "서비스 이용이 불가합니다. Redis 서버에 문제가 발생했습니다."),
-    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버의 문제가 발생했습니다."), ;
+    INTERNAL_SERVER_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "내부 서버의 문제가 발생했습니다."),
 
+    ;
     private final HttpStatus httpStatus;
     private final String message;
 

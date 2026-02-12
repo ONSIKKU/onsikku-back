@@ -42,7 +42,7 @@ public class MemberController {
   }
   @PatchMapping("/mypage")
   @Operation(
-      summary = "마이페이지 수정 (부분 업데이트 지원)",
+      summary = "마이페이지 수정 (부분 업데이트 지원, 알림 설정 불가)",
       description = """
     회원 마이페이지 정보를 수정합니다.
     ## 인증(JWT): **필요**
@@ -66,7 +66,7 @@ public class MemberController {
     로그아웃을 수행합니다.
     Access Token의 사용자 정보를 기반으로, Refresh Token을 삭제합니다.
     현재 Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
-    ## 인증(JWT): **필요 (Access Token)**
+    ## 인증(JWT): **필요**
     """
   )
   public BaseResponse<String> logout(@AuthenticationPrincipal CustomUserDetails userDetails,

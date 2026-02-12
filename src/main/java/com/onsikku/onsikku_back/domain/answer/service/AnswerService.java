@@ -9,6 +9,8 @@ import com.onsikku.onsikku_back.domain.answer.dto.AnswerResponse;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
+import com.onsikku.onsikku_back.domain.notification.event.AnswerCompletedEvent;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.domain.question.repository.MemberQuestionRepository;
 import com.onsikku.onsikku_back.global.exception.BaseException;
@@ -16,10 +18,12 @@ import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import jakarta.persistence.EntityManager;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -28,21 +32,23 @@ import java.util.UUID;
 public class AnswerService {
     private final AnswerRepository answerRepository;
     private final MemberQuestionRepository memberQuestionRepository;
+    private final MemberRepository memberRepository;
     private final AiRequestService aiRequestService;
     private final EntityManager entityManager;
+    private final ApplicationEventPublisher eventPublisher;
 
     @Transactional
-    public AnswerResponse createAnswer(AnswerRequest request, Member member) {
+    public AnswerResponse createAnswer(AnswerRequest request, Member todayMember) {
         // 질문 조회 및 가족 권한 확인
         MemberQuestion memberQuestion = memberQuestionRepository.findById(request.memberQuestionId())
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND));
-        UUID familyId = member.getFamily().getId();
+        UUID familyId = todayMember.getFamily().getId();
         if (!memberQuestion.getFamily().getId().equals(familyId)) {
             throw new BaseException(BaseResponseStatus.ACCESS_DENIED_FOR_RESOURCE);
         }
 
         // 질문 소유자 확인
-        if (!memberQuestion.getMember().getId().equals(member.getId())) {
+        if (!memberQuestion.getMember().getId().equals(todayMember.getId())) {
             throw new BaseException(BaseResponseStatus.ACCESS_DENIED_FOR_RESOURCE);
         }
 
@@ -53,12 +59,23 @@ public class AnswerService {
 
         // 답변 저장 및 질문 상태 변경
         Answer newAnswer = answerRepository.save(
-            Answer.create(memberQuestion, member, entityManager.getReference(Family.class, familyId), request.answerType(), request.content())
+            Answer.create(memberQuestion, todayMember, entityManager.getReference(Family.class, familyId), request.answerType(), request.content())
         );
         memberQuestion.markAsAnswered();
         // AI 분석 요청
         aiRequestService.requestPersonalQuestionGeneration(AiQuestionRequest.of(
-            member, memberQuestion.getContent(), newAnswer.extractTextContent(), LocalDateTime.now().toString()));
+            todayMember, memberQuestion.getContent(), newAnswer.extractTextContent(), LocalDateTime.now().toString()));
+
+        for (Member familyMember : memberRepository.findAllByFamily_Id(todayMember.getFamily().getId())) {
+            if (!familyMember.getId().equals(todayMember.getId()) && familyMember.isAlarmEnabled()) { // 주인공 본인에겐 알림 X + 알림 설정 시에만 전송
+                eventPublisher.publishEvent(
+                    new AnswerCompletedEvent(
+                        familyMember.getId(),            // 주인공 ID
+                        todayMember.getNickname(),
+                        memberQuestion.getId())
+                );
+            }
+        }
         return AnswerResponse.from(newAnswer);
     }
 

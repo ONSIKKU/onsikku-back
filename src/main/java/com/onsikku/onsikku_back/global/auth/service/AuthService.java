@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.global.auth.service;
 
+import com.onsikku.onsikku_back.domain.notification.event.MemberJoinedEvent;
 import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
@@ -19,11 +20,13 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,6 +43,7 @@ public class AuthService {
   private final FamilyRepository familyRepository;
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
+  private final ApplicationEventPublisher eventPublisher;
 
   /**
    * 티켓을 실제 AuthResponse로 교환
@@ -105,19 +109,25 @@ public class AuthService {
     Family family = getOrCreateFamily(request);
 
     // 새로운 회원 정보를 생성합니다.
-    Member member = Member.from(memberInfo, request, family);
+    Member newMember = Member.from(memberInfo, request, family);
 
     // 회원 정보를 저장하고, 등록 토큰을 삭제합니다.
-    memberRepository.save(member);
+    memberRepository.save(newMember);
     registrationTokenService.delete(request.registrationToken());
 
     // 리프레시 토큰을 생성하고 Redis에 저장합니다.
-    String refreshToken = jwtProvider.generateRefreshTokenFromMember(member);
-    redisService.set(RT_KEY_PREFIX + member.getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
+    String refreshToken = jwtProvider.generateRefreshTokenFromMember(newMember);
+    redisService.set(RT_KEY_PREFIX + newMember.getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
+
+    for(Member familyMember : memberRepository.findAllByFamily_Id(family.getId())) {
+      if (!familyMember.getId().equals(newMember.getId()) && familyMember.isAlarmEnabled()) { // 본인에겐 알림 X + 알림 설정 시에만 전송
+        eventPublisher.publishEvent(new MemberJoinedEvent(familyMember.getId(), newMember.getNickname()));
+      }
+    }
 
     return AuthResponse.builder()
         .isRegistered(true)
-        .accessToken(jwtProvider.generateAccessTokenFromMember(member))
+        .accessToken(jwtProvider.generateAccessTokenFromMember(newMember))
         .refreshToken(refreshToken)
         .build();
   }
@@ -165,7 +175,7 @@ public class AuthService {
     // 회원의 Refresh Token 삭제
     String redisKey = RT_KEY_PREFIX + memberId.toString();
     redisService.delete(redisKey);
-    log.info("Refresh Token deleted from Redis for member: {}", memberId);
+    log.info("Refresh Token deleted from Redis for newMember: {}", memberId);
 
     // Access Token 블랙리스트 추가 (남은 기간 동안 유효하지 않도록 설정)
     try {

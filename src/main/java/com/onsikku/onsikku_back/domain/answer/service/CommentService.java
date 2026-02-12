@@ -8,13 +8,18 @@ import com.onsikku.onsikku_back.domain.answer.dto.CommentResponse;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
+import com.onsikku.onsikku_back.domain.notification.event.InteractionEvent;
+import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
 import java.util.UUID;
 
 @Service
@@ -23,6 +28,8 @@ import java.util.UUID;
 public class CommentService {
   private final CommentRepository commentRepository;
   private final AnswerRepository answerRepository;
+  private final MemberRepository memberRepository;
+  private final ApplicationEventPublisher eventPublisher;
 
   @Transactional
   public CommentResponse createComment(CommentRequest request, Member member) {
@@ -41,6 +48,21 @@ public class CommentService {
     }
 
     commentRepository.save(comment);
+    // 요약 만들기 (10자)
+    String summary = request.content().length() > 10
+        ? request.content().substring(0, 10)
+        : request.content();
+
+    for (Member familyMember : memberRepository.findAllByFamily_Id(member.getFamily().getId())) {
+      if (!familyMember.getId().equals(member.getId()) && familyMember.isAlarmEnabled()) { // 주인공 본인에겐 알림 X + 알림 설정 시에만 전송
+        eventPublisher.publishEvent(
+            new InteractionEvent(
+                familyMember.getId(),     // 알림 받는 사람
+                NotificationType.COMMENT_ADDED,
+                List.of(member.getNickname(), summary),   // 댓글은 댓글 작성자 닉네임과 요약 필요
+                comment.getId()));
+      }
+    }
     return CommentResponse.builder()
         .comment(comment)
         .build();

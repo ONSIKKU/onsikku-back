@@ -72,6 +72,19 @@ public class QuestionService {
         return remindedCount + expiredCount;
     }
 
+    @Transactional
+    public QuestionResponse getTodayMemberQuestionWithFamilyId(UUID familyId) {
+        List<MemberQuestion> oneMemberQuestion = memberQuestionRepository.findTodayQuestionForFamily(familyId, LocalDateTime.now(), PageRequest.of(0,1));
+        if (oneMemberQuestion.isEmpty()) {
+            throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
+        }
+        MemberQuestion memberQuestion = oneMemberQuestion.get(0);
+        return QuestionResponse.builder()
+            .questionDetails(QuestionDetails.fromMemberQuestion(memberQuestion))
+            .familyMembers(memberRepository.findAllByFamily_Id(familyId))
+            .build();
+    }
+
 
     // ----------------------------------------------------------------------
     // API Methods

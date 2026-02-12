@@ -19,9 +19,6 @@ public record MypageRequest(
     @Schema(description = "생년월일 (yyyy-MM-dd 형식)", example = "2000-05-15")
     JsonNullable<LocalDate> birthDate,
 
-    @Schema(description = "알림 수신 여부", example = "true")
-    JsonNullable<Boolean> isAlarmEnabled,
-
     @Schema(description = "가족 초대 가능 여부 (true면 새 코드 발급, false면 코드 삭제)", example = "true")
     JsonNullable<Boolean> isFamilyInviteEnabled
 ) {}
