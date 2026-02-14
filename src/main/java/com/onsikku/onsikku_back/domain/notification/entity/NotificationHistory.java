@@ -1,5 +1,6 @@
 package com.onsikku.onsikku_back.domain.notification.entity;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
@@ -27,6 +28,7 @@ public class NotificationHistory {
   private UUID notificationHistoryId;
 
   @ManyToOne(fetch = FetchType.LAZY)
+  @JsonIgnore
   private Member member;
 
   @Enumerated(EnumType.STRING)
