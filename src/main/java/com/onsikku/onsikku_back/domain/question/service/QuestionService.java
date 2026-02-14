@@ -161,6 +161,15 @@ public class QuestionService {
         log.info("가족 ID {} 관련 모든 데이터(댓글, 답변, 질문) 삭제 완료", familyId);
     }
 
+    /**
+     * [주의: JPA 프록시와 직렬화 이슈]
+     * 1. 응답 DTO(QuestionDetails)가 엔티티(Member)를 직접 포함하고 있어 Jackson 직렬화 시 타입 체크가 발생함
+     * 2. Answer -> Reaction -> Comment 순으로 조회
+     * 3. 앞선 Answer/Reaction 조회 시 member를 Fetch Join 없이 가져오면, 영속성 컨텍스트(1차 캐시)에 Member가 '프록시 타입'으로 선점됨
+     * 4. 이후 Comment에서 Fetch Join을 수행해도, JPA 동일성 원칙(같은 Id는 같은 주소)에 의해 이미 캐싱된 '프록시 타입' 객체가 반환됨! (데이터는 채워지나 타입은 여전히 프록시)
+     * 5. 결과적으로 Jackson이 직렬화 중 프록시 객체의 내부 필드에 접근하다 InvalidDefinitionException 발생.
+     * 해결: 연관된 멤버를 사용하는 모든 초기 조회 메서드에 FETCH JOIN을 적용하여 '실제 엔티티 타입'이 캐시를 선점하도록 함.
+     */
     private QuestionResponse assembleQuestionResponse(Member member, MemberQuestion memberQuestion) {
         UUID memberQuestionId = memberQuestion.getId();
         Answer answer = answerRepository.findByMemberQuestion_Id(memberQuestionId).orElse(null);
