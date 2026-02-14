@@ -29,7 +29,7 @@ logging:
     root: INFO
     io.lettuce.core: INFO
     org.springframework.data.redis: INFO
-    org.hibernate.SQL: DEBUG            # Hibernate SQL 쿼리 로깅
+    org.hibernate.SQL: INFO             # Hibernate SQL 쿼리 로깅
     org.hibernate.stat: OFF             # Hibernate 통계 로깅
     org.hibernate.orm.jdbc.bind: OFF    # 바인딩된 값 로깅
 
