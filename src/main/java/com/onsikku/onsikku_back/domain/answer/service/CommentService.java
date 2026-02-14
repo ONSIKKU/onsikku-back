@@ -60,7 +60,7 @@ public class CommentService {
                 familyMember.getId(),     // 알림 받는 사람
                 NotificationType.COMMENT_ADDED,
                 List.of(member.getNickname(), summary),   // 댓글은 댓글 작성자 닉네임과 요약 필요
-                comment.getId()));
+                answer.getMemberQuestion().getId()));
       }
     }
     return CommentResponse.builder()

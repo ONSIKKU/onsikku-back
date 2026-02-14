@@ -52,7 +52,7 @@ public class ReactionService {
                         familyMember.getId(),       // 알림 받는 사람
                         NotificationType.REACTION_ADDED,
                         List.of(member.getNickname()),
-                        answerId)
+                        answer.getMemberQuestion().getId())
                 );
             }
         }

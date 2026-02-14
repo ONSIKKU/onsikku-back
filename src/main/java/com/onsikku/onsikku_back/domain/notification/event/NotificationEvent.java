@@ -24,12 +24,6 @@ public abstract class NotificationEvent {
     this.payload.put("publishedAt", LocalDateTime.now().toString());
   }
 
-  protected void addAnswerIdPayload(UUID value) {
-    if (value != null) {
-      this.payload.put("answerId", value.toString());
-    }
-  }
-
   protected void addMemberQuestionIdPayload(UUID value) {
     if (value != null) {
       this.payload.put("memberQuestionId", value.toString());

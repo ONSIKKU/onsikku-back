@@ -17,6 +17,7 @@ import java.util.UUID;
 
 @Repository
 public interface AnswerRepository extends JpaRepository<Answer, UUID> {
+  @Query("SELECT a FROM Answer a LEFT JOIN FETCH a.member WHERE a.memberQuestion.id = :memberQuestionId")
   Optional<Answer> findByMemberQuestion_Id(UUID memberQuestionId);
 
   int deleteAllByMember(Member member);

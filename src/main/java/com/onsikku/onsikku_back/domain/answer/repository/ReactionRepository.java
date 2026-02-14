@@ -23,7 +23,8 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
            "(SELECT a.id FROM Answer a WHERE a.memberQuestion.family.id = :familyId)")
     void deleteByFamilyId(@Param("familyId") UUID familyId);
 
-    List<Reaction> findAllByAnswer_Id(UUID id);
+    @Query("SELECT r FROM Reaction r LEFT JOIN FETCH r.member WHERE r.answer.id = :answerId")
+    List<Reaction> findAllByAnswer_Id(UUID answerId);
 
     @Query("SELECT COUNT(r) FROM Reaction r WHERE r.answer.memberQuestion.family.id = :familyId " +
         "AND r.answer.memberQuestion.createdAt BETWEEN :start AND :end")
