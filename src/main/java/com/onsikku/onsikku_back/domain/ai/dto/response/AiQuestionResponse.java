@@ -18,4 +18,6 @@ public class AiQuestionResponse {
   private int level;
   private int priority;
   private JsonNode metadata;
+  private int deletedCount;
+  private String context;   // familyReport용
 }

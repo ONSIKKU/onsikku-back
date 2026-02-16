@@ -25,12 +25,21 @@ public class AiRequestService {
   private final MemberRepository memberRepository;
 
   /**
-   * 답변 이후 AI 서버에 개인 파생 질문 생성을 요청하고, 응답을 DTO 객체로 반환합니다.
+   * 주에 한번 AI 서버에 가족 파생 질문 생성을 요청하고, 응답을 DTO 객체로 반환합니다.
+   */
+  @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
+  @Transactional
+  public AiQuestionResponse requestFamilyReportGeneration(AiQuestionRequest requestDto) {
+    return aiClient.postForAiRequest("/api/v1/summary", requestDto);
+  }
+
+  /**
+   * 답변 이후 AI 서버에 개인 파생 질문 생성을 요청 후 저장합니다.
    */
   @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
   @Transactional
   public void requestPersonalQuestionGeneration(AiQuestionRequest requestDto) {
-    AiQuestionResponse response = aiClient.postForQuestion("/api/v1/questions/generate/personal", requestDto);
+    AiQuestionResponse response = aiClient.postForAiRequest("/api/v1/questions/generate/personal", requestDto);
     // AI 응답 검증 (회원 ID)
     Member targetMember = memberRepository.findMemberWithFamily(response.getMemberId())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
@@ -44,7 +53,7 @@ public class AiRequestService {
   @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
   @Transactional
   public AiQuestionResponse requestFamilyQuestionFromBaseQuestion(AiQuestionRequest requestDto) {
-    return aiClient.postForQuestion("/api/v1/questions/generate/family", requestDto);
+    return aiClient.postForAiRequest("/api/v1/questions/generate/family", requestDto);
   }
 
   /**
@@ -53,6 +62,14 @@ public class AiRequestService {
   @Async("aiTaskExecutor")    // AsyncConfig에 정의된 aiTaskExecutor 사용
   @Transactional
   public AiQuestionResponse requestFamilyQuestionFromRecentQuestions(AiQuestionRequest requestDto) {
-    return aiClient.postForQuestion("/api/v1/questions/generate/family-recent", requestDto);
+    return aiClient.postForAiRequest("/api/v1/questions/generate/family-recent", requestDto);
+  }
+
+  /**
+   * 회원 삭제시 AI 서버에 해당 회원과 관련된 질문 삭제 요청을 보냅니다.
+   */
+  @Transactional
+  public int requestMemberDataDeletion(AiQuestionRequest requestDto) {
+    return aiClient.postForAiRequest("/api/v1/members/delete", requestDto).getDeletedCount();
   }
 }

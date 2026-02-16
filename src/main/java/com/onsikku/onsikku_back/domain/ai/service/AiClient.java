@@ -20,7 +20,7 @@ public class AiClient {
     private final ObjectMapper objectMapper;
 
     // 공통 POST 요청 메서드
-    public AiQuestionResponse postForQuestion(String uri, AiQuestionRequest requestDto) {
+    public AiQuestionResponse postForAiRequest(String uri, AiQuestionRequest requestDto) {
         try {
             log.info("AI 서버 요청 [{}]: {}", uri, objectMapper.writeValueAsString(requestDto));
             //MediaType jsonUtf8 = new MediaType(MediaType.APPLICATION_JSON, StandardCharsets.UTF_8);
