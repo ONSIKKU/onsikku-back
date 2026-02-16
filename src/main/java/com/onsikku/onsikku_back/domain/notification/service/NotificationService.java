@@ -3,15 +3,20 @@ package com.onsikku.onsikku_back.domain.notification.service;
 import com.google.firebase.messaging.*;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
+import com.onsikku.onsikku_back.domain.member.service.SafetyService;
 import com.onsikku.onsikku_back.domain.notification.entity.FcmToken;
 import com.onsikku.onsikku_back.domain.notification.entity.NotificationHistory;
+import com.onsikku.onsikku_back.domain.notification.event.DailyQuestionEvent;
+import com.onsikku.onsikku_back.domain.notification.event.NotificationEvent;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
 import com.onsikku.onsikku_back.domain.notification.repository.FcmTokenRepository;
 import com.onsikku.onsikku_back.domain.notification.repository.NotificationHistoryRepository;
+import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
@@ -33,6 +38,41 @@ public class NotificationService {
   private final FcmTokenRepository fcmTokenRepository;
   private final NotificationHistoryRepository notificationHistoryRepository;
   private final MemberRepository memberRepository;
+  private final SafetyService safetyService;
+  private final ApplicationEventPublisher eventPublisher;
+
+  // 오늘의 질문 알림 (차단 체크 O, 본인 포함 O)
+  public void publishEvent(MemberQuestion memberQuestion) {
+    List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(memberQuestion.getMember().getId());
+    for (Member receiver : memberRepository.findAllByFamily_Id(memberQuestion.getFamily().getId())) {
+      // 알림 설정 확인
+      if (receiver.isAlarmEnabled() && !blockedIds.contains(receiver.getId())) {
+        eventPublisher.publishEvent(new DailyQuestionEvent(receiver.getId(), receiver.getId().equals(memberQuestion.getMember().getId()), memberQuestion.getMember().getNickname(), memberQuestion.getId()));
+      }
+    }
+  }
+
+  // 일반 알림 (차단 체크 X, 본인 제외)
+  public void publishEvent(Member sender, NotificationType type, List<String> args) {
+    for (Member receiver : memberRepository.findAllByFamily_Id(sender.getFamily().getId())) {
+      // 본인 제외 && 알림 설정 확인
+      if (!receiver.getId().equals(sender.getId()) && receiver.isAlarmEnabled()) {
+        eventPublisher.publishEvent(new NotificationEvent(receiver.getId(), type, args));
+      }
+    }
+  }
+
+  // 필터링 알림 (차단 체크 O, 본인 제외)
+  public void publishEvent(Member sender, NotificationType type, List<String> args, UUID memberQuestionId) {
+    // 발신자의 양방향 차단 ID 리스트 확보
+    List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(sender.getId());
+    for (Member receiver : memberRepository.findAllByFamily_Id(sender.getFamily().getId())) {
+      // 본인 제외 && 알림 설정 확인 && 차단 관계 필터링
+      if (!receiver.getId().equals(sender.getId()) && receiver.isAlarmEnabled() && !blockedIds.contains(receiver.getId())) {
+        eventPublisher.publishEvent(new NotificationEvent(receiver.getId(), type, args, memberQuestionId));
+      }
+    }
+  }
 
   // 단일 사용자 알림 전송
   public void sendToMember(UUID memberId, NotificationType type, List<String> args, Map<String, String> payload) {

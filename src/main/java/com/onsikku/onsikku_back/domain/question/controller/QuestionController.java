@@ -82,7 +82,7 @@ public class QuestionController {
         @RequestParam("year") int year,
         @RequestParam("month") int month,
         @AuthenticationPrincipal CustomUserDetails customUserDetails) {
-        return new BaseResponse<>(questionService.findMonthlyQuestions(customUserDetails.getMember().getFamily(), year, month));
+        return new BaseResponse<>(questionService.findMonthlyQuestions(customUserDetails.getMember(), year, month));
     }
 
     @GetMapping("/test/generate")

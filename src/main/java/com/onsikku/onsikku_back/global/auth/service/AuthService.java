@@ -1,7 +1,8 @@
 package com.onsikku.onsikku_back.global.auth.service;
 
 import com.onsikku.onsikku_back.domain.member.domain.SocialType;
-import com.onsikku.onsikku_back.domain.notification.event.MemberJoinedEvent;
+import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
+import com.onsikku.onsikku_back.domain.notification.service.NotificationService;
 import com.onsikku.onsikku_back.global.auth.domain.FamilyMode;
 import com.onsikku.onsikku_back.global.auth.dto.AuthResponse;
 import com.onsikku.onsikku_back.global.auth.dto.request.SocialSignupRequest;
@@ -19,11 +20,11 @@ import io.jsonwebtoken.Claims;
 import jakarta.servlet.http.HttpServletRequest;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
 
@@ -40,7 +41,7 @@ public class AuthService {
   private final FamilyRepository familyRepository;
   private final JwtProvider jwtProvider;
   private final RedisService redisService;
-  private final ApplicationEventPublisher eventPublisher;
+  private final NotificationService notificationService;
   private final AppleOAuth2Service appleOAuth2Service;
 
   /**
@@ -126,12 +127,8 @@ public class AuthService {
     String refreshToken = jwtProvider.generateRefreshTokenFromMember(newMember);
     redisService.set(RT_KEY_PREFIX + newMember.getId().toString(), refreshToken, Duration.ofMillis(jwtProvider.getJwtRefreshExpirationInMs()));
 
-    for(Member familyMember : memberRepository.findAllByFamily_Id(family.getId())) {
-      if (!familyMember.getId().equals(newMember.getId()) && familyMember.isAlarmEnabled()) { // 본인에겐 알림 X + 알림 설정 시에만 전송
-        eventPublisher.publishEvent(new MemberJoinedEvent(familyMember.getId(), newMember.getNickname()));
-      }
-    }
-
+    // 알림 발행
+    notificationService.publishEvent(newMember, NotificationType.MEMBER_JOINED, List.of(newMember.getNickname()));
     return AuthResponse.builder()
         .isRegistered(true)
         .accessToken(jwtProvider.generateAccessTokenFromMember(newMember))

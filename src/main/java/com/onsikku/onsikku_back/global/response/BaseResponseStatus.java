@@ -65,6 +65,9 @@ public enum BaseResponseStatus {
     FCM_TOKEN_NOT_FOUND(HttpStatus.NOT_FOUND, "해당 디바이스에 로그인된 회원의 FCM 토큰이 존재하지 않습니다."),
     INVALID_FCM_TOKEN(HttpStatus.BAD_REQUEST, "유효하지 않은 FCM 토큰입니다."),
 
+    // 신고
+    CANNOT_SELF_BLOCK(HttpStatus.FORBIDDEN, "자기 자신은 차단할 수 없습니다."),
+
     // AI 서버 관련 (추가된 부분)
     AI_SERVER_VALIDATION_ERROR(HttpStatus.UNPROCESSABLE_ENTITY, "AI 서버 요청 데이터가 유효하지 않습니다."),
     AI_SERVER_COMMUNICATION_ERROR(HttpStatus.INTERNAL_SERVER_ERROR, "AI 서버와 통신 중 오류가 발생했습니다."),

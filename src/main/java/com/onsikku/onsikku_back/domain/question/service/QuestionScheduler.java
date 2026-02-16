@@ -1,13 +1,10 @@
 package com.onsikku.onsikku_back.domain.question.service;
 
 import com.onsikku.onsikku_back.domain.member.domain.Family;
-import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
-import com.onsikku.onsikku_back.domain.notification.event.DailyQuestionEvent;
-import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
+import com.onsikku.onsikku_back.domain.notification.service.NotificationService;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
@@ -15,7 +12,6 @@ import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 
 import java.time.LocalDateTime;
-import java.util.List;
 
 @Slf4j
 @Component
@@ -26,7 +22,7 @@ public class QuestionScheduler {
   private final FamilyRepository familyRepository; // Family 조회를 위해 주입
   private final QuestionCycleService questionCycleService;
   private static final int PAGE_SIZE = 10; // 한 번에 처리할 가족의 수
-  private final ApplicationEventPublisher eventPublisher;
+  private final NotificationService notificationService;
 
   /**
    * 매일 새벽 4시 30분에 모든 가족을 대상으로 질문을 생성하고 할당합니다.
@@ -80,22 +76,8 @@ public class QuestionScheduler {
 
       for (Family family : familyPage.getContent()) {
         try {
-          // 이 가족의 '오늘의 주인공'과 '오늘의 질문 ID'를 조회
-          QuestionResponse questionResponse = questionService.getTodayMemberQuestionWithFamilyId(family.getId());
-
-          // 가족 구성원들에게 알림 이벤트 발행
-          for (Member familyMember : questionResponse.getFamilyMembers()) {
-            boolean isTodayMember = familyMember.getId().equals(questionResponse.getQuestionDetails().getMember().getId());
-            // Event 발행 -> 리스너가 받아서 FCM 쏨
-            eventPublisher.publishEvent(
-                new DailyQuestionEvent(
-                    familyMember.getId(),         // 알림 받는 사람
-                    questionResponse.getQuestionDetails().getMemberQuestionId(),
-                    isTodayMember,
-                    questionResponse.getQuestionDetails().getMember().getNickname())    // 주인공 닉네임
-            );
-          }
-
+          // 이 가족의 '오늘의 질문' 조회 후 알림 발행
+          notificationService.publishEvent(questionService.getTodayMemberQuestionWithFamilyId(family.getId()));
         } catch (Exception e) {
           log.error("가족 ID {} 알림 발송 실패: {}", family.getId(), e.getMessage());
         }

@@ -9,6 +9,7 @@ import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
+import com.onsikku.onsikku_back.domain.member.service.SafetyService;
 import com.onsikku.onsikku_back.domain.question.domain.*;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionDetails;
 import com.onsikku.onsikku_back.domain.question.dto.QuestionResponse;
@@ -36,6 +37,7 @@ public class QuestionService {
     private final MemberRepository memberRepository;
     private final CommentRepository commentRepository;
     private final ReactionRepository reactionRepository;
+    private final SafetyService safetyService;
 
     // ----------------------------------------------------------------------
     // Scheduler Methods
@@ -72,17 +74,13 @@ public class QuestionService {
         return remindedCount + expiredCount;
     }
 
-    @Transactional
-    public QuestionResponse getTodayMemberQuestionWithFamilyId(UUID familyId) {
+    @Transactional(readOnly = true)
+    public MemberQuestion getTodayMemberQuestionWithFamilyId(UUID familyId) {
         List<MemberQuestion> oneMemberQuestion = memberQuestionRepository.findTodayQuestionForFamily(familyId, LocalDateTime.now(), PageRequest.of(0,1));
         if (oneMemberQuestion.isEmpty()) {
             throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
         }
-        MemberQuestion memberQuestion = oneMemberQuestion.get(0);
-        return QuestionResponse.builder()
-            .questionDetails(QuestionDetails.fromMemberQuestion(memberQuestion))
-            .familyMembers(memberRepository.findAllByFamily_Id(familyId))
-            .build();
+        return oneMemberQuestion.get(0);
     }
 
 
@@ -96,38 +94,61 @@ public class QuestionService {
      */
     @Transactional
     public QuestionResponse getTodayMemberQuestion(Member member) {
+        List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(member.getId());
         List<MemberQuestion> oneMemberQuestion = memberQuestionRepository.findTodayQuestionForFamily(member.getFamily().getId(), LocalDateTime.now(), PageRequest.of(0,1));
         if (oneMemberQuestion.isEmpty()) {
             throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
         }
         MemberQuestion memberQuestion = oneMemberQuestion.get(0);
         // 본인이 주인공이고, 질문 상태가 SENT면 markAsRead
-        if(memberQuestion.getMember().getId().equals(member.getId()) && memberQuestion.getQuestionStatus() == QuestionStatus.SENT) {
+        if(memberQuestion.getQuestionStatus() == QuestionStatus.SENT && memberQuestion.getMember().getId().equals(member.getId())) {
             memberQuestion.markAsRead();
         }
-        QuestionResponse response = assembleQuestionResponse(member, memberQuestion);
-        response.setFamilyMembers(memberRepository.findAllByFamily_Id(member.getFamily().getId()));
+        QuestionResponse response;
+        // 차단 양방향 필터링
+        if (!blockedIds.contains(memberQuestion.getMember().getId())) {
+            response = assembleQuestionResponse(member, memberQuestion, blockedIds);
+        } else {
+            response = QuestionResponse.builder()      // 차단 관계라면 질문 정보는 비어있는 기본 객체 생성 (화면 유지용)
+                .questionDetails(null)
+                .build();
+        }
+        response.setFamilyMembers(
+            memberRepository.findAllByFamily_Id(member.getFamily().getId())
+                .stream()
+                .filter(m -> !blockedIds.contains(m.getId()))   // 차단 양방향 필터링
+                .toList()
+        );
         return response;
     }
 
     // 특정 질문의 상세 정보를 조회합니다.
     @Transactional(readOnly = true)
     public QuestionResponse findQuestionDetails(Member member, UUID memberQuestionId) {
+        List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(member.getId());
         MemberQuestion memberQuestion = memberQuestionRepository.findByIdWithMember(memberQuestionId)
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND));
         if (!memberQuestion.getFamily().getId().equals(member.getFamily().getId())) {
             throw new BaseException(BaseResponseStatus.INVALID_FAMILY_MEMBER);
         }
-        return assembleQuestionResponse(member, memberQuestion);
+        // 조회하려는 질문의 주인공이 차단 관계면 접근 불가
+        if (blockedIds.contains(memberQuestion.getMember().getId())) {
+            throw new BaseException(BaseResponseStatus.MEMBER_QUESTION_NOT_FOUND);
+        }
+        return assembleQuestionResponse(member, memberQuestion, blockedIds);
     }
 
     // 특정 월의 할당된 모든 질문을 조회합니다.
     @Transactional(readOnly = true)
-    public QuestionResponse findMonthlyQuestions(Family family, int year, int month) {
+    public QuestionResponse findMonthlyQuestions(Member member, int year, int month) {
+        List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(member.getId());
         YearMonth yearMonth = YearMonth.of(year, month);
         LocalDateTime start = yearMonth.atDay(1).atStartOfDay();
         LocalDateTime end = yearMonth.atEndOfMonth().atTime(LocalTime.MAX);
-        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(family.getId(), start, end, LocalDateTime.now());
+        List<MemberQuestion> memberQuestions = memberQuestionRepository.findQuestionsByFamilyIdAndDateTimeRange(member.getFamily().getId(), start, end, LocalDateTime.now())
+            .stream()
+            .filter(mq -> !blockedIds.contains(mq.getMember().getId())) // 차단 양방향 필터링
+            .toList();
 
         if (memberQuestions.isEmpty()) {
             return QuestionResponse.builder()
@@ -138,7 +159,7 @@ public class QuestionService {
             .filter(MemberQuestion::isAnswered)
             .count();
 
-        int totalReactionCount = reactionRepository.countMonthlyReactions(family.getId(), start, end);
+        int totalReactionCount = reactionRepository.countMonthlyReactions(member.getFamily().getId(), start, end);
         // 리스트를 DTO로 변환 후 반환
         return QuestionResponse.builder()
             .questionDetailsList(memberQuestions.stream().map(memberQuestion -> QuestionDetails.fromMemberQuestion(memberQuestion)).toList())
@@ -162,7 +183,7 @@ public class QuestionService {
     }
 
     /**
-     * [주의: JPA 프록시와 직렬화 이슈]
+     * TODO [주의: JPA 프록시와 직렬화 이슈]
      * 1. 응답 DTO(QuestionDetails)가 엔티티(Member)를 직접 포함하고 있어 Jackson 직렬화 시 타입 체크가 발생함
      * 2. Answer -> Reaction -> Comment 순으로 조회
      * 3. 앞선 Answer/Reaction 조회 시 member를 Fetch Join 없이 가져오면, 영속성 컨텍스트(1차 캐시)에 Member가 '프록시 타입'으로 선점됨
@@ -170,7 +191,7 @@ public class QuestionService {
      * 5. 결과적으로 Jackson이 직렬화 중 프록시 객체의 내부 필드에 접근하다 InvalidDefinitionException 발생.
      * 해결: 연관된 멤버를 사용하는 모든 초기 조회 메서드에 FETCH JOIN을 적용하여 '실제 엔티티 타입'이 캐시를 선점하도록 함.
      */
-    private QuestionResponse assembleQuestionResponse(Member member, MemberQuestion memberQuestion) {
+    private QuestionResponse assembleQuestionResponse(Member member, MemberQuestion memberQuestion, List<UUID> blockedIds) {
         UUID memberQuestionId = memberQuestion.getId();
         Answer answer = answerRepository.findByMemberQuestion_Id(memberQuestionId).orElse(null);
         if (answer == null) {
@@ -179,8 +200,12 @@ public class QuestionService {
                 .build();
         }
         // 리액션 리스트 조회
-        List<Reaction> reactions = reactionRepository.findAllByAnswer_Id(answer.getId());   // TODO : 성능 개선 가능
-        List<Comment> comments = commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(answer.getId());
+        List<Reaction> reactions = reactionRepository.findAllByAnswer_Id(answer.getId()).stream()
+            .filter(r -> !blockedIds.contains(r.getMember().getId()))
+            .toList();   // TODO : 성능 개선 가능
+        List<Comment> comments = commentRepository.findAllByAnswerIdWithParentOrderByCreatedAtDesc(answer.getId()).stream()
+            .filter(c -> !blockedIds.contains(c.getMember().getId()))
+            .toList();
         return QuestionResponse.builder()
             .questionDetails(QuestionDetails.from(memberQuestion, answer, comments, reactions, member.getId()))
             .build();

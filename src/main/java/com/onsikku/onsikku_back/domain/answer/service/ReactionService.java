@@ -6,14 +6,12 @@ import com.onsikku.onsikku_back.domain.answer.domain.ReactionType;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
-import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
-import com.onsikku.onsikku_back.domain.notification.event.InteractionEvent;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
+import com.onsikku.onsikku_back.domain.notification.service.NotificationService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
-import org.springframework.context.ApplicationEventPublisher;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -26,8 +24,7 @@ import java.util.UUID;
 public class ReactionService {
     private final ReactionRepository reactionRepository;
     private final AnswerRepository answerRepository;
-    private final ApplicationEventPublisher eventPublisher;
-    private final MemberRepository memberRepository;
+    private final NotificationService notificationService;
 
     @Transactional
     public void createReaction(UUID answerId, ReactionType type, Member member) {
@@ -45,17 +42,7 @@ public class ReactionService {
         }
 
         reactionRepository.save(Reaction.createReaction(answer, member, type));
-        for (Member familyMember : memberRepository.findAllByFamily_Id(member.getFamily().getId())) {
-            if (!familyMember.getId().equals(member.getId()) && familyMember.isAlarmEnabled()) { // 주인공 본인에겐 알림 X + 알림 설정 시에만 전송
-                eventPublisher.publishEvent(
-                    new InteractionEvent(
-                        familyMember.getId(),       // 알림 받는 사람
-                        NotificationType.REACTION_ADDED,
-                        List.of(member.getNickname()),
-                        answer.getMemberQuestion().getId())
-                );
-            }
-        }
+        notificationService.publishEvent(member, NotificationType.REACTION_ADDED, List.of(member.getNickname()), answer.getMemberQuestion().getId());
     }
 
     @Transactional
