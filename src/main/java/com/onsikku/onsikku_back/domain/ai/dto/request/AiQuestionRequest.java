@@ -12,7 +12,7 @@ import java.util.UUID;
 @Getter
 @Builder
 @ToString
-@JsonInclude(Include.NON_NULL)
+@JsonInclude(Include.NON_NULL) // JSON 직렬화 시 null 필드 제외
 public class AiQuestionRequest {
   private UUID familyId;
   private UUID memberId;

@@ -18,6 +18,9 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
     @Query("SELECT b.blockerId FROM Block b WHERE b.blockedId = :blockedId")
     List<UUID> findBlockerIdsByBlockedId(@Param("blockedId") UUID blockedId);
 
+    @Query("DELETE FROM Block b WHERE b.blockerId = :memberId OR b.blockedId = :memberId")
+    void deleteByMemberId(UUID memberId);
+
     void deleteByBlockerIdAndBlockedId(UUID blockerId, UUID blockedId);
 
     List<Block> findAllByBlockerId(UUID blockerId);

@@ -1,5 +1,7 @@
 package com.onsikku.onsikku_back.domain.member.service;
 
+import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
+import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
 import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
@@ -8,6 +10,7 @@ import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
+import com.onsikku.onsikku_back.domain.member.repository.BlockRepository;
 import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
@@ -37,6 +40,8 @@ public class MemberService {
     private final QuestionService questionService;
     private final ReactionRepository reactionRepository;
     private final FcmTokenRepository fcmTokenRepository;
+    private final AiRequestService aiRequestService;
+    private final BlockRepository blockRepository;
 
     public MypageResponse getMemberByMember(Member member) {
         return MypageResponse.from(
@@ -86,12 +91,15 @@ public class MemberService {
         // TODO : 회원 삭제 softDelete 처리
         UUID familyId = member.getFamily().getId();
         log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(member.getId()));
+        blockRepository.deleteByMemberId(member.getId());       // 회원이 차단한 내역과, 회원을 차단한 내역 모두 삭제
+        log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(member.getId()).build()));
         memberRepository.deleteById(member.getId());
         log.info("회원 삭제 완료");
         if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
             log.info("가족에 속한 회원이 없어 가족 데이터 삭제를 진행합니다.");
             questionService.deleteFamilyData(familyId);
             familyRepository.deleteById(familyId);
+            // TODO : 가족 레포트 삭제 필요
             log.info("회원의 가족 삭제 완료");
         }
     }
