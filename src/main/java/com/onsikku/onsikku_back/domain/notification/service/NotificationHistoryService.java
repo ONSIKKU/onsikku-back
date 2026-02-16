@@ -48,7 +48,7 @@ public class NotificationHistoryService {
     NotificationHistory notificationHistory = findNotificationHistoryById(notificationHistoryId);
     validateReceiver(notificationHistory, member);
     notificationHistory.markAsConfirmed();
-    log.debug("알림: {} 읽음 처리", notificationHistory.getNotificationHistoryId());
+    log.debug("알림: {} 읽음 처리", notificationHistory.getId());
   }
 
   // 모든 알림 읽음 처리
@@ -67,7 +67,7 @@ public class NotificationHistoryService {
     validateReceiver(notificationHistory, member);
 
     notificationHistoryRepository.delete(notificationHistory);
-    log.debug("알림 삭제 완료: notificationHistoryId={}", notificationHistory.getNotificationHistoryId());
+    log.debug("알림 삭제 완료: notificationHistoryId={}", notificationHistory.getId());
   }
 
   // 전체 알림 삭제 (Hard Delete)

@@ -148,6 +148,6 @@ public class NotificationService {
         .readAt(null)
         .build();
     notificationHistoryRepository.save(history);
-    log.debug("알림 히스토리 저장 완료: notificationHistoryId={}, memberId={}, notificationType={}", history.getNotificationHistoryId(), member.getId(), type.name());
+    log.debug("알림 히스토리 저장 완료: notificationHistoryId={}, memberId={}, notificationType={}", history.getId(), member.getId(), type.name());
   }
 }

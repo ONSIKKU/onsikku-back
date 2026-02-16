@@ -1,7 +1,6 @@
 package com.onsikku.onsikku_back.domain.notification.entity;
 
 import com.fasterxml.jackson.annotation.JsonIgnore;
-import com.fasterxml.jackson.annotation.JsonIgnoreProperties;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
 import jakarta.persistence.*;
@@ -19,13 +18,11 @@ import java.util.UUID;
 @NoArgsConstructor
 @Builder
 @ToString(callSuper = true)
-@JsonIgnoreProperties({"hibernateLazyInitializer", "handler"})
 public class NotificationHistory {
 
   @Id
   @GeneratedValue(strategy = GenerationType.UUID)
-  @Column(updatable = false, nullable = false)
-  private UUID notificationHistoryId;
+  private UUID id;
 
   @ManyToOne(fetch = FetchType.LAZY)
   @JsonIgnore
