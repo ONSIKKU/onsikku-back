@@ -32,7 +32,7 @@ public interface ReactionRepository extends JpaRepository<Reaction, UUID> {
                                @Param("start") LocalDateTime start,
                                @Param("end") LocalDateTime end);
 
-    Optional<Reaction> findByAnswer_Id(UUID answerId);
+    void deleteByAnswer_IdAndMember_Id(UUID answerId, UUID memberId);
 
     int deleteAllByMember(Member member);
 }

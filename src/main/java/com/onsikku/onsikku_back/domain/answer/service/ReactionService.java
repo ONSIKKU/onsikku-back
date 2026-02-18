@@ -47,14 +47,6 @@ public class ReactionService {
 
     @Transactional
     public void deleteReaction(UUID answerId, Member member) {
-        Reaction reaction = reactionRepository.findByAnswer_Id(answerId)
-            .orElseThrow(() -> new BaseException(BaseResponseStatus.REACTION_NOT_FOUND));
-
-        // 본인 확인
-        if (!reaction.getMember().getId().equals(member.getId())) {
-            throw new BaseException(BaseResponseStatus.ACCESS_DENIED_FOR_RESOURCE);
-        }
-
-        reactionRepository.delete(reaction);
+        reactionRepository.deleteByAnswer_IdAndMember_Id(answerId, member.getId());
     }
 }
