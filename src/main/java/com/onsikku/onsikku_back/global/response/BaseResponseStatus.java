@@ -34,6 +34,7 @@ public enum BaseResponseStatus {
     TOKEN_BLACKLISTED(HttpStatus.UNAUTHORIZED, "블랙리스트 처리된 토큰입니다."),
 
     // 회원 관련
+    UNDER_AGE_14(HttpStatus.BAD_REQUEST, "생일 기준으로 만 14세 미만은 가입할 수 없습니다."),
     INVALID_REGISTRATION_TOKEN(HttpStatus.UNAUTHORIZED, "해당 회원가입용 토큰이 존재하지 않습니다."),
     INVALID_FAMILY_INVITATION_CODE(HttpStatus.NOT_FOUND, "가족 코드가 올바르지 않습니다."),
     INVALID_FAMILY_MODE(HttpStatus.NOT_FOUND, "가족 생성/참여 모드가 올바르지 않습니다."),

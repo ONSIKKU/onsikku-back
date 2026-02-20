@@ -24,6 +24,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import java.time.Duration;
+import java.time.LocalDate;
 import java.util.List;
 import java.util.Optional;
 import java.util.UUID;
@@ -105,7 +106,11 @@ public class AuthService {
 
   @Transactional
   public AuthResponse register(SocialSignupRequest request) {
-    // 요청에서 등록 토큰을 사용하여 카카오 회원 정보를 가져옵니다.
+    if (request.birthDate().isAfter(LocalDate.now().minusYears(14))) {
+      throw new BaseException(BaseResponseStatus.UNDER_AGE_14);
+    }
+
+    // 요청에서 등록 토큰을 사용하여 소셜 회원 정보를 가져옵니다.
     SocialMemberInfo memberInfo = registrationTokenService.get(request.registrationToken());
 
     // 카카오 ID로 이미 등록된 회원이 있는지 확인합니다.
