@@ -31,7 +31,7 @@ import java.util.UUID;
 @RequiredArgsConstructor
 public class QuestionCycleService {
 
-  private final QuestionCycleRepository cycleRepository;
+  private final QuestionCycleRepository questionCycleRepository;
   private final MemberRepository memberRepository;
   private final MemberQuestionRepository memberQuestionRepository;
   private final QuestionRepository questionRepository;
@@ -53,6 +53,7 @@ public class QuestionCycleService {
 
     // 사이클 상태 업데이트
     cycle.incrementIndex();
+    questionCycleRepository.save(cycle);  // 사이클 생성시 save 필요
   }
 
   /**
@@ -125,7 +126,7 @@ public class QuestionCycleService {
   private QuestionCycle findOrCreateOrRefreshCycleForFamily(Family family) {
     // 활성화된 사이클 조회, 없으면 새로 생성
     log.info("Finding cycle for family {}", family.getId());
-    QuestionCycle cycle = cycleRepository.findByFamily_Id(family.getId())
+    QuestionCycle cycle = questionCycleRepository.findByFamily_Id(family.getId())
         .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findByFamily_Id(family.getId())));
 
     // 사이클이 끝났으면 새로 갱신
