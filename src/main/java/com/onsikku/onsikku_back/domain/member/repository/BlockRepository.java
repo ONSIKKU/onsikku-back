@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.member.repository;
 
 import com.onsikku.onsikku_back.domain.member.domain.Block;
 import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.data.jpa.repository.Modifying;
 import org.springframework.data.jpa.repository.Query;
 import org.springframework.data.repository.query.Param;
 
@@ -18,6 +19,7 @@ public interface BlockRepository extends JpaRepository<Block, UUID> {
     @Query("SELECT b.blockerId FROM Block b WHERE b.blockedId = :blockedId")
     List<UUID> findBlockerIdsByBlockedId(@Param("blockedId") UUID blockedId);
 
+    @Modifying
     @Query("DELETE FROM Block b WHERE b.blockerId = :memberId OR b.blockedId = :memberId")
     void deleteByMemberId(UUID memberId);
 
