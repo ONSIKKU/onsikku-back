@@ -65,4 +65,4 @@ fcm:
     path: classpath:firebase-admin-sdk.json   # resources 폴더 기준
 
 apple:
-  bundle-id: com.jebiyeon.familyfront # iOS 개발자에게 물어봐서 정확한 Bundle ID 입력
+  bundle-id: com.onsikku.app 
