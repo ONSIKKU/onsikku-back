@@ -79,7 +79,7 @@ public class NotificationService {
     Member member = memberRepository.findById(memberId)
         .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
 
-    // 1. 메시지 포맷팅
+    // 메시지 포맷팅
     String title = String.format(type.getTitle(), args.toArray());
     String body = String.format(type.getBody(), args.toArray());
 
@@ -105,7 +105,7 @@ public class NotificationService {
     try {
       // Android 세부 설정
       AndroidConfig androidConfig = AndroidConfig.builder()
-          .setNotification(AndroidNotification.builder()
+          .setNotification(AndroidNotification.builder().setChannelId("onsikku_default")
               //.setImage(NOTIFICATION_ICON_PATH)
               .build())
           .build();

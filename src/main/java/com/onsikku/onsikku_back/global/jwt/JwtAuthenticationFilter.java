@@ -43,18 +43,18 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
     protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws ServletException, IOException {
         try {
             String token = jwtProvider.extractToken(request);
-            log.info("Filtering request URI: {}", request.getRequestURI());
+            log.info("[JWT] Request URI: {}", request.getRequestURI());
             Claims claims = jwtProvider.validateToken(token);
             jwtProvider.validateTokenType(claims, ACCESS_TOKEN_TYPE);
 
             // 블랙리스트 확인
             if (redisService.get(TokenConstants.AT_BLACKLIST_PREFIX + token, String.class) != null) {
-                log.warn("Access Token is blacklisted: {}", token);
+                log.warn("[JWT] 블랙리스트에 등록된 액세스 토큰: {}", token);
                 throw new BaseException(BaseResponseStatus.TOKEN_BLACKLISTED);
             }
             // 사용자 정보 로드
             String memberIdStr = claims.getSubject();
-            log.info("Parsed memberId: {}", memberIdStr);
+            log.debug("[JWT] memberId: {}", memberIdStr);
             CustomUserDetails userDetails = customUserDetailsService.loadUserByUsername(memberIdStr);
             // 인증 토큰 생성
             UsernamePasswordAuthenticationToken authentication = new UsernamePasswordAuthenticationToken(userDetails, null, userDetails.getAuthorities());
@@ -62,14 +62,14 @@ public class JwtAuthenticationFilter extends OncePerRequestFilter {
 
             // SecurityContext 설정
             SecurityContextHolder.getContext().setAuthentication(authentication);
-            log.info("Member authenticated: role: {}, familyRole: {}", claims.get("role"), claims.get("familyRole"));
+            log.info("[JWT] 회원 이름: {}, role: {}, 역할: {}", userDetails.getMember().getNickname(), claims.get("role"), claims.get("familyRole"));
         } catch (BaseException ex) {
-            log.warn("BaseException occurred during JWT auth: {}", ex.getStatus().getMessage());
+            log.warn("[JWT] 인증 중 BaseException 발생: {}", ex.getStatus().getMessage());
             SecurityContextHolder.clearContext(); // 인증 실패 시 SecurityContext 초기화
             sendErrorResponse(response, ex.getStatus());
             return;
         } catch (Exception ex) {
-            log.error("Unexpected exception during JWT auth", ex);
+            log.error("[JWT] 인증 중 예상치 못한 오류 발생 :", ex);
             SecurityContextHolder.clearContext(); // 인증 실패 시 SecurityContext 초기화
             sendErrorResponse(response, BaseResponseStatus.FAIL_TOKEN_AUTHORIZATION); // 또는 INTERNAL_SERVER_ERROR 등으로 처리
             return;
