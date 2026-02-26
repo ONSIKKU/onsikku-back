@@ -105,7 +105,9 @@ public class NotificationService {
     try {
       // Android 세부 설정
       AndroidConfig androidConfig = AndroidConfig.builder()
-          .setNotification(AndroidNotification.builder().setImage(NOTIFICATION_ICON_PATH).build())
+          .setNotification(AndroidNotification.builder()
+              //.setImage(NOTIFICATION_ICON_PATH)
+              .build())
           .build();
 
       // iOS 세부 설정
