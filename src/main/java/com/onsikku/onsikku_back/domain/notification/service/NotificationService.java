@@ -131,7 +131,16 @@ public class NotificationService {
 
       BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
       log.info("FCM Multicast 전송 완료: 성공 {}건, 실패 {}건", response.getSuccessCount(), response.getFailureCount());
-
+      if (response.getFailureCount() > 0) {
+        List<SendResponse> responses = response.getResponses();
+        for (int i = 0; i < responses.size(); i++) {
+          if (!responses.get(i).isSuccessful()) {
+            // 실패 원인 파악 (예: 토큰 무효화)
+            String errorCode = responses.get(i).getException().getMessagingErrorCode().name();
+            log.error("토큰 전송 실패: token={}, error={}", tokens.get(i), errorCode);
+          }
+        }
+      }
     } catch (FirebaseMessagingException e) {
       log.error("FCM 전송 중 오류 발생: {}", e.getMessage());
     }
