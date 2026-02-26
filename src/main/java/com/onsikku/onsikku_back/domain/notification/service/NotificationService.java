@@ -138,8 +138,8 @@ public class NotificationService {
         for (int i = 0; i < responses.size(); i++) {
           if (!responses.get(i).isSuccessful()) {
             // 실패 원인 파악 (예: 토큰 무효화)
-            String errorCode = responses.get(i).getException().getMessagingErrorCode().name();
-            log.error("토큰 전송 실패: token={}, error={}", tokens.get(i), errorCode);
+            FirebaseMessagingException exception = responses.get(i).getException();
+            log.error("토큰 전송 실패: token={}, error={}, message={}", tokens.get(i), exception.getMessagingErrorCode().name(), exception.getMessage());
           }
         }
       }
@@ -156,7 +156,6 @@ public class NotificationService {
         .body(body)
         .payload(payload)
         .publishedAt(LocalDateTime.now())
-        .deepLink(payload.get("deepLink"))
         .confirmedAt(null)
         .readAt(null)
         .build();

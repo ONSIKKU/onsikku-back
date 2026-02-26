@@ -42,9 +42,6 @@ public class NotificationHistory {
   @Column(columnDefinition = "jsonb")
   private Map<String, String> payload;
 
-  // 알림 클릭 시 이동할 페이지
-  private String deepLink;
-
   // 알림 목록을 확인한 시각 (레드닷 제거용)
   private LocalDateTime readAt;
 
