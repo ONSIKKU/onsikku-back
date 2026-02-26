@@ -128,7 +128,7 @@ public class NotificationService {
           .build();
 
       BatchResponse response = FirebaseMessaging.getInstance().sendEachForMulticast(message);
-      log.debug("FCM Multicast 전송 완료: 성공 {}건, 실패 {}건", response.getSuccessCount(), response.getFailureCount());
+      log.info("FCM Multicast 전송 완료: 성공 {}건, 실패 {}건", response.getSuccessCount(), response.getFailureCount());
 
     } catch (FirebaseMessagingException e) {
       log.error("FCM 전송 중 오류 발생: {}", e.getMessage());
