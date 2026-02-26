@@ -110,8 +110,10 @@ public class NotificationService {
 
       // iOS 세부 설정
       ApnsConfig apnsConfig = ApnsConfig.builder()
-          .setAps(Aps.builder().setMutableContent(true).build())
-          .setFcmOptions(ApnsFcmOptions.builder().setImage(NOTIFICATION_ICON_PATH).build())
+          .setAps(Aps.builder().setMutableContent(true).setSound("default").build())
+          .setFcmOptions(ApnsFcmOptions.builder()
+              //.setImage(NOTIFICATION_ICON_PATH)
+              .build())
           .build();
 
       Notification notification = Notification.builder()
