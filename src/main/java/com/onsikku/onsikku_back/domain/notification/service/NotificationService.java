@@ -4,12 +4,10 @@ import com.google.firebase.messaging.*;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.service.SafetyService;
-import com.onsikku.onsikku_back.domain.notification.entity.FcmToken;
 import com.onsikku.onsikku_back.domain.notification.entity.NotificationHistory;
 import com.onsikku.onsikku_back.domain.notification.event.DailyQuestionEvent;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationEvent;
 import com.onsikku.onsikku_back.domain.notification.event.NotificationType;
-import com.onsikku.onsikku_back.domain.notification.repository.FcmTokenRepository;
 import com.onsikku.onsikku_back.domain.notification.repository.NotificationHistoryRepository;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import com.onsikku.onsikku_back.global.exception.BaseException;
@@ -23,7 +21,6 @@ import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Map;
 import java.util.UUID;
-import java.util.stream.Collectors;
 
 @Service
 @RequiredArgsConstructor
@@ -35,7 +32,7 @@ public class NotificationService {
   // Notification
   private static final String NOTIFICATION_ICON_PATH = "/onsikku-logo.png";
 
-  private final FcmTokenRepository fcmTokenRepository;
+  private final FcmTokenService fcmTokenService;
   private final NotificationHistoryRepository notificationHistoryRepository;
   private final MemberRepository memberRepository;
   private final SafetyService safetyService;
@@ -92,9 +89,7 @@ public class NotificationService {
     }
 
     // FCM 알림 전송
-    List<String> tokens = fcmTokenRepository.findAllByMember(member).stream()
-        .map(FcmToken::getToken)
-        .collect(Collectors.toList());
+    List<String> tokens = fcmTokenService.getTokensByMember(member);
     if (!tokens.isEmpty()) {
       sendFcmMulticast(tokens, title, body, payload);
     }
@@ -143,7 +138,7 @@ public class NotificationService {
 
             if(exception.getErrorCode().name().equals("INVALID_ARGUMENT")) {
               log.error("[FCM] [CLEANUP] 잘못된 토큰 삭제 : token={}", tokens.get(i));
-              fcmTokenRepository.deleteByToken(tokens.get(i));
+              fcmTokenService.deleteByTokenString(tokens.get(i));
             }
           }
         }

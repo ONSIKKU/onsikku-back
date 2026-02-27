@@ -108,9 +108,6 @@ public class GlobalExceptionHandler {
      */
     @ExceptionHandler(Exception.class)
     protected ErrorResponse handleAllException(Exception ex) {
-        // 로그에는 전체 스택 트레이스를 남겨서 디버깅을 돕습니다.
-        log.error("[Unhandled Exception] ", ex);
-
         // 원인(Cause)이 있다면 더 구체적인 원인 메시지를 가져오고, 없으면 기본 메시지를 사용합니다.
         String errorMessage = ex.getMessage();
 
@@ -118,6 +115,7 @@ public class GlobalExceptionHandler {
         if (errorMessage == null) {
             errorMessage = ex.getClass().getSimpleName();
         }
+        log.error("[Unhandled Exception] ", errorMessage);
 
         return new ErrorResponse(BaseResponseStatus.INTERNAL_SERVER_ERROR);
     }

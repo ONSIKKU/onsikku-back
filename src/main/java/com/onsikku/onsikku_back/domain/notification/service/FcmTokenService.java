@@ -12,6 +12,9 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import java.util.List;
+import java.util.stream.Collectors;
+
 
 @Service
 @RequiredArgsConstructor
@@ -47,5 +50,17 @@ public class FcmTokenService {
     member.changeAlarmEnabled(true);
     memberRepository.save(member);
     log.debug("FCM 토큰 저장: 회원: {}, 기기: {}", member.getId(), request.getDeviceType());
+  }
+
+  @Transactional
+  public List<String> getTokensByMember(Member member) {
+    return fcmTokenRepository.findAllByMember(member).stream()
+        .map(FcmToken::getToken)
+        .collect(Collectors.toList());
+  }
+
+  @Transactional
+  public void deleteByTokenString(String token) {
+    fcmTokenRepository.deleteByToken(token);
   }
 }

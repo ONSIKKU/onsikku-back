@@ -29,8 +29,7 @@ public class NotificationEventListener {
           event.getPayload()
       );
     } catch (Exception e) {
-      log.error("알림 발송 실패: target={}, type={}, error={}",
-          event.getTargetMemberId(), event.getNotificationType(), e.getMessage(), e);
+      log.error("알림 발송 실패: target={}, type={}, error={}", event.getTargetMemberId(), event.getNotificationType(), e.getMessage());
     }
   }
 }
