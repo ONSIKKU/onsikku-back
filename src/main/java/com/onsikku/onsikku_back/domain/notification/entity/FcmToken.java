@@ -24,6 +24,7 @@ public class FcmToken extends BaseEntity {
   @ManyToOne(fetch = FetchType.LAZY)
   private Member member;
 
+  @Enumerated(EnumType.STRING)
   private String token;
 
   private DeviceType deviceType;
