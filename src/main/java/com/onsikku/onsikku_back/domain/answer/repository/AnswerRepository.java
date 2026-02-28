@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.answer.repository;
 
 
 import com.onsikku.onsikku_back.domain.answer.domain.Answer;
+import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.question.domain.MemberQuestion;
 import org.springframework.data.jpa.repository.JpaRepository;
@@ -29,4 +30,6 @@ public interface AnswerRepository extends JpaRepository<Answer, UUID> {
   void deleteByMemberQuestionFamilyId(@Param("familyId") UUID familyId);
 
   boolean existsByMemberQuestion_Id(UUID memberQuestionId);
+
+  void deleteAllByFamily_Id(UUID familyId);
 }

@@ -87,7 +87,7 @@ public class MemberService {
         log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
         log.info("회원이 생성한 댓글 삭제 완료 : {} 개", commentRepository.deleteAllByMember(member));
         log.info("회원이 생성한 반응 삭제 완료 : {} 개", reactionRepository.deleteAllByMember(member));
-        log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member));
+        // log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member)); TODO : 삭제 정책 고도화 가능
         // TODO : 회원 삭제 softDelete 처리
         UUID familyId = member.getFamily().getId();
         log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(member.getId()));
@@ -97,6 +97,7 @@ public class MemberService {
         log.info("회원 삭제 완료");
         if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
             log.info("가족에 속한 회원이 없어 가족 데이터 삭제를 진행합니다.");
+            answerRepository.deleteAllByFamily_Id(familyId);        // 답변 전체 제거
             questionService.deleteFamilyData(familyId);
             familyRepository.deleteById(familyId);
             // TODO : 가족 레포트 삭제 필요
