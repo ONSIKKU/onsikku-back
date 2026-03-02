@@ -134,9 +134,12 @@ public class NotificationService {
           if (!responses.get(i).isSuccessful()) {
             // 실패 원인 파악 (예: 토큰 무효화)
             FirebaseMessagingException exception = responses.get(i).getException();
-            log.error("[FCM] 토큰 전송 실패: token={}, error={}, message={}", tokens.get(i), exception.getMessagingErrorCode().name(), exception.getMessage());
+            String errorCode = (exception.getMessagingErrorCode() != null)
+                ? exception.getMessagingErrorCode().name()
+                : exception.getErrorCode().name();
+            log.error("[FCM] 토큰 전송 실패: token={}, error={}, message={}", tokens.get(i), errorCode, exception.getMessage());
 
-            if(exception.getErrorCode().name().equals("INVALID_ARGUMENT")) {
+            if("INVALID_ARGUMENT".equals(errorCode) || "UNREGISTERED".equals(errorCode)) {
               log.error("[FCM] [CLEANUP] 잘못된 토큰 삭제 : token={}", tokens.get(i));
               fcmTokenService.deleteByTokenString(tokens.get(i));
             }
