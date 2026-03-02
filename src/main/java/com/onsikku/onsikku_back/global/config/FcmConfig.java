@@ -1,6 +1,7 @@
 package com.onsikku.onsikku_back.global.config;
 
 import com.google.auth.oauth2.GoogleCredentials;
+import com.google.auth.oauth2.ServiceAccountCredentials;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.FirebaseOptions;
 import jakarta.annotation.PostConstruct;
@@ -27,10 +28,6 @@ public class FcmConfig {
     @PostConstruct
     public void initialize() {
         try {
-            if (!FirebaseApp.getApps().isEmpty()) {
-                return;
-            }
-
             // ResourceLoader는 'classpath:', 'file:' 이해 가능
             Resource resource = resourceLoader.getResource(firebaseConfigPath);
 
@@ -42,6 +39,15 @@ public class FcmConfig {
 
             // 스트림으로 읽기
             try (InputStream inputStream = resource.getInputStream()) {
+                GoogleCredentials creds = GoogleCredentials.fromStream(inputStream);
+
+                if (creds instanceof ServiceAccountCredentials sac) {
+                    log.info("[FCM] using client_email={}", sac.getClientEmail());
+                    log.info("[FCM] using project_id={}", sac.getProjectId());
+                } else {
+                    log.info("[FCM] credentials type={}", creds.getClass().getName());
+                }
+
                 FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(GoogleCredentials.fromStream(inputStream))
                     .build();

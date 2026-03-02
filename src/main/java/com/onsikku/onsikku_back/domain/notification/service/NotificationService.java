@@ -137,7 +137,7 @@ public class NotificationService {
             String errorCode = (exception.getMessagingErrorCode() != null)
                 ? exception.getMessagingErrorCode().name()
                 : exception.getErrorCode().name();
-            log.error("[FCM] 토큰 전송 실패: token={}, error={}, message={}", tokens.get(i), errorCode, exception.getMessage());
+            log.error("[FCM] 토큰 전송 실패: token={}, error={}, message={}", tokens.get(i), errorCode, exception.getMessage(), exception);
 
             if("INVALID_ARGUMENT".equals(errorCode) || "UNREGISTERED".equals(errorCode)) {
               log.error("[FCM] [CLEANUP] 잘못된 토큰 삭제 : token={}", tokens.get(i));
