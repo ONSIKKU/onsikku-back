@@ -53,14 +53,14 @@ public class FcmConfig {
                 }
 
                 FirebaseOptions options = FirebaseOptions.builder()
-                    .setCredentials(GoogleCredentials.fromStream(inputStream))
+                    .setCredentials(creds)
                     .build();
                 FirebaseApp.initializeApp(options);
                 log.info("FirebaseApp 초기화 완료! (경로: {})", firebaseConfigPath);
             }
 
         } catch (Exception e) {
-            log.error("FirebaseApp 초기화 실패: {}", e.getMessage());
+            log.error("FirebaseApp 초기화 실패: {}", e.getMessage(), e);
         }
     }
 }
