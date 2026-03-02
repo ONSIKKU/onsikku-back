@@ -37,6 +37,10 @@ public class FcmConfig {
                 return;
             }
 
+            log.info("[FCM] firebaseConfigPath={}", firebaseConfigPath);
+            log.info("[FCM] resource={}", resource);
+            log.info("[FCM] resource URL={}", resource.getURL());
+
             // 스트림으로 읽기
             try (InputStream inputStream = resource.getInputStream()) {
                 GoogleCredentials creds = GoogleCredentials.fromStream(inputStream);
