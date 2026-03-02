@@ -33,7 +33,7 @@ public class GlobalExceptionHandler {
     @ExceptionHandler({QueryTimeoutException.class, RedisConnectionFailureException.class})
     @ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR) // HTTP 500 상태 코드를 유지합니다.
     public ErrorResponse handleRedisException(Exception e) {
-        log.error("Redis Operation Failed (500): {}", e.getMessage(), e);
+        log.error("Redis Operation Failed (500): {}", e.getMessage());
         return new ErrorResponse(BaseResponseStatus.REDIS_OPERATION_FAILED);
     }
 
@@ -67,7 +67,7 @@ public class GlobalExceptionHandler {
             // 2. 오류 체인에서 구체적인 문제 엔티티/필드 추출 (선택적)
             String referenceChain = "확인된 오류 경로: " + ide.getPathReference();
 
-            log.error("[Hibernate Lazy Loading Error] {} - {}", errorMessage, referenceChain, ide);
+            log.error("[Hibernate Lazy Loading Error] {} - {}", errorMessage, referenceChain);
 
             // 사용자에게는 상세한 내부 스택 트레이스 대신 깔끔한 오류 응답 반환
             return new ErrorResponse(BaseResponseStatus.SERIALIZATION_ERROR);
