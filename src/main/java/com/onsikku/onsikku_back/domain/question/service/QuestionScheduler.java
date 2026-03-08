@@ -64,9 +64,9 @@ public class QuestionScheduler {
    * - 4시 30분에 만들어둔 데이터를 바탕으로, 실제 푸시 알림을 보냅니다.
    * - cron 설정을 "0 0 22 * * *"로 하면 밤 10시에 돕니다. (오전 10시면 "0 0 10 ...")
    */
-  @Scheduled(cron = "0 0 22 * * *", zone = "Asia/Seoul")
+  @Scheduled(cron = "10 0 22 * * *", zone = "Asia/Seoul")
   public void sendDailyQuestionNotifications() {
-    log.info("[PUSH] 오늘의 질문 알림 발송 시작 (22:00)");
+    log.info("[PUSH] 오늘의 질문 알림 발송 시작 (22:00:10)");
 
     int pageNumber = 0;
     Page<Family> familyPage;

@@ -1,6 +1,5 @@
 package com.onsikku.onsikku_back.domain.member.repository;
 
-import com.onsikku.onsikku_back.domain.member.domain.Family;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
 import com.onsikku.onsikku_back.domain.member.domain.SocialType;
 import org.springframework.data.jpa.repository.JpaRepository;

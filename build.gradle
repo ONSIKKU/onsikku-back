@@ -45,9 +45,6 @@ dependencies {
 	// OpenAPI Generator
 	implementation 'org.openapitools:jackson-databind-nullable:0.2.6'
 
-	// actuator
-	implementation 'org.springframework.boot:spring-boot-starter-actuator'
-
 	// firebase (notification)
 	implementation "com.google.firebase:firebase-admin:9.2.0"
 
