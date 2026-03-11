@@ -37,20 +37,20 @@ public class FcmConfig {
                 return;
             }
 
-            log.info("[FCM] firebaseConfigPath={}", firebaseConfigPath);
-            log.info("[FCM] resource={}", resource);
-            log.info("[FCM] resource URL={}", resource.getURL());
+            //log.info("[FCM] firebaseConfigPath={}", firebaseConfigPath);
+            //log.info("[FCM] resource={}", resource);
+            //log.info("[FCM] resource URL={}", resource.getURL());
 
             // 스트림으로 읽기
             try (InputStream inputStream = resource.getInputStream()) {
                 GoogleCredentials creds = GoogleCredentials.fromStream(inputStream);
 
-                if (creds instanceof ServiceAccountCredentials sac) {
-                    log.info("[FCM] using client_email={}", sac.getClientEmail());
-                    log.info("[FCM] using project_id={}", sac.getProjectId());
-                } else {
-                    log.info("[FCM] credentials type={}", creds.getClass().getName());
-                }
+                //if (creds instanceof ServiceAccountCredentials sac) {
+                    //log.info("[FCM] using client_email={}", sac.getClientEmail());
+                    //log.info("[FCM] using project_id={}", sac.getProjectId());
+                //} else {
+                    //log.info("[FCM] credentials type={}", creds.getClass().getName());
+                //}
 
                 FirebaseOptions options = FirebaseOptions.builder()
                     .setCredentials(creds)

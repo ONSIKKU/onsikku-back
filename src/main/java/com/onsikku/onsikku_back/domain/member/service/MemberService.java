@@ -75,7 +75,7 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteMember(Member member, DeleteMemberRequest request) {
+    public void deleteMember(Member member) {
         Member managedMember = memberRepository.findMemberWithFamily(member.getId())
             .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
 
@@ -90,8 +90,10 @@ public class MemberService {
         blockRepository.deleteByMemberId(managedMember.getId());       // 회원이 차단한 내역과, 회원을 차단한 내역 모두 삭제
         log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(managedMember.getId()).build()));
 
-        List<WithdrawalReason> reasons = request == null ? null : request.reasons();
-        String reasonDetail = request == null ? null : request.reasonDetail();
+        List<WithdrawalReason> reasons = List.of(WithdrawalReason.OTHER);
+            //request == null ? null : request.reasons();
+        String reasonDetail = "임시 사유";
+            //request == null ? null : request.reasonDetail();
         managedMember.withdraw("withdrawn_" + managedMember.getId(), reasons, reasonDetail);
         log.info("회원 탈퇴 익명화 처리 완료");
 

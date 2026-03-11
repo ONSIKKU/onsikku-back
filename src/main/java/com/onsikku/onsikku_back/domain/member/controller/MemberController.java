@@ -80,9 +80,13 @@ public class MemberController {
   @Operation(
       summary = "회원 탈퇴",
       description = """
+    ## 인증(JWT): **필요**
+    
     회원 탈퇴를 진행합니다.
     회원은 익명화 처리되며, 반응 데이터만 삭제됩니다.
-    탈퇴 사유를 복수 선택(reasons 배열)으로 저장할 수 있습니다.
+    탈퇴 후 해당 회원의 Refresh Token을 삭제하고, Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
+    
+    향후 탈퇴 사유를 복수 선택(reasons 배열)으로 저장할 수 있습니다. (현재는 불가능)
     탈퇴 사유(reasons) enum:
     QUESTION_QUALITY_LOW,         // 질문 퀄리티가 낮음
     QUESTIONS_TOO_PERSONAL,       // 질문이 사적/민감하게 느껴짐
@@ -94,15 +98,13 @@ public class MemberController {
     PRIVACY_CONCERN,              // 개인정보/프라이버시 우려
     FOUND_ALTERNATIVE,            // 대체 서비스 사용
     OTHER                         // 기타
-    탈퇴 후 해당 회원의 Refresh Token을 삭제하고, Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
-    ## 인증(JWT): **필요**
     """
   )
   public BaseResponse<Void> deleteMember(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
-      @RequestBody(required = false) DeleteMemberRequest deleteRequest,
+      //@RequestBody(required = false) DeleteMemberRequest deleteRequest,
       HttpServletRequest httpRequest) {
-    memberService.deleteMember(customUserDetails.getMember(), deleteRequest);
+    memberService.deleteMember(customUserDetails.getMember());
     authService.logout(customUserDetails.getMember().getId(), httpRequest);
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
