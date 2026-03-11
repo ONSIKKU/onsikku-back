@@ -22,6 +22,9 @@ public class CustomUserDetailsService implements UserDetailsService {
     public CustomUserDetails loadUserByUsername(String memberId) throws BaseException {
         Member member = memberRepository.findById(UUID.fromString(memberId))
                 .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
+        if (member.isWithdrawn()) {
+            throw new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND);
+        }
 
         return new CustomUserDetails(member);
     }

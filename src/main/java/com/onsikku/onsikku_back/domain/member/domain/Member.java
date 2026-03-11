@@ -8,6 +8,10 @@ import jakarta.persistence.*;
 import lombok.*;
 
 import java.time.LocalDate;
+import java.time.LocalDateTime;
+import java.util.LinkedHashSet;
+import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Entity
@@ -51,6 +55,18 @@ public class Member extends BaseEntity {
 
     private boolean isAlarmEnabled;
 
+    @Column(name = "withdrawn_at")
+    private LocalDateTime withdrawnAt;
+
+    @ElementCollection(fetch = FetchType.LAZY)
+    @CollectionTable(name = "member_withdrawal_reasons", joinColumns = @JoinColumn(name = "member_id"))
+    @Column(name = "reason", nullable = false, length = 50)
+    @Enumerated(EnumType.STRING)
+    private Set<WithdrawalReason> withdrawalReasons;
+
+    @Column(name = "withdrawal_reason_detail", columnDefinition = "text")
+    private String withdrawalReasonDetail;
+
     public void changeBirthDate(LocalDate birthDate) {
         this.birthDate = birthDate;
     }
@@ -69,6 +85,22 @@ public class Member extends BaseEntity {
 
     public void changeAlarmEnabled(boolean enabled) {
         this.isAlarmEnabled = enabled;
+    }
+
+    public boolean isWithdrawn() {
+        return this.withdrawnAt != null;
+    }
+
+    public void withdraw(String anonymizedSocialId, List<WithdrawalReason> reasons, String reasonDetail) {
+        this.nickname = "탈퇴한 사용자";
+        this.profileImageUrl = null;
+        this.isAlarmEnabled = false;
+        this.socialId = anonymizedSocialId;
+        this.withdrawalReasons = reasons == null
+            ? null
+            : new LinkedHashSet<>(reasons);
+        this.withdrawalReasonDetail = reasonDetail;
+        this.withdrawnAt = LocalDateTime.now();
     }
 
     public static Member from(SocialMemberInfo memberInfo, SocialSignupRequest request, Family family) {

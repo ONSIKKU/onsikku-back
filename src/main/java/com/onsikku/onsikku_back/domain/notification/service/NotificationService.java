@@ -41,7 +41,7 @@ public class NotificationService {
   // 오늘의 질문 알림 (차단 체크 O, 본인 포함 O)
   public void publishEvent(MemberQuestion memberQuestion) {
     List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(memberQuestion.getMember().getId());
-    for (Member receiver : memberRepository.findAllByFamily_Id(memberQuestion.getFamily().getId())) {
+    for (Member receiver : memberRepository.findAllByFamily_IdAndWithdrawnAtIsNull(memberQuestion.getFamily().getId())) {
       // 알림 설정 확인
       if (receiver.isAlarmEnabled() && !blockedIds.contains(receiver.getId())) {
         eventPublisher.publishEvent(new DailyQuestionEvent(receiver.getId(), receiver.getId().equals(memberQuestion.getMember().getId()), memberQuestion.getMember().getNickname(), memberQuestion.getId()));
@@ -51,7 +51,7 @@ public class NotificationService {
 
   // 일반 알림 (차단 체크 X, 본인 제외)
   public void publishEvent(Member sender, NotificationType type, List<String> args) {
-    for (Member receiver : memberRepository.findAllByFamily_Id(sender.getFamily().getId())) {
+    for (Member receiver : memberRepository.findAllByFamily_IdAndWithdrawnAtIsNull(sender.getFamily().getId())) {
       // 본인 제외 && 알림 설정 확인
       if (!receiver.getId().equals(sender.getId()) && receiver.isAlarmEnabled()) {
         eventPublisher.publishEvent(new NotificationEvent(receiver.getId(), type, args));
@@ -63,7 +63,7 @@ public class NotificationService {
   public void publishEvent(Member sender, NotificationType type, List<String> args, UUID memberQuestionId) {
     // 발신자의 양방향 차단 ID 리스트 확보
     List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(sender.getId());
-    for (Member receiver : memberRepository.findAllByFamily_Id(sender.getFamily().getId())) {
+    for (Member receiver : memberRepository.findAllByFamily_IdAndWithdrawnAtIsNull(sender.getFamily().getId())) {
       // 본인 제외 && 알림 설정 확인 && 차단 관계 필터링
       if (!receiver.getId().equals(sender.getId()) && receiver.isAlarmEnabled() && !blockedIds.contains(receiver.getId())) {
         eventPublisher.publishEvent(new NotificationEvent(receiver.getId(), type, args, memberQuestionId));

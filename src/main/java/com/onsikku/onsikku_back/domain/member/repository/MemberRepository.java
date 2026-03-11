@@ -17,12 +17,13 @@ public interface MemberRepository extends JpaRepository<Member, String> {
 
     Optional<Member> findById(UUID memberId);
     boolean existsBySocialId(String socialId);
-    void deleteById(UUID memberId);
 
     List<Member> findAllByFamily_Id(UUID familyId);
+    List<Member> findAllByFamily_IdAndWithdrawnAtIsNull(UUID familyId);
 
-    @Query("SELECT m.id FROM Member m WHERE m.family.id = :familyId")
-    List<UUID> findByFamily_Id(UUID familyId);
+    @Query("SELECT m.id FROM Member m WHERE m.family.id = :familyId AND m.withdrawnAt IS NULL")
+    List<UUID> findActiveMemberIdsByFamilyId(@Param("familyId") UUID familyId);
 
-    Optional<Member> findBySocialIdAndSocialType(String socialId, SocialType socialType);
+   Optional<Member> findBySocialIdAndSocialTypeAndWithdrawnAtIsNull(String socialId, SocialType socialType);
+    long countByFamily_IdAndWithdrawnAtIsNull(UUID familyId);
 }

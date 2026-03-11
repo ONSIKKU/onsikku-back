@@ -35,6 +35,9 @@ public class Family extends BaseEntity {
     @Column(nullable = false)
     private LocalDateTime lastAiQuestionDate;
 
+    @Column(name = "withdrawn_at")
+    private LocalDateTime withdrawnAt;
+
     public static Family registerNewFamily(String familyName, String invitationCode) {
         return Family.builder()
                 .familyName(familyName)
@@ -71,5 +74,15 @@ public class Family extends BaseEntity {
      */
     public void updateLastAiQuestionDate() {
         this.lastAiQuestionDate = LocalDateTime.now();
+    }
+
+    public boolean isWithdrawn() {
+        return this.withdrawnAt != null;
+    }
+
+    public void withdraw() {
+        this.isFamilyInviteEnabled = false;
+        this.invitationCode = null;
+        this.withdrawnAt = LocalDateTime.now();
     }
 }

@@ -41,6 +41,10 @@ public class QuestionCycleService {
   public void getOrGenerateCycleAndAssignQuestionForFamily(Family family, LocalDateTime sendTime) {
     QuestionCycle cycle = findOrCreateOrRefreshCycleForFamily(family);
     Member todayMember = findTodayMemberForFamily(cycle, family);
+    if (todayMember == null) {
+      log.info("가족 {}의 활성 회원이 없어 질문 할당을 건너뜁니다.", family.getId());
+      return;
+    }
 
     // 질문 할당 전, 조건이 맞으면 AI 질문을 생성하여 DB에 먼저 넣어둠
     checkAndPreGenerateAiQuestion(todayMember, family);
@@ -111,12 +115,14 @@ public class QuestionCycleService {
     Member todayMember = null;
     while (todayMember == null && !cycle.isFinished()) {
       UUID memberId = cycle.getTodayMemberId();
-      todayMember = memberRepository.findById(memberId).orElse(null);
+      todayMember = memberRepository.findById(memberId)
+          .filter(member -> !member.isWithdrawn())
+          .orElse(null);
 
       if (todayMember == null) {
         cycle.incrementIndex();     // 존재하지 않는 멤버면 인덱스만 올리고 다음 루프
         if (cycle.isFinished()) {   // 만약 스킵했는데 사이클이 끝났다면 다시 갱신 시도
-          cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
+          cycle.refreshCycle(memberRepository.findActiveMemberIdsByFamilyId(family.getId()));
         }
       }
     }
@@ -127,11 +133,11 @@ public class QuestionCycleService {
     // 활성화된 사이클 조회, 없으면 새로 생성
     log.info("Finding cycle for family {}", family.getId());
     QuestionCycle cycle = questionCycleRepository.findByFamily_Id(family.getId())
-        .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findByFamily_Id(family.getId())));
+        .orElseGet(() -> QuestionCycle.createNewCycle(family, memberRepository.findActiveMemberIdsByFamilyId(family.getId())));
 
     // 사이클이 끝났으면 새로 갱신
     if(cycle.isFinished()) {
-      cycle.refreshCycle(memberRepository.findByFamily_Id(family.getId()));
+      cycle.refreshCycle(memberRepository.findActiveMemberIdsByFamilyId(family.getId()));
     }
     return cycle;
   }

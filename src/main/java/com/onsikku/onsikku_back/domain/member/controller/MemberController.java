@@ -2,6 +2,7 @@ package com.onsikku.onsikku_back.domain.member.controller;
 
 
 import com.onsikku.onsikku_back.global.auth.domain.CustomUserDetails;
+import com.onsikku.onsikku_back.domain.member.dto.DeleteMemberRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.service.MemberService;
@@ -80,16 +81,29 @@ public class MemberController {
       summary = "회원 탈퇴",
       description = """
     회원 탈퇴를 진행합니다.
-    회원이 생성한 답변, 질문 할당, 댓글 및 회원 데이터를 삭제합니다.
+    회원은 익명화 처리되며, 반응 데이터만 삭제됩니다.
+    탈퇴 사유를 복수 선택(reasons 배열)으로 저장할 수 있습니다.
+    탈퇴 사유(reasons) enum:
+    QUESTION_QUALITY_LOW,         // 질문 퀄리티가 낮음
+    QUESTIONS_TOO_PERSONAL,       // 질문이 사적/민감하게 느껴짐
+    QUESTIONS_TOO_BURDENSOME,     // 질문 답변이 심리적으로 부담됨
+    NOT_ENOUGH_FAMILY_ACTIVITY,   // 가족 참여가 적어 앱을 쓰기 어려움
+    APP_USABILITY_ISSUE,          // UX가 불편함
+    TECHNICAL_ISSUE,              // 버그/성능 이슈
+    TOO_MANY_NOTIFICATIONS,       // 알림이 많음
+    PRIVACY_CONCERN,              // 개인정보/프라이버시 우려
+    FOUND_ALTERNATIVE,            // 대체 서비스 사용
+    OTHER                         // 기타
     탈퇴 후 해당 회원의 Refresh Token을 삭제하고, Access Token을 블랙리스트에 추가하여 즉시 무효화합니다.
     ## 인증(JWT): **필요**
     """
   )
   public BaseResponse<Void> deleteMember(
       @AuthenticationPrincipal CustomUserDetails customUserDetails,
-      HttpServletRequest request) {
-    memberService.deleteMember(customUserDetails.getMember());
-    authService.logout(customUserDetails.getMember().getId(), request);
+      @RequestBody(required = false) DeleteMemberRequest deleteRequest,
+      HttpServletRequest httpRequest) {
+    memberService.deleteMember(customUserDetails.getMember(), deleteRequest);
+    authService.logout(customUserDetails.getMember().getId(), httpRequest);
     return new BaseResponse<>(BaseResponseStatus.SUCCESS);
   }
 }

@@ -77,7 +77,7 @@ public class AuthService {
     }
 
     // 사용자 정보를 기반으로 회원 정보를 조회합니다.
-    Optional<Member> existingMember = memberRepository.findBySocialIdAndSocialType(memberInfo.socialId(), socialType);
+    Optional<Member> existingMember = memberRepository.findBySocialIdAndSocialTypeAndWithdrawnAtIsNull(memberInfo.socialId(), socialType);
     AuthResponse authResponse;
     if (existingMember.isPresent()) {   // 이미 등록된 회원인 경우 JWT 토큰을 생성
       String refreshToken = jwtProvider.generateRefreshTokenFromMember(existingMember.get());
@@ -219,7 +219,7 @@ public class AuthService {
       throw new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE);
     }
 
-    return familyRepository.findByInvitationCode(request.familyInvitationCode())
+    return familyRepository.findByInvitationCodeAndWithdrawnAtIsNull(request.familyInvitationCode())
         .orElseThrow(() -> new BaseException(BaseResponseStatus.INVALID_FAMILY_INVITATION_CODE));
   }
   /*

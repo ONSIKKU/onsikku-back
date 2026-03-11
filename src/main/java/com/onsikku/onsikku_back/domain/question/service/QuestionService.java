@@ -114,7 +114,7 @@ public class QuestionService {
                 .build();
         }
         response.setFamilyMembers(
-            memberRepository.findAllByFamily_Id(member.getFamily().getId())
+            memberRepository.findAllByFamily_IdAndWithdrawnAtIsNull(member.getFamily().getId())
                 .stream()
                 .filter(m -> !blockedIds.contains(m.getId()))   // 차단 양방향 필터링
                 .toList()

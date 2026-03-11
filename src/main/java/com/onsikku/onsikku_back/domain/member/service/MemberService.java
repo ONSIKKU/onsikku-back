@@ -2,11 +2,10 @@ package com.onsikku.onsikku_back.domain.member.service;
 
 import com.onsikku.onsikku_back.domain.ai.dto.request.AiQuestionRequest;
 import com.onsikku.onsikku_back.domain.ai.service.AiRequestService;
-import com.onsikku.onsikku_back.domain.answer.domain.Answer;
-import com.onsikku.onsikku_back.domain.answer.repository.AnswerRepository;
-import com.onsikku.onsikku_back.domain.answer.repository.CommentRepository;
 import com.onsikku.onsikku_back.domain.answer.repository.ReactionRepository;
 import com.onsikku.onsikku_back.domain.member.domain.Family;
+import com.onsikku.onsikku_back.domain.member.domain.WithdrawalReason;
+import com.onsikku.onsikku_back.domain.member.dto.DeleteMemberRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageRequest;
 import com.onsikku.onsikku_back.domain.member.dto.MypageResponse;
 import com.onsikku.onsikku_back.domain.member.domain.Member;
@@ -15,7 +14,6 @@ import com.onsikku.onsikku_back.domain.member.repository.FamilyRepository;
 import com.onsikku.onsikku_back.domain.member.repository.MemberRepository;
 import com.onsikku.onsikku_back.domain.member.util.InvitationCodeGenerator;
 import com.onsikku.onsikku_back.domain.notification.repository.FcmTokenRepository;
-import com.onsikku.onsikku_back.domain.question.service.QuestionService;
 import com.onsikku.onsikku_back.global.exception.BaseException;
 import com.onsikku.onsikku_back.global.response.BaseResponseStatus;
 import lombok.RequiredArgsConstructor;
@@ -34,10 +32,7 @@ public class MemberService {
 
     private final MemberRepository memberRepository;
     private final FamilyRepository familyRepository;
-    private final AnswerRepository answerRepository;
-    private final CommentRepository commentRepository;
     private final InvitationCodeGenerator invitationCodeGenerator;
-    private final QuestionService questionService;
     private final ReactionRepository reactionRepository;
     private final FcmTokenRepository fcmTokenRepository;
     private final AiRequestService aiRequestService;
@@ -80,28 +75,30 @@ public class MemberService {
     }
 
     @Transactional
-    public void deleteMember(Member member) {
-        // TODO : 회원이 생성한 답변 softDelete 처리
-        // TODO : 회원이 생성한 댓글 성능 고려한 쿼리로 수정
-        List<Answer> answers = answerRepository.findAllByMember_Id(member.getId());
-        log.info("회원이 생성한 답변 조회 완료: {}건", answers.size());
-        log.info("회원이 생성한 댓글 삭제 완료 : {} 개", commentRepository.deleteAllByMember(member));
-        log.info("회원이 생성한 반응 삭제 완료 : {} 개", reactionRepository.deleteAllByMember(member));
-        // log.info("회원이 생성한 답변 삭제 완료 : {} 개", answerRepository.deleteAllByMember(member)); TODO : 삭제 정책 고도화 가능
-        // TODO : 회원 삭제 softDelete 처리
-        UUID familyId = member.getFamily().getId();
-        log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(member.getId()));
-        blockRepository.deleteByMemberId(member.getId());       // 회원이 차단한 내역과, 회원을 차단한 내역 모두 삭제
-        log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(member.getId()).build()));
-        memberRepository.deleteById(member.getId());
-        log.info("회원 삭제 완료");
-        if(memberRepository.findAllByFamily_Id(familyId).isEmpty()) {
-            log.info("가족에 속한 회원이 없어 가족 데이터 삭제를 진행합니다.");
-            answerRepository.deleteAllByFamily_Id(familyId);        // 답변 전체 제거
-            questionService.deleteFamilyData(familyId);
-            familyRepository.deleteById(familyId);
-            // TODO : 가족 레포트 삭제 필요
-            log.info("회원의 가족 삭제 완료");
+    public void deleteMember(Member member, DeleteMemberRequest request) {
+        Member managedMember = memberRepository.findMemberWithFamily(member.getId())
+            .orElseThrow(() -> new BaseException(BaseResponseStatus.MEMBER_NOT_FOUND));
+
+        if (managedMember.isWithdrawn()) {
+            log.info("이미 탈퇴 처리된 회원입니다. memberId={}", managedMember.getId());
+            return;
+        }
+
+        log.info("회원이 생성한 반응 삭제 완료 : {} 개", reactionRepository.deleteAllByMember(managedMember));
+        UUID familyId = managedMember.getFamily().getId();
+        log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(managedMember.getId()));
+        blockRepository.deleteByMemberId(managedMember.getId());       // 회원이 차단한 내역과, 회원을 차단한 내역 모두 삭제
+        log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(managedMember.getId()).build()));
+
+        List<WithdrawalReason> reasons = request == null ? null : request.reasons();
+        String reasonDetail = request == null ? null : request.reasonDetail();
+        managedMember.withdraw("withdrawn_" + managedMember.getId(), reasons, reasonDetail);
+        log.info("회원 탈퇴 익명화 처리 완료");
+
+        if (memberRepository.countByFamily_IdAndWithdrawnAtIsNull(familyId) == 0) {
+            log.info("가족 내 활성 회원이 없어 가족을 soft delete 처리합니다.");
+            managedMember.getFamily().withdraw();
+            log.info("가족 soft delete 처리 완료");
         }
     }
 

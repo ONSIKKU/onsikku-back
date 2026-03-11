@@ -40,7 +40,7 @@ public class QuestionScheduler {
 
     do {
       Pageable pageable = PageRequest.of(pageNumber, PAGE_SIZE);
-      familyPage = familyRepository.findAll(pageable);
+      familyPage = familyRepository.findAllByWithdrawnAtIsNull(pageable);
 
       log.info("[BATCH] Processing page: {}, Families: {}", pageNumber, familyPage.getNumberOfElements());
 
@@ -72,7 +72,7 @@ public class QuestionScheduler {
     Page<Family> familyPage;
 
     do {
-      familyPage = familyRepository.findAll(PageRequest.of(pageNumber, PAGE_SIZE));
+      familyPage = familyRepository.findAllByWithdrawnAtIsNull(PageRequest.of(pageNumber, PAGE_SIZE));
 
       for (Family family : familyPage.getContent()) {
         try {
