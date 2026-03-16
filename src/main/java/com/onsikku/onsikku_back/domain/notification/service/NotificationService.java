@@ -92,7 +92,10 @@ public class NotificationService {
     List<String> tokens = fcmTokenService.getTokensByMember(member);
     if (!tokens.isEmpty()) {
       sendFcmMulticast(tokens, title, body, payload);
+      return;
     }
+
+    log.info("FCM 토큰이 없어 푸시 알림을 건너뜁니다: memberId={}, type={}", memberId, type);
   }
 
   // 다중 기기 알림 전송 (멀티캐스트)

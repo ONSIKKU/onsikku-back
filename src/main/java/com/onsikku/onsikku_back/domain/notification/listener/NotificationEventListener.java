@@ -17,7 +17,8 @@ public class NotificationEventListener {
   private final NotificationService notificationService;
 
   @Async("notificationTaskExecutor")  // 별도 스레드에서 실행 (메인 로직 성능 영향 X)
-  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT)
+  // 스케줄러는 트랜잭션 없이 실행되기에, 트랜잭션이 없으면 즉시 실행되도록 fallbackExecution = true 설정
+  @TransactionalEventListener(phase = TransactionPhase.AFTER_COMMIT, fallbackExecution = true)
   public void handleNotificationEvent(NotificationEvent event) {
     try {
       log.info("알림 이벤트 수신: type={}, target={}", event.getNotificationType(), event.getTargetMemberId());
