@@ -88,7 +88,7 @@ public class MemberService {
         UUID familyId = managedMember.getFamily().getId();
         log.info("회원이 로그인한 모든 기기의 fcm 토큰 삭제 완료 : {} 개", fcmTokenRepository.deleteAllByMember_Id(managedMember.getId()));
         blockRepository.deleteByMemberId(managedMember.getId());       // 회원이 차단한 내역과, 회원을 차단한 내역 모두 삭제
-        log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(managedMember.getId()).build()));
+        //log.info("회원 관련 AI 데이터 삭제 완료 : {} 개", aiRequestService.requestMemberDataDeletion(AiQuestionRequest.builder().memberId(managedMember.getId()).build()));
 
         List<WithdrawalReason> reasons = List.of(WithdrawalReason.OTHER);
             //request == null ? null : request.reasons();

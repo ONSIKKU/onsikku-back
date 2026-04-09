@@ -61,8 +61,7 @@ public class AnswerService {
             request.answerType(), request.content()));
         memberQuestion.markAsAnswered();
         // AI 분석 요청
-        aiRequestService.requestPersonalQuestionGeneration(AiQuestionRequest.of(
-            todayMember, memberQuestion.getContent(), newAnswer.extractTextContent(), LocalDateTime.now().toString()));
+        //aiRequestService.requestPersonalQuestionGeneration(AiQuestionRequest.of(todayMember, memberQuestion.getContent(), newAnswer.extractTextContent(), LocalDateTime.now().toString()));
         notificationService.publishEvent(todayMember, NotificationType.ANSWER_ADDED, List.of(todayMember.getNickname()), memberQuestion.getId());
         return AnswerResponse.from(newAnswer);
     }

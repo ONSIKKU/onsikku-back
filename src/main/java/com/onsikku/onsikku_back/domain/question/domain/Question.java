@@ -7,8 +7,6 @@ import lombok.Builder;
 import lombok.Getter;
 import lombok.NoArgsConstructor;
 
-import java.time.LocalDateTime;
-
 @Getter
 @Builder
 @AllArgsConstructor
@@ -17,13 +15,19 @@ import java.time.LocalDateTime;
 @Table(name = "question")
 public class Question extends BaseEntity {
   @Id
-  @Column(length = 5)
+  @Column(length = 20)
   private String id;
 
   @Column(columnDefinition = "text", nullable = false)
   private String content;
 
+  @Column(length = 20, nullable = false)
   private String category;
 
+  @Column(nullable = false)
   private int level;
+
+  @Column(name = "is_active", nullable = false)
+  @Builder.Default
+  private Boolean isActive = true;
 }
