@@ -62,6 +62,7 @@ public class Member extends BaseEntity {
     @CollectionTable(name = "member_withdrawal_reasons", joinColumns = @JoinColumn(name = "member_id"))
     @Column(name = "reason", nullable = false, length = 50)
     @Enumerated(EnumType.STRING)
+    @JsonIgnore
     private Set<WithdrawalReason> withdrawalReasons;
 
     @Column(name = "withdrawal_reason_detail", columnDefinition = "text")
