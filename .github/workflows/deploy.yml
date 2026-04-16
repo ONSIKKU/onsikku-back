@@ -82,6 +82,9 @@ jobs:
             JWT_EXPIRATION_TIME=${{ secrets.JWT_EXPIRATION_TIME }}
             JWT_REFRESH_EXPIRATION_TIME=${{ secrets.JWT_REFRESH_EXPIRATION_TIME }}
             AI_SERVER_BASE_URL=${{ secrets.AI_SERVER_BASE_URL }}
+            SPRING_PROFILES_ACTIVE=prod
+            JPA_DDL_AUTO=validate
+            APP_ALLOW_DESTRUCTIVE_DDL=false
 
             # Compose용
             DOCKER_USERNAME=${{ secrets.DOCKER_USERNAME }}

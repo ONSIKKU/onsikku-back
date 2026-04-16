@@ -33,6 +33,7 @@ services:
     environment:
       - REDIS_HOST=onsikku-redis    # application.yml redis 설정
       - REDIS_PASSWORD=${REDIS_PASSWORD}
+      - SPRING_PROFILES_ACTIVE=prod
       - TZ=Asia/Seoul
       - FCM_CONFIG_PATH=file:/app/firebase/firebase-admin-sdk.json    # application.yml의 fcm.config.path 값을 덮어씌움
     volumes:
