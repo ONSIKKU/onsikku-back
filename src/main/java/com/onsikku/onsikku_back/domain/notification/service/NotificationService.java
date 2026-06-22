@@ -38,14 +38,20 @@ public class NotificationService {
   private final SafetyService safetyService;
   private final ApplicationEventPublisher eventPublisher;
 
-  // 오늘의 질문 알림 (차단 체크 O, 본인 포함 O)
+  // 오늘의 질문 알림 (주인공 본인에게만 발송)
   public void publishEvent(MemberQuestion memberQuestion) {
-    List<UUID> blockedIds = safetyService.getRelatedWithBlockIds(memberQuestion.getMember().getId());
-    for (Member receiver : memberRepository.findAllByFamily_IdAndWithdrawnAtIsNull(memberQuestion.getFamily().getId())) {
-      // 알림 설정 확인
-      if (receiver.isAlarmEnabled() && !blockedIds.contains(receiver.getId())) {
-        eventPublisher.publishEvent(new DailyQuestionEvent(receiver.getId(), receiver.getId().equals(memberQuestion.getMember().getId()), memberQuestion.getMember().getNickname(), memberQuestion.getId()));
-      }
+    Member targetMember = memberQuestion.getMember();
+    if (targetMember.isWithdrawn()) {
+      return;
+    }
+
+    if (targetMember.isAlarmEnabled()) {
+      eventPublisher.publishEvent(new DailyQuestionEvent(
+          targetMember.getId(),
+          true,
+          targetMember.getNickname(),
+          memberQuestion.getId()
+      ));
     }
   }
 
